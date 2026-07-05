@@ -9,5 +9,7 @@ services:
     envVars:
       - key: GROQ_API_KEY
         sync: false          # set this in the Render dashboard, never in git
+      - key: SECRET_KEY
+        generateValue: true  # random session-signing key (code default is public)
       - key: PYTHON_VERSION
         value: "3.12.7"
