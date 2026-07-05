@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SilentHelp</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500;1,600&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+  html, body { margin: 0; padding: 0; }
+  .pf { font-family: 'Playfair Display', serif; font-style: italic; font-weight: 500; }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-thumb { background: #d6dee7; border-radius: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  @keyframes emBreath { 0%,100%{transform:scale(1)} 50%{transform:scale(1.022)} }
+  @keyframes emGlow { 0%,100%{opacity:.5} 50%{opacity:.9} }
+  @keyframes screenIn { 0%{opacity:0;transform:translateY(16px)} 100%{opacity:1;transform:translateY(0)} }
+  @keyframes surface { 0%{opacity:0;transform:translateY(10px)} 100%{opacity:1;transform:translateY(0)} }
+  @keyframes fadeBg { 0%{opacity:0} 100%{opacity:1} }
+  @keyframes ripple { 0%{transform:scaleX(0);opacity:0} 100%{transform:scaleX(1);opacity:1} }
+  @keyframes dotPulse { 0%,100%{opacity:.3} 50%{opacity:1} }
+  .screen-anim { animation: screenIn .6s cubic-bezier(.16,1,.3,1); }
+  .hov:hover { filter: brightness(.96); }
+  .hovup { transition: all .25s; }
+  .hovup:hover { transform: translateY(-2px); }
+  .typing-dot { width:6px; height:6px; border-radius:50%; background:#9aa7b3; display:inline-block; animation:dotPulse 1.3s infinite; }
+  .typing-dot:nth-child(2){animation-delay:.2s} .typing-dot:nth-child(3){animation-delay:.4s}
+  .onb-step { margin-left:auto; margin-right:auto; }
+  /* Apple-style Liquid Glass buttons */
+  /* Apple-style white Liquid Glass — frosted, translucent, dark text */
+  .glass { position:relative; border:none !important; cursor:pointer; color:#1b2430 !important; font-weight:600; font-family:inherit;
+    background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.5)) !important;
+    -webkit-backdrop-filter:blur(22px) saturate(150%); backdrop-filter:blur(22px) saturate(150%);
+    box-shadow:0 10px 26px rgba(20,40,80,.20), 0 2px 6px rgba(20,40,80,.10),
+      inset 0 1.5px 1px rgba(255,255,255,.95), inset 0 -10px 18px rgba(255,255,255,.55),
+      inset 0 0 0 1px rgba(255,255,255,.7) !important;
+    transition:transform .15s ease, box-shadow .2s ease, filter .2s ease; }
+  .glass:hover { transform:translateY(-1px); filter:brightness(1.03);
+    box-shadow:0 16px 34px rgba(20,40,80,.26), inset 0 1.5px 1px rgba(255,255,255,1), inset 0 -10px 18px rgba(255,255,255,.6), inset 0 0 0 1px rgba(255,255,255,.8) !important; }
+  .glass:active { transform:scale(.97); }
+  .glass.ghost { background:linear-gradient(180deg, rgba(255,255,255,.6), rgba(248,250,253,.4)) !important; color:#46535f !important;
+    box-shadow:0 6px 16px rgba(20,40,80,.10), inset 0 1px 1px rgba(255,255,255,.9), inset 0 0 0 1px rgba(10,40,80,.05) !important; }
+  .glass.ghost:hover { filter:brightness(1.01); }
+</style>
+</head>
+<body>
+<div style="height:100vh; background:#f6f8fb; display:flex; align-items:stretch; justify-content:center;">
+  <div style="position:relative; width:100%; height:100vh; overflow:hidden; background:#fff; display:flex; flex-direction:column;">
+
+    <!-- ════ ONBOARDING ════ -->
+    <div id="scr-onboarding" class="screen-anim" style="position:relative; z-index:5; flex:1; min-height:0; overflow-y:auto; background:radial-gradient(120% 90% at 50% 0%, #f2f8ff, #f6f9fc 60%, #eef3f9);">
+     <div class="onb-center" style="min-height:100%; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:56px 40px;">
+
+      <!-- step 1 · welcome -->
+      <div class="onb-step" id="onb-1">
+        <div style="width:74px; height:74px; border-radius:50%; margin:0 auto 38px; background:radial-gradient(circle at 50% 38%, #7cc4ff, #007aff 56%, #0049c4 100%); box-shadow:0 16px 44px rgba(0,122,255,.4), inset 0 0 18px rgba(180,220,255,.5); animation:emBreath 6s ease-in-out infinite;"></div>
+        <div style="font-size:13px; letter-spacing:.34em; text-transform:uppercase; color:#7a93ad;">SilentHelp</div>
+        <div class="pf" style="font-size:clamp(2.6rem,6vw,3.5rem); line-height:1.02; color:#0e1822; margin-top:18px; max-width:760px; letter-spacing:-.01em;">It notices what stays<br/>beneath the surface.</div>
+        <div style="font-size:16px; color:#5e6f7e; line-height:1.7; margin:26px auto 0; max-width:500px; font-weight:300;">A quiet companion that learns your rhythm and feels when you're running low — long before you'd think to ask for help. Everything stays on your Mac.</div>
+        <button class="hovup glass" onclick="App.onb(2)" style="margin-top:40px; display:inline-flex; align-items:center; gap:13px; background:#007aff; color:#fff; border:none; border-radius:999px; padding:15px 18px 15px 30px; font-size:15px; font-weight:600; cursor:pointer; box-shadow:0 12px 34px rgba(0,122,255,.35);">
+          Begin <span style="width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,.22); display:flex; align-items:center; justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+        </button>
+        <div style="font-size:11.5px; color:#9aa7b3; margin-top:34px; letter-spacing:.02em;">Not a medical product · doesn't diagnose · you're always in control</div>
+      </div>
+
+      <!-- step 2 · the four layers -->
+      <div class="onb-step" id="onb-2" style="display:none; max-width:480px;">
+        <div style="font-size:13px; letter-spacing:.3em; text-transform:uppercase; color:#7a93ad;">How it works</div>
+        <div class="pf" style="font-size:clamp(2rem,5vw,2.8rem); color:#0e1822; margin-top:14px; letter-spacing:-.02em;">Four quiet layers</div>
+        <div style="display:flex; flex-direction:column; gap:13px; margin-top:30px; text-align:left;">
+          <div style="display:flex; gap:14px; align-items:flex-start;"><div style="width:26px; height:26px; border-radius:8px; background:#eef5ff; color:#007aff; font-size:12px; font-weight:700; display:grid; place-items:center; flex-shrink:0;">1</div><div><div style="font-size:14px; font-weight:600; color:#16202b;">Keyword scan</div><div style="font-size:12.5px; color:#7a8b99; font-weight:300;">A local word list. No AI, instant.</div></div></div>
+          <div style="display:flex; gap:14px; align-items:flex-start;"><div style="width:26px; height:26px; border-radius:8px; background:#eef5ff; color:#007aff; font-size:12px; font-weight:700; display:grid; place-items:center; flex-shrink:0;">2</div><div><div style="font-size:14px; font-weight:600; color:#16202b;">Semantic context</div><div style="font-size:12.5px; color:#7a8b99; font-weight:300;">Reads meaning, not just words.</div></div></div>
+          <div style="display:flex; gap:14px; align-items:flex-start;"><div style="width:26px; height:26px; border-radius:8px; background:#eef5ff; color:#007aff; font-size:12px; font-weight:700; display:grid; place-items:center; flex-shrink:0;">3</div><div><div style="font-size:14px; font-weight:600; color:#16202b;">Behavioral rhythm</div><div style="font-size:12.5px; color:#7a8b99; font-weight:300;">Tab-switching, typing pace, late nights — vs your own baseline. Reads no text.</div></div></div>
+          <div style="display:flex; gap:14px; align-items:flex-start;"><div style="width:26px; height:26px; border-radius:8px; background:#eef5ff; color:#007aff; font-size:12px; font-weight:700; display:grid; place-items:center; flex-shrink:0;">4</div><div><div style="font-size:14px; font-weight:600; color:#16202b;">Trend gate</div><div style="font-size:12.5px; color:#7a8b99; font-weight:300;">Only a sustained pattern surfaces a moment.</div></div></div>
+        </div>
+        <button class="hovup glass" onclick="App.onb(3)" style="margin-top:34px; background:#007aff; color:#fff; border:none; border-radius:999px; padding:14px 34px; font-size:15px; font-weight:600; cursor:pointer; box-shadow:0 12px 34px rgba(0,122,255,.3);">Continue</button>
+      </div>
+
+      <!-- step 3 · trusted contact + finish -->
+      <div class="onb-step" id="onb-3" style="display:none; max-width:460px;">
+        <div style="font-size:13px; letter-spacing:.3em; text-transform:uppercase; color:#7a93ad;">You're in control</div>
+        <div class="pf" style="font-size:clamp(2rem,5vw,2.8rem); color:#0e1822; margin-top:14px; letter-spacing:-.02em;">One person we can reach</div>
+        <div style="font-size:14.5px; color:#5e6f7e; line-height:1.7; margin:20px 0 22px; font-weight:300;">If — and only if — all four layers cross the line over several days, SilentHelp can prepare one private note to someone you trust. You can change or remove this anytime.</div>
+        <input id="onbContact" placeholder="e.g. Ms. Rivera — School Counselor" style="width:100%; height:48px; border:1px solid #dde6ef; border-radius:12px; padding:0 16px; font-size:14px; outline:none; color:#16202b; background:#fff;" />
+        <button class="hovup glass" onclick="App.finishOnboarding()" style="margin-top:26px; background:#007aff; color:#fff; border:none; border-radius:999px; padding:15px 38px; font-size:15px; font-weight:600; cursor:pointer; box-shadow:0 12px 34px rgba(0,122,255,.35);">You're all set</button>
+        <div style="font-size:11.5px; color:#9aa7b3; margin-top:26px; font-weight:300;">Nothing is ever sent without your say-so.</div>
+      </div>
+     </div>
+    </div>
+
+    <!-- ════ SIGN IN (gate) ════ -->
+    <div id="scr-auth" class="screen-anim" style="display:none; position:relative; z-index:6; flex:1; min-height:0; overflow-y:auto; background:radial-gradient(120% 90% at 50% 0%, #f2f8ff, #f6f9fc 60%, #eef3f9);">
+      <div style="min-height:100%; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:56px 40px;">
+        <div style="width:64px; height:64px; border-radius:50%; margin-bottom:30px; background:radial-gradient(circle at 50% 38%, #7cc4ff, #007aff 56%, #0049c4 100%); box-shadow:0 14px 40px rgba(0,122,255,.38); animation:emBreath 6s ease-in-out infinite;"></div>
+        <div style="font-size:12px; letter-spacing:.32em; text-transform:uppercase; color:#7a93ad;">SilentHelp</div>
+        <div class="pf" style="font-size:clamp(2rem,5vw,2.7rem); color:#0e1822; margin-top:12px; letter-spacing:-.01em; text-align:center;">Your own quiet space.</div>
+        <div style="font-size:14px; color:#5e6f7e; margin-top:12px; font-weight:300; text-align:center; max-width:400px; line-height:1.65;">Sign in so everything here — your battery, chat, and history — is yours alone. Nobody else can see it.</div>
+        <div style="width:100%; max-width:400px; margin-top:30px; background:#fff; border:1px solid #eef2f6; border-radius:18px; padding:24px; box-shadow:0 20px 60px rgba(20,40,80,.08);">
+          <input id="gateName" placeholder="Your name (for sign up)" style="width:100%; height:46px; border:1px solid #dde6ef; border-radius:11px; padding:0 15px; font-size:13.5px; outline:none; color:#16202b; background:#fff; margin-bottom:10px;" />
+          <input id="gateEmail" type="email" placeholder="you@email.com" style="width:100%; height:46px; border:1px solid #dde6ef; border-radius:11px; padding:0 15px; font-size:13.5px; outline:none; color:#16202b; background:#fff; margin-bottom:10px;" />
+          <input id="gatePass" type="password" placeholder="Password (6+ characters)" style="width:100%; height:46px; border:1px solid #dde6ef; border-radius:11px; padding:0 15px; font-size:13.5px; outline:none; color:#16202b; background:#fff;" />
+          <div id="gateErr" style="font-size:12.5px; color:#d2381f; margin-top:10px; display:none;"></div>
+          <button class="glass" onclick="App.gateAuth('signup')" style="width:100%; margin-top:16px; border-radius:12px; padding:14px; font-size:14.5px; font-weight:600; background:#007aff !important; color:#fff !important;">Create my space</button>
+          <button class="glass ghost" onclick="App.gateAuth('login')" style="width:100%; margin-top:10px; border-radius:12px; padding:13px; font-size:14px; font-weight:600;">I already have an account — sign in</button>
+        </div>
+        <div style="font-size:11.5px; color:#9aa7b3; margin-top:24px; font-weight:300; text-align:center; max-width:380px; line-height:1.6;">Private by design · your data is stored only in your own account file · nothing is shared with other people who use this link</div>
+      </div>
+    </div>
+
+    <!-- ════ APP ════ -->
+    <div id="appview" style="display:none; position:relative; z-index:5; flex:1; min-height:0;">
+      <div style="display:flex; height:100%;">
+
+        <!-- SIDEBAR -->
+        <div style="width:218px; flex-shrink:0; padding:8px 14px 18px; display:flex; flex-direction:column; background:#f8fafc; border-right:1px solid #eef2f6;">
+          <div style="display:flex; align-items:center; gap:11px; padding:6px 10px 22px;">
+            <div style="width:22px; height:22px; border-radius:50%; background:radial-gradient(circle at 50% 38%, #7cc4ff, #007aff 60%, #0049c4); box-shadow:0 3px 10px rgba(0,122,255,.4);"></div>
+            <span style="font-size:15px; font-weight:700; color:#1a2632; letter-spacing:.01em;">SilentHelp</span>
+          </div>
+          <div class="navitem" data-screen="dashboard" onclick="App.go('dashboard')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Dashboard</div>
+          <div class="navitem" data-screen="analytics" onclick="App.go('analytics')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Analytics</div>
+          <div class="navitem" data-screen="reports" onclick="App.go('reports')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Findings</div>
+          <div class="navitem" data-screen="moments" onclick="App.go('moments')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Moments</div>
+          <div class="navitem" data-screen="chat" onclick="App.go('chat')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Coping Chat</div>
+          <div class="navitem" data-screen="connection" onclick="App.go('connection')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Connection</div>
+          <div class="navitem" data-screen="settings" onclick="App.go('settings')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Settings</div>
+          <div class="navitem" data-screen="account" onclick="App.go('account')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Account</div>
+          <div style="flex:1;"></div>
+          <div id="snoozeChip" onclick="App.clearSnooze()" style="display:none; margin:0 2px 8px; padding:9px 12px; border-radius:9px; background:#fff8ea; border:1px solid #f0e2c0; font-size:11.5px; color:#a4701f; cursor:pointer; font-weight:600;"></div>
+          <div id="sideUser" onclick="App.go('account')" style="display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; background:#fff; border:1px solid #e6ecf2; cursor:pointer;">
+            <div id="sideAvatar" style="width:26px; height:26px; border-radius:50%; background:radial-gradient(circle at 50% 38%, #7cc4ff, #007aff 60%, #0049c4); color:#fff; font-size:11px; font-weight:700; display:grid; place-items:center;">·</div>
+            <div style="min-width:0;"><div id="sideName" style="font-size:12.5px; font-weight:600; color:#1a2632; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Not signed in</div>
+            <div style="font-size:10.5px; color:#9aa7b3; font-weight:300;">Your private space</div></div>
+          </div>
+        </div>
+
+        <!-- CONTENT -->
+        <div style="flex:1; min-width:0; overflow:auto; background:#f6f8fb;">
+
+          <!-- DASHBOARD -->
+          <div class="appscreen" id="scr-dashboard" style="display:none;">
+            <div class="screen-anim" style="padding:34px 40px;">
+              <div style="font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:#7a93ad;" id="dashDate">Surface conditions</div>
+              <div class="pf" style="font-size:40px; color:#0e1822; margin-top:8px; line-height:1;" id="dashGreet">Good afternoon.</div>
+
+              <div style="display:flex; gap:44px; margin-top:38px; align-items:center; flex-wrap:wrap;">
+                <!-- orb -->
+                <div style="flex-shrink:0; display:flex; flex-direction:column; align-items:center; width:300px;">
+                  <div style="position:relative; width:236px; height:236px; animation:emBreath 7s ease-in-out infinite;">
+                    <div style="position:absolute; inset:-30px; border-radius:50%; background:radial-gradient(circle at 50% 56%, rgba(0,122,255,.32), transparent 64%); animation:emGlow 7s ease-in-out infinite;"></div>
+                    <div style="position:absolute; inset:0; border-radius:50%; overflow:hidden; background:#eef4fb; box-shadow:inset 0 2px 18px rgba(0,60,140,.12), 0 18px 50px rgba(0,122,255,.18);">
+                      <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:172px; height:172px; border-radius:50%; background:radial-gradient(circle at 50% 40%, #b6e0ff 0%, #5ab0ff 30%, #007aff 56%, #0055c8 78%, #003a94 100%); box-shadow:0 0 50px rgba(0,122,255,.35);"></div>
+                      <div style="position:absolute; left:34%; top:30%; width:42px; height:26px; border-radius:50%; background:rgba(255,255,255,.55); filter:blur(8px);"></div>
+                    </div>
+                    <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                      <div style="font-size:58px; font-weight:300; color:#fff; letter-spacing:-.03em; line-height:1;" id="battNum">76</div>
+                      <div style="font-size:10.5px; font-weight:700; letter-spacing:.18em; color:#cfe6ff; margin-top:2px;" id="battLabel">CHARGED</div>
+                    </div>
+                  </div>
+                  <div style="font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:#7a93ad; margin-top:24px;">Mental Battery</div>
+                  <div style="font-size:13px; color:#5e6f7e; margin-top:9px; text-align:center; line-height:1.6; font-weight:300;" id="battDelta">Learning your rhythm.</div>
+                </div>
+
+                <!-- readings -->
+                <div style="flex:1; display:flex; flex-direction:column;">
+                  <div style="display:flex; align-items:baseline; justify-content:space-between; padding:18px 0; border-bottom:1px solid #e9eef4;">
+                    <div><div style="font-size:13px; color:#3c4a57;">Focus stability</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">Measured against your own baseline</div></div>
+                    <div style="font-size:34px; font-weight:300; color:#16202b;" id="rFocus">84<span style="font-size:15px; color:#9aa7b3;"> / 100</span></div>
+                  </div>
+                  <div style="display:flex; align-items:baseline; justify-content:space-between; padding:18px 0; border-bottom:1px solid #e9eef4;">
+                    <div><div style="font-size:13px; color:#3c4a57;">Tab-switching</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">Counted against your usual pace</div></div>
+                    <div style="font-size:34px; font-weight:300; color:#16202b;" id="rTab">42</div>
+                  </div>
+                  <div style="display:flex; align-items:baseline; justify-content:space-between; padding:18px 0; border-bottom:1px solid #e9eef4;">
+                    <div><div style="font-size:13px; color:#3c4a57;">Active time</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">Across today's focus sessions</div></div>
+                    <div style="font-size:34px; font-weight:300; color:#16202b;" id="rActive">5<span style="font-size:18px;">h</span> 12<span style="font-size:18px;">m</span></div>
+                  </div>
+                  <div style="display:flex; align-items:baseline; justify-content:space-between; padding:18px 0; border-bottom:1px solid #e9eef4;">
+                    <div><div style="font-size:13px; color:#3c4a57;">Late-night signal</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">Worth a gentle eye — not a worry</div></div>
+                    <div style="font-size:34px; font-weight:300; color:#e8862a;" id="rLate">18<span style="font-size:18px;">m</span></div>
+                  </div>
+                  <div style="display:flex; align-items:baseline; justify-content:space-between; padding:18px 0;">
+                    <div><div style="font-size:13px; color:#3c4a57;">Typing rhythm</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">Correction rate as you type — no words read</div></div>
+                    <div style="font-size:34px; font-weight:300; color:#16202b;" id="rType">9<span style="font-size:18px;">%</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top:30px; padding:22px 26px; border-radius:14px; background:linear-gradient(100deg, #eaf3ff, #f4f9ff); border:1px solid #dce9fb; position:relative; overflow:hidden;">
+                <div style="position:absolute; left:0; top:0; bottom:0; width:3px; background:linear-gradient(#5ab0ff,#007aff);"></div>
+                <div style="font-size:11px; letter-spacing:.2em; color:#3d8bdb;">WHAT THE SURFACE SHOWS</div>
+                <div class="pf" style="font-size:21px; color:#16202b; margin-top:9px; line-height:1.35;" id="dashInsight">SilentHelp is learning your rhythm — check back after a day of normal use.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ANALYTICS -->
+          <div class="appscreen" id="scr-analytics" style="display:none;">
+            <div class="screen-anim" style="padding:34px 40px;">
+              <div style="font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:#7a93ad;">This week · against your own baseline</div>
+              <div class="pf" style="font-size:40px; color:#0e1822; margin-top:8px; line-height:1;">Analytics</div>
+
+              <div style="margin-top:34px; background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:22px;">
+                <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:6px;"><div style="font-size:13px; color:#3c4a57; font-weight:600;">Focus trend</div><div style="font-size:12px; color:#1f9d55; font-weight:600;" id="weekChange">+9% vs last week</div></div>
+                <svg viewBox="0 0 880 200" style="width:100%; height:180px;">
+                  <defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#007aff" stop-opacity=".22"/><stop offset="1" stop-color="#007aff" stop-opacity="0"/></linearGradient></defs>
+                  <line x1="0" y1="60" x2="880" y2="60" stroke="#eef2f6"/><line x1="0" y1="120" x2="880" y2="120" stroke="#eef2f6"/>
+                  <path id="trendArea" d="M20,128 L160,100 L300,116 L440,72 L580,84 L720,50 L860,60 L860,200 L20,200 Z" fill="url(#ga)"/>
+                  <path id="trendLine" d="M20,128 L160,100 L300,116 L440,72 L580,84 L720,50 L860,60" fill="none" stroke="#007aff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle id="trendDot" cx="720" cy="50" r="4.5" fill="#007aff"/>
+                </svg>
+                <div style="display:flex; justify-content:space-between; font-size:11px; color:#9aa7b3; margin-top:4px;"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+              </div>
+
+              <div style="display:flex; gap:16px; margin-top:16px;">
+                <div style="flex:1; background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:22px;">
+                  <div style="font-size:13px; color:#3c4a57; font-weight:600; margin-bottom:4px;">Tab-switching</div>
+                  <div style="font-size:12px; color:#8b99a6; margin-bottom:18px; font-weight:300;">Lower is calmer · baseline ≈ 45/day</div>
+                  <div id="tabBars" style="display:flex; align-items:flex-end; gap:11px; height:96px; position:relative;">
+                    <div style="position:absolute; left:0; right:0; top:28%; border-top:1px dashed #c2d4e8;"></div>
+                    <div style="flex:1; height:52%; background:#bcd9ff; border-radius:4px;"></div><div style="flex:1; height:60%; background:#bcd9ff; border-radius:4px;"></div><div style="flex:1; height:48%; background:#bcd9ff; border-radius:4px;"></div><div style="flex:1; height:70%; background:#9cc7ff; border-radius:4px;"></div><div style="flex:1; height:58%; background:#bcd9ff; border-radius:4px;"></div><div style="flex:1; height:40%; background:#007aff; border-radius:4px;"></div><div style="flex:1; height:36%; background:#007aff; border-radius:4px;"></div>
+                  </div>
+                  <div style="font-size:11.5px; color:#9aa7b3; margin-top:10px; font-weight:300;">Dashed line is your usual. You're beneath it.</div>
+                </div>
+                <div style="width:280px; flex-shrink:0; background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:22px;">
+                  <div style="font-size:13px; color:#3c4a57; font-weight:600; margin-bottom:14px;">Productive hours</div>
+                  <div style="display:flex; align-items:center; justify-content:space-between; padding:13px 0; border-bottom:1px solid #eef2f6;"><span style="font-size:12.5px; color:#5e6f7e;">Most productive</span><span style="font-size:14px; color:#007aff; font-weight:600;">10–12 AM</span></div>
+                  <div style="display:flex; align-items:center; justify-content:space-between; padding:13px 0; border-bottom:1px solid #eef2f6;"><span style="font-size:12.5px; color:#5e6f7e;">Second wind</span><span style="font-size:14px; color:#16202b; font-weight:600;">4–5 PM</span></div>
+                  <div style="display:flex; align-items:center; justify-content:space-between; padding:13px 0;"><span style="font-size:12.5px; color:#5e6f7e;">Watch-out window</span><span style="font-size:14px; color:#e8862a; font-weight:600;">11 PM–1 AM</span></div>
+                </div>
+              </div>
+
+              <div style="margin-top:16px; background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:22px;">
+                <div style="font-size:13px; color:#3c4a57; font-weight:600; margin-bottom:2px;">Typical day rhythm</div>
+                <div style="font-size:11.5px; color:#9aa7b3; font-weight:300; margin-bottom:14px;">Illustrative — fills in with your real hours as SilentHelp learns your week.</div>
+                <div style="display:flex; flex-direction:column; gap:5px;" id="heatmap"></div>
+                <div style="display:flex; align-items:center; gap:8px; margin-top:12px; font-size:11px; color:#9aa7b3;">Less<div style="width:16px; height:11px; border-radius:3px; background:#eef4fb;"></div><div style="width:16px; height:11px; border-radius:3px; background:#9cc7ff;"></div><div style="width:16px; height:11px; border-radius:3px; background:#007aff;"></div><div style="width:16px; height:11px; border-radius:3px; background:#0049c4;"></div>More</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FINDINGS -->
+          <div class="appscreen" id="scr-reports" style="display:none;">
+            <div class="screen-anim" style="padding:34px 40px; max-width:760px;">
+              <div style="display:flex; align-items:flex-start; justify-content:space-between;">
+                <div>
+                  <div style="font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:#7a93ad;" id="fRange">This week</div>
+                  <div class="pf" style="font-size:40px; color:#0e1822; margin-top:8px; line-height:1;">Surface Findings</div>
+                </div>
+                <button class="hov" onclick="App.exportData()" style="font-size:12px; color:#0a6dff; background:#eef5ff; border:1px solid #d3e4fb; border-radius:999px; padding:9px 16px; font-weight:600; cursor:pointer;">Export data</button>
+              </div>
+
+              <div style="display:flex; gap:40px; margin-top:36px;">
+                <div><div style="font-size:34px; font-weight:300; color:#16202b;"><span id="fAvgBatt">73</span><span style="font-size:16px; color:#9aa7b3;">%</span></div><div style="font-size:11.5px; color:#8b99a6; margin-top:4px;">avg battery</div></div>
+                <div><div style="font-size:34px; font-weight:300; color:#16202b;" id="fAvgFocus">81</div><div style="font-size:11.5px; color:#8b99a6; margin-top:4px;">avg focus</div></div>
+                <div><div style="font-size:34px; font-weight:300; color:#16202b;"><span id="fDeep">27</span><span style="font-size:16px; color:#9aa7b3;">h</span></div><div style="font-size:11.5px; color:#8b99a6; margin-top:4px;">deep focus</div></div>
+                <div><div style="font-size:34px; font-weight:300; color:#e8862a;" id="fLate">3</div><div style="font-size:11.5px; color:#8b99a6; margin-top:4px;">late nights</div></div>
+              </div>
+
+              <div style="margin-top:40px; font-size:11px; letter-spacing:.2em; color:#7a93ad;">WHAT SURFACED THIS WEEK</div>
+              <div class="pf" id="fNarrative" style="font-size:24px; color:#1a2632; line-height:1.5; margin-top:16px;">Your focus climbed nine percent — the steadiest stretch in three weeks.</div>
+
+              <div style="margin-top:40px; font-size:11px; letter-spacing:.2em; color:#7a93ad;">GENTLE SUGGESTIONS</div>
+              <div style="margin-top:18px;" id="fSugg"></div>
+            </div>
+          </div>
+
+          <!-- COPING CHAT -->
+          <div class="appscreen" id="scr-chat" style="display:none; height:100%;">
+            <div style="height:100%; display:flex; flex-direction:column;">
+              <div style="padding:28px 40px 18px; flex-shrink:0;">
+                <div class="pf" style="font-size:30px; color:#0e1822; line-height:1;">Coping Chat</div>
+                <div style="font-size:12.5px; color:#8b99a6; margin-top:8px; font-weight:300;">A supportive space — not a therapist. You opened this; you can close it anytime.</div>
+                <div style="margin-top:16px; padding:11px 15px; border-radius:11px; background:#fff6ec; border:1px solid #f6e0c4; font-size:12px; color:#a4701f; line-height:1.5; font-weight:300;"><strong style="color:#8a5d18; font-weight:600;">If you're in crisis:</strong> call or text <strong style="font-weight:600;">988</strong>, or text <strong style="font-weight:600;">HOME to 741741</strong>. Real people, any time.</div>
+              </div>
+              <div id="chatThread" style="flex:1; overflow:auto; padding:8px 40px 18px; display:flex; flex-direction:column; gap:18px;"></div>
+              <div style="padding:16px 40px 24px; flex-shrink:0; display:flex; gap:12px;">
+                <input id="chatInput" placeholder="Say what's on your mind…" style="flex:1; height:48px; border:1px solid #dde6ef; border-radius:13px; padding:0 18px; font-size:14px; outline:none; color:#16202b; background:#fff;" />
+                <button class="glass" onclick="App.send()" style="height:48px; padding:0 24px; border-radius:13px; font-size:14px; font-weight:600;">Send</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SETTINGS -->
+          <div class="appscreen" id="scr-settings" style="display:none;">
+            <div class="screen-anim" style="padding:34px 40px; max-width:720px;">
+              <div class="pf" style="font-size:40px; color:#0e1822; line-height:1;">Settings</div>
+              <div style="font-size:13px; color:#8b99a6; margin-top:8px; font-weight:300;">You're in control of everything SilentHelp does.</div>
+
+              <div style="margin-top:38px; font-size:11px; letter-spacing:.2em; color:#7a93ad;">PRIVACY &amp; DETECTION</div>
+              <div style="margin-top:14px; background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:4px 20px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 0; border-bottom:1px solid #eef2f6;">
+                  <div><div style="font-size:14px; color:#16202b;">Keep everything on this Mac</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">Required. Your data never leaves the device.</div></div>
+                  <div style="display:flex; align-items:center; gap:7px; font-size:11px; font-weight:700; letter-spacing:.04em; color:#0a6dff;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0a6dff" stroke-width="2.5"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>LOCKED ON</div>
+                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 0; border-bottom:1px solid #eef2f6;"><div><div style="font-size:14px; color:#16202b;">Layer 1 · Keyword scan</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">Local word list. No AI.</div></div><div class="sw" data-key="keyword" onclick="App.toggle('keyword')" style="width:42px; height:24px; border-radius:999px; cursor:pointer; position:relative; transition:.2s;"><div class="swk" style="position:absolute; top:2px; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.2); transition:.2s;"></div></div></div>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 0; border-bottom:1px solid #eef2f6;"><div><div style="font-size:14px; color:#16202b;">Layer 2 · Semantic context</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">On-device model reads meaning, not just words.</div></div><div class="sw" data-key="semantic" onclick="App.toggle('semantic')" style="width:42px; height:24px; border-radius:999px; cursor:pointer; position:relative; transition:.2s;"><div class="swk" style="position:absolute; top:2px; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.2); transition:.2s;"></div></div></div>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 0; border-bottom:1px solid #eef2f6;"><div><div style="font-size:14px; color:#16202b;">Layer 3 · Behavioral patterns</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">Rhythm &amp; timing only. Reads no text.</div></div><div class="sw" data-key="behavioral" onclick="App.toggle('behavioral')" style="width:42px; height:24px; border-radius:999px; cursor:pointer; position:relative; transition:.2s;"><div class="swk" style="position:absolute; top:2px; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.2); transition:.2s;"></div></div></div>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 0;"><div><div style="font-size:14px; color:#16202b;">Layer 4 · Trend gating</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">Only a sustained pattern can surface a moment.</div></div><div class="sw" data-key="trend" onclick="App.toggle('trend')" style="width:42px; height:24px; border-radius:999px; cursor:pointer; position:relative; transition:.2s;"><div class="swk" style="position:absolute; top:2px; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.2); transition:.2s;"></div></div></div>
+              </div>
+
+              <div style="margin-top:36px; font-size:11px; letter-spacing:.2em; color:#7a93ad;">TRUSTED CONTACT</div>
+              <div style="font-size:12.5px; color:#8b99a6; line-height:1.6; margin:14px 0 14px; font-weight:300;">If all four layers cross the threshold over several days, SilentHelp can send one private note to someone you trust. By default, your school counselor.</div>
+              <input id="contactInput" oninput="App.onContact(event)" style="width:100%; height:46px; border:1px solid #dde6ef; border-radius:11px; padding:0 16px; font-size:13.5px; outline:none; color:#16202b; background:#fff;" />
+
+              <div style="margin-top:36px; font-size:11px; letter-spacing:.2em; color:#7a93ad;">HOW YOUR PRIVACY WORKS</div>
+              <div style="margin-top:14px; background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:20px 22px;">
+                <div style="display:flex; flex-direction:column; gap:14px;">
+                  <div style="display:flex; gap:12px; align-items:flex-start;"><div style="font-size:15px; flex-shrink:0;">🔒</div><div><div style="font-size:13.5px; font-weight:600; color:#16202b;">What SilentHelp looks at</div><div style="font-size:12.5px; color:#8b99a6; font-weight:300; line-height:1.6;">Only text you actively write (chat, or the focused field / screen when the Mac agent is on) and rhythm signals — tab switches, typing corrections, late-night minutes. Never your files, photos, passwords, or browsing history.</div></div></div>
+                  <div style="display:flex; gap:12px; align-items:flex-start;"><div style="font-size:15px; flex-shrink:0;">💾</div><div><div style="font-size:13.5px; font-weight:600; color:#16202b;">What gets stored</div><div style="font-size:12.5px; color:#8b99a6; font-weight:300; line-height:1.6;">Only the <em>signal</em> — a category and a severity level with a timestamp. The sentences that triggered a moment are never saved. Your chat history stays in your own account file, readable by no one else.</div></div></div>
+                  <div style="display:flex; gap:12px; align-items:flex-start;"><div style="font-size:15px; flex-shrink:0;">☁️</div><div><div style="font-size:13.5px; font-weight:600; color:#16202b;">What ever leaves the device</div><div style="font-size:12.5px; color:#8b99a6; font-weight:300; line-height:1.6;">One thing, and only if Layer 2 is on: the text being checked is sent to the semantic model for meaning-reading, then discarded — it is not used for training and not stored by us. Turn Layer 2 off and nothing leaves at all.</div></div></div>
+                  <div style="display:flex; gap:12px; align-items:flex-start;"><div style="font-size:15px; flex-shrink:0;">✉️</div><div><div style="font-size:13.5px; font-weight:600; color:#16202b;">Who ever gets told</div><div style="font-size:12.5px; color:#8b99a6; font-weight:300; line-height:1.6;">No one — unless all four layers cross a sustained threshold, and even then a note is only <em>drafted</em> for your trusted contact. You read it, you edit it, you press send. Nothing is ever sent silently.</div></div></div>
+                  <div style="display:flex; gap:12px; align-items:flex-start;"><div style="font-size:15px; flex-shrink:0;">🗑️</div><div><div style="font-size:13.5px; font-weight:600; color:#16202b;">Your right to disappear</div><div style="font-size:12.5px; color:#8b99a6; font-weight:300; line-height:1.6;">Export everything as one file, or delete everything permanently, below — no copies, no "retention window", no questions.</div></div></div>
+                </div>
+              </div>
+
+              <div style="margin-top:36px; font-size:11px; letter-spacing:.2em; color:#7a93ad;">YOUR DATA</div>
+              <div style="display:flex; gap:14px; margin-top:14px;">
+                <button class="hov" onclick="App.exportData()" style="flex:1; background:#fff; border:1px solid #e6ecf2; border-radius:11px; padding:14px; font-size:13px; font-weight:600; color:#3c4a57; cursor:pointer;">Export my data</button>
+                <button class="hov" onclick="App.wipe()" style="flex:1; background:#fff; border:1px solid #f3d6d0; border-radius:11px; padding:14px; font-size:13px; font-weight:600; color:#d2381f; cursor:pointer;">Delete everything</button>
+              </div>
+              <div style="font-size:11.5px; color:#9aa7b3; line-height:1.6; margin-top:24px; font-weight:300;">SilentHelp is not a medical product and does not diagnose any condition. It surfaces patterns and points you toward real human support.</div>
+            </div>
+          </div>
+
+          <!-- MOMENTS -->
+          <div class="appscreen" id="scr-moments" style="display:none;">
+            <div class="screen-anim" style="padding:34px 40px; max-width:760px;">
+              <div style="font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:#7a93ad;">A gentle record · stays on your Mac</div>
+              <div class="pf" style="font-size:40px; color:#0e1822; margin-top:8px; line-height:1;">Moments</div>
+              <div style="font-size:13px; color:#8b99a6; margin-top:10px; font-weight:300;">Every time something surfaced, and what it was. No message text is ever stored — only the signal.</div>
+              <div id="momentsList" style="margin-top:30px;"></div>
+            </div>
+          </div>
+
+          <!-- CONNECTION -->
+          <div class="appscreen" id="scr-connection" style="display:none;">
+            <div class="screen-anim" style="padding:34px 40px; max-width:720px;">
+              <div style="font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:#7a93ad;">Setup &amp; status</div>
+              <div class="pf" style="font-size:40px; color:#0e1822; margin-top:8px; line-height:1;">Connection</div>
+
+              <div style="margin-top:30px; background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:22px;">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                  <div><div style="font-size:14px; font-weight:600; color:#16202b;">Detection engine</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">Running on-device</div></div>
+                  <div id="engineDot" style="display:flex; align-items:center; gap:7px; font-size:12px; font-weight:600; color:#1f9d55;"><span style="width:8px; height:8px; border-radius:50%; background:#1f9d55;"></span>Connected</div>
+                </div>
+                <div id="layerDots" style="display:flex; gap:10px; margin-top:18px; flex-wrap:wrap;"></div>
+              </div>
+
+              <div style="margin-top:16px; background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:22px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+                  <div style="max-width:380px;"><div style="font-size:14px; font-weight:600; color:#16202b;">Background Mac agent</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300; line-height:1.5;">Reads the focused text field of other apps (Messages, Notes). Needs the Mac app installed + Accessibility permission granted.</div></div>
+                  <button class="hov" onclick="location.href='/download/agent'" style="background:#007aff; color:#fff; border:none; border-radius:11px; padding:11px 20px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;">Download for Mac</button>
+                </div>
+                <div id="lastSignal" style="font-size:12px; color:#9aa7b3; margin-top:16px; font-weight:300;"></div>
+              </div>
+
+              <div style="margin-top:16px; background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:22px;">
+                <div style="font-size:14px; font-weight:600; color:#16202b;">How to install the Mac app</div>
+                <div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">Two minutes, one time. The agent then watches quietly from your menu bar.</div>
+                <div style="margin-top:16px; display:flex; flex-direction:column; gap:12px;">
+                  <div style="display:flex; gap:12px;"><div style="width:22px; height:22px; border-radius:7px; background:#eef5ff; color:#007aff; font-size:11px; font-weight:700; display:grid; place-items:center; flex-shrink:0;">1</div><div style="font-size:13px; color:#3c4a57; line-height:1.55;">Click <b>Download for Mac</b> above — you'll get <b>SilentHelpAgent.zip</b>. Double-click it to unzip.</div></div>
+                  <div style="display:flex; gap:12px;"><div style="width:22px; height:22px; border-radius:7px; background:#eef5ff; color:#007aff; font-size:11px; font-weight:700; display:grid; place-items:center; flex-shrink:0;">2</div><div style="font-size:13px; color:#3c4a57; line-height:1.55;">Drag <b>SilentHelpAgent.app</b> into your <b>Applications</b> folder.</div></div>
+                  <div style="display:flex; gap:12px;"><div style="width:22px; height:22px; border-radius:7px; background:#eef5ff; color:#007aff; font-size:11px; font-weight:700; display:grid; place-items:center; flex-shrink:0;">3</div><div style="font-size:13px; color:#3c4a57; line-height:1.55;"><b>Right-click the app → Open → Open</b> (first launch only — this tells macOS you trust it).</div></div>
+                  <div style="display:flex; gap:12px;"><div style="width:22px; height:22px; border-radius:7px; background:#eef5ff; color:#007aff; font-size:11px; font-weight:700; display:grid; place-items:center; flex-shrink:0;">4</div><div style="font-size:13px; color:#3c4a57; line-height:1.55;">Grant the two permissions it asks for in <b>System Settings ▸ Privacy &amp; Security</b>: <b>Accessibility</b> (reads the focused text field) and <b>Screen Recording</b> (lets it see Google Docs &amp; browsers). Flip the toggle next to SilentHelpAgent in each.</div></div>
+                  <div style="display:flex; gap:12px;"><div style="width:22px; height:22px; border-radius:7px; background:#eef5ff; color:#007aff; font-size:11px; font-weight:700; display:grid; place-items:center; flex-shrink:0;">5</div><div style="font-size:13px; color:#3c4a57; line-height:1.55;">Look for <b>🟢 SH</b> in your menu bar — green means it's watching over you. From that menu you can send a test alert, or <b>Ignore for 1–2 hours</b> when you want quiet.</div></div>
+                </div>
+                <div style="margin-top:14px; font-size:11.5px; color:#9aa7b3; font-weight:300; line-height:1.6;">If the icon stays 🔴 red, re-open System Settings and check both permissions. Everything the agent reads stays on your Mac.</div>
+              </div>
+
+              <div style="margin-top:16px; background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:22px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+                  <div><div style="font-size:14px; font-weight:600; color:#16202b;">Preview a check-in</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">See what a moment looks like before one ever happens for real.</div></div>
+                  <div style="display:flex; gap:10px;">
+                    <button class="hov" onclick="App.openGentle(true)" style="background:#fff; color:#5a6b7a; border:1px solid #e6ecf2; border-radius:9px; padding:9px 14px; font-size:12px; font-weight:600; cursor:pointer;">Quiet check-in</button>
+                    <button class="hov" onclick="App.openUrgent(true)" style="background:#eef5ff; color:#0a6dff; border:1px solid #d3e4fb; border-radius:9px; padding:9px 14px; font-size:12px; font-weight:600; cursor:pointer;">Something surfacing</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ACCOUNT -->
+          <div class="appscreen" id="scr-account" style="display:none;">
+            <div class="screen-anim" style="padding:34px 40px; max-width:720px;">
+              <div style="font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:#7a93ad;">Your account</div>
+              <div class="pf" style="font-size:40px; color:#0e1822; margin-top:8px; line-height:1;">Account</div>
+
+              <div style="margin-top:30px; font-size:11px; letter-spacing:.2em; color:#7a93ad;">SIGN IN · SYNC ACROSS DEVICES</div>
+              <div id="authBox" style="margin-top:14px; background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:22px;"></div>
+
+              <div style="margin-top:30px; font-size:11px; letter-spacing:.2em; color:#7a93ad;">PROFILE</div>
+              <div style="margin-top:12px;">
+                <label style="font-size:12px; color:#8b99a6; font-weight:300;">Name SilentHelp calls you</label>
+                <input id="acctName" oninput="App.onName(event)" style="width:100%; height:46px; margin-top:8px; border:1px solid #dde6ef; border-radius:11px; padding:0 16px; font-size:13.5px; outline:none; color:#16202b; background:#fff;" />
+              </div>
+
+              <div style="margin-top:30px; font-size:11px; letter-spacing:.2em; color:#7a93ad;">PLAN</div>
+              <div style="margin-top:12px; background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:20px;">
+                <div style="font-size:14px; font-weight:600; color:#16202b;">Free for everyone</div>
+                <div style="font-size:12px; color:#8b99a6; margin-top:4px; font-weight:300; line-height:1.6;">Every feature — battery, focus, behavioral insights, coping chat, detection — is free for students, parents, and schools. No plans, no paywall.</div>
+              </div>
+
+              <div style="margin-top:30px; font-size:11px; letter-spacing:.2em; color:#7a93ad;">PREFERENCES</div>
+              <div style="margin-top:12px; background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:4px 20px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 0;">
+                  <div><div style="font-size:14px; color:#16202b;">Surface gentle check-ins</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">Let SilentHelp nudge you on rough stretches.</div></div>
+                  <div class="sw" data-key="notify" onclick="App.toggleNotify()" style="width:42px; height:24px; border-radius:999px; cursor:pointer; position:relative; transition:.2s;"><div class="swk" style="position:absolute; top:2px; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.2); transition:.2s;"></div></div>
+                </div>
+              </div>
+
+              <div style="margin-top:30px; font-size:11px; letter-spacing:.2em; color:#7a93ad;">BASELINE</div>
+              <div style="font-size:12.5px; color:#8b99a6; line-height:1.6; margin:12px 0 14px; font-weight:300;">SilentHelp learns your normal rhythm over time. If your routine changed, you can have it start learning fresh.</div>
+              <button class="hov" onclick="App.resetBaseline()" style="background:#fff; border:1px solid #f3d6d0; border-radius:11px; padding:13px 20px; font-size:13px; font-weight:600; color:#d2381f; cursor:pointer;">Reset my baseline</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ GENTLE POPUP ════ -->
+    <div id="popup-gentle" style="display:none; position:absolute; inset:0; z-index:40; background:rgba(20,40,70,.34); backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px); align-items:center; justify-content:center; animation:fadeBg .3s ease;">
+      <div style="width:430px; background:#fff; border:1px solid #eef2f6; border-radius:20px; padding:32px; box-shadow:0 40px 100px rgba(20,40,80,.35); animation:screenIn .5s cubic-bezier(.16,1,.3,1);">
+        <div style="width:54px; height:54px; border-radius:50%; margin-bottom:22px; background:radial-gradient(circle at 50% 38%, #7cc4ff, #007aff 56%, #0049c4); box-shadow:0 12px 30px rgba(0,122,255,.4);"></div>
+        <div class="pf" style="font-size:26px; color:#0e1822; line-height:1.1;">A quiet check-in</div>
+        <div id="gentleDesc" style="font-size:14px; color:#5e6f7e; line-height:1.65; margin-top:14px; font-weight:300;">Your last few days look a little more scattered than your usual — later nights, more restless switching. No alarm. Just wanted to gently ask: how are you doing?</div>
+        <div style="display:flex; align-items:center; gap:8px; font-size:11.5px; color:#8b99a6; margin:18px 0 24px; font-weight:300;"><div style="width:5px; height:5px; border-radius:50%; background:#1f9d55;"></div>Noticed on-device · nothing was sent anywhere</div>
+        <div style="display:flex; gap:11px;">
+          <button class="glass ghost" onclick="App.closePopup()" style="flex:1; border-radius:12px; padding:14px; font-size:14px; font-weight:600;">Not now</button>
+          <button class="glass" onclick="App.goChatFromPopup()" style="flex:1; border-radius:12px; padding:14px; font-size:14px; font-weight:600;">Talk it through</button>
+        </div>
+        <div style="display:flex; justify-content:center; gap:18px; margin-top:16px; font-size:12px; color:#9aa7b3;">
+          <span onclick="App.snooze(1)" style="cursor:pointer; text-decoration:underline; text-underline-offset:3px;">Ignore for 1 hour</span>
+          <span onclick="App.snooze(2)" style="cursor:pointer; text-decoration:underline; text-underline-offset:3px;">Ignore for 2 hours</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ URGENT — FULL-SCREEN ════ -->
+    <div id="popup-urgent" style="display:none; position:absolute; inset:0; z-index:45; background:radial-gradient(120% 90% at 50% 30%, #ffffff, #eef4fb 60%, #e2ecf7); flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:0 60px; animation:fadeBg .5s ease; overflow:hidden;">
+      <div style="position:absolute; inset:0; pointer-events:none;">
+        <div style="position:absolute; top:50%; left:0; width:100%; height:1px; background:linear-gradient(90deg, transparent, rgba(0,122,255,.4), transparent); transform-origin:center; animation:ripple 1.2s cubic-bezier(.16,1,.3,1) .2s both;"></div>
+        <div style="position:absolute; top:34%; left:0; width:100%; height:1px; background:linear-gradient(90deg, transparent, rgba(0,122,255,.25), transparent); transform-origin:left; animation:ripple 1.4s cubic-bezier(.16,1,.3,1) .5s both;"></div>
+        <div style="position:absolute; top:68%; left:0; width:100%; height:1px; background:linear-gradient(90deg, transparent, rgba(0,122,255,.22), transparent); transform-origin:right; animation:ripple 1.4s cubic-bezier(.16,1,.3,1) .7s both;"></div>
+      </div>
+
+      <div style="position:relative; max-width:620px; animation:screenIn .8s cubic-bezier(.16,1,.3,1) .3s both;">
+        <div style="width:64px; height:64px; border-radius:50%; margin:0 auto 32px; background:radial-gradient(circle at 50% 38%, #7cc4ff, #007aff 56%, #0049c4); box-shadow:0 16px 50px rgba(0,122,255,.45); animation:emBreath 5s ease-in-out infinite;"></div>
+        <div style="font-size:12px; letter-spacing:.3em; text-transform:uppercase; color:#3d8bdb;">Over the last four days</div>
+        <div class="pf" style="font-size:52px; color:#0e1822; line-height:1.05; margin-top:18px;">Something important<br/>is surfacing.</div>
+        <div id="urgentDesc" style="font-size:16px; color:#5e6f7e; line-height:1.7; margin-top:24px; font-weight:300; max-width:480px; margin-left:auto; margin-right:auto;">Your patterns crossed a threshold we don't ignore. With the permission you gave during setup, a short private note is being prepared for someone you trust.</div>
+
+        <div id="urgentDraft" style="margin-top:26px; max-width:480px; margin-left:auto; margin-right:auto; text-align:left;">
+          <div style="font-size:11px; letter-spacing:.18em; color:#9aa7b3; margin-bottom:6px;">TO</div>
+          <input id="escTo" placeholder="counselor@school.edu" style="width:100%; height:44px; border:1px solid #dde6ef; border-radius:11px; padding:0 14px; font-size:13.5px; background:#fff; color:#16202b; outline:none;" />
+          <div style="font-size:11px; letter-spacing:.18em; color:#9aa7b3; margin:14px 0 6px;">SUBJECT</div>
+          <input id="escSubj" style="width:100%; height:44px; border:1px solid #dde6ef; border-radius:11px; padding:0 14px; font-size:13.5px; background:#fff; color:#16202b; outline:none;" />
+          <div style="font-size:11px; letter-spacing:.18em; color:#9aa7b3; margin:14px 0 6px;">MESSAGE (you can edit this)</div>
+          <textarea id="escBody" style="width:100%; min-height:160px; border:1px solid #dde6ef; border-radius:11px; padding:12px 14px; font-size:13.5px; background:#fff; color:#16202b; outline:none; resize:vertical; line-height:1.55; font-family:inherit;"></textarea>
+        </div>
+
+        <div style="font-size:13px; color:#a4701f; line-height:1.6; margin-top:20px; font-weight:300;">You're not alone right now. You can also reach <strong style="color:#8a5d18; font-weight:600;">988</strong> — call or text, any time.</div>
+
+        <div style="display:flex; gap:13px; justify-content:center; margin-top:24px;">
+          <button class="glass ghost" onclick="App.closePopup()" style="border-radius:12px; padding:14px 28px; font-size:14px; font-weight:600;">Not now</button>
+          <button class="glass" onclick="App.sendEmail()" style="border-radius:12px; padding:14px 34px; font-size:14px; font-weight:600;">Send email</button>
+        </div>
+        <div id="escSent" style="display:none; margin-top:18px; font-size:13.5px; color:#1f9d55; font-weight:600;"></div>
+        <div onclick="App.goSettingsFromPopup()" style="font-size:12px; color:#9aa7b3; margin-top:18px; cursor:pointer;">Change who this goes to in Settings</div>
+        <div style="display:flex; justify-content:center; gap:18px; margin-top:10px; font-size:12px; color:#9aa7b3;">
+          <span onclick="App.snooze(1)" style="cursor:pointer; text-decoration:underline; text-underline-offset:3px;">Ignore for 1 hour</span>
+          <span onclick="App.snooze(2)" style="cursor:pointer; text-decoration:underline; text-underline-offset:3px;">Ignore for 2 hours</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const App = {
+  screen: 'onboarding',
+  contact: 'Ms. Rivera — School Counselor',
+  name: 'Alex',
+  toggles: { keyword: true, semantic: true, behavioral: true, trend: true, notify: true },
+  history: [],
+  _t: null, _sending: false, _contactT: null,
+  gentleShown: false, urgentShown: false, lastTrigger: null,
+
+  esc(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); },
+  api(path, body){ return fetch(path, body ? { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) } : {})
+    .then(r => { if (r.status === 401) { App.go('auth'); throw new Error('auth_required'); } return r.json(); }); },
+
+  go(screen){
+    this.screen = screen;
+    const gate = screen === 'auth', onb = screen === 'onboarding';
+    document.getElementById('scr-auth').style.display = gate ? 'flex' : 'none';
+    document.getElementById('scr-onboarding').style.display = onb ? 'flex' : 'none';
+    document.getElementById('appview').style.display = (gate || onb) ? 'none' : 'block';
+    if (gate) return;
+    document.querySelectorAll('.appscreen').forEach(el => el.style.display = 'none');
+    const el = document.getElementById('scr-' + screen);
+    if (el) el.style.display = 'block';
+    this.paintNav();
+    if (screen === 'onboarding') this.onb(1);
+    if (screen === 'dashboard') this.loadDashboard();
+    if (screen === 'analytics') this.loadAnalytics();
+    if (screen === 'reports') this.loadFindings();
+    if (screen === 'moments') this.loadMoments();
+    if (screen === 'chat') this.renderChat(false);
+    if (screen === 'connection') this.loadConnection();
+    if (screen === 'account') this.loadAccount();
+  },
+
+  // ---- onboarding flow ----
+  onb(n){ [1,2,3].forEach(i => { const el = document.getElementById('onb-' + i); if (el) el.style.display = i === n ? 'block' : 'none'; }); },
+  finishOnboarding(){
+    const c = (document.getElementById('onbContact').value || '').trim();
+    if (c) this.contact = c;
+    this._onboarded = true;
+    this.api('/api/settings', { onboarded: true, contact: this.contact });
+    const ci = document.getElementById('contactInput'); if (ci) ci.value = this.contact;
+    this.go('dashboard');
+  },
+
+  // ---- moments / connection / account ----
+  async loadMoments(){
+    const d = await this.api('/api/moments').catch(()=>null);
+    const wrap = document.getElementById('momentsList'); if (!wrap) return;
+    const m = (d && d.moments) || [];
+    if (!m.length){ wrap.innerHTML = `<div style="text-align:center; padding:64px 0;"><div class="pf" style="font-size:22px; color:#5e6f7e;">Nothing has needed surfacing yet.</div><div style="font-size:13px; color:#9aa7b3; margin-top:8px; font-weight:300;">That's a good thing.</div></div>`; return; }
+    const color = l => ({none:'#9aa7b3', low:'#3d8bdb', moderate:'#e8a62a', high:'#e8862a', crisis:'#d2381f'}[l] || '#9aa7b3');
+    wrap.innerHTML = m.map(x => `<div style="display:flex; gap:16px; padding:16px 0; border-bottom:1px solid #e9eef4; align-items:flex-start;">
+      <div style="width:8px; height:8px; border-radius:50%; background:${color(x.level)}; margin-top:6px; flex-shrink:0;"></div>
+      <div style="flex:1;"><div style="font-size:14px; color:#16202b; text-transform:capitalize;">${this.esc(x.level)} · ${this.esc(x.category || 'signal')}</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">${this.esc(x.source)} layer</div></div>
+      <div style="font-size:12px; color:#9aa7b3; font-weight:300; white-space:nowrap;">${this.esc(x.date)} · ${this.esc(x.time)}</div></div>`).join('');
+  },
+  async loadConnection(){
+    const s = await this.api('/api/status').catch(()=>null); if (!s) return;
+    const names = { keyword:'L1 Keyword', semantic:'L2 Semantic', behavioral:'L3 Behavioral', trend:'L4 Trend' };
+    document.getElementById('layerDots').innerHTML = Object.keys(names).map(k => {
+      const on = s.toggles[k] !== false;
+      return `<div style="display:flex; align-items:center; gap:7px; font-size:12px; color:${on?'#3c4a57':'#b3bcc6'};"><span style="width:8px; height:8px; border-radius:50%; background:${on?'#007aff':'#cdd6e0'};"></span>${names[k]}</div>`;
+    }).join('');
+    const last = s.last_event ? new Date(s.last_event).toLocaleString() : 'no signals yet';
+    document.getElementById('lastSignal').textContent = `${s.days_tracked} day(s) tracked · ${s.events} signal(s) recorded · last: ${last}`;
+  },
+  loadAccount(){ const n = document.getElementById('acctName'); if (n) n.value = this.name; this.renderAuth(); },
+  async renderAuth(){
+    const box = document.getElementById('authBox'); if (!box) return;
+    let me = { signedIn:false };
+    try { me = await this.api('/api/me'); } catch(e){}
+    if (me.signedIn && me.user){
+      box.innerHTML = `<div style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;">
+        <div><div style="font-size:14px; font-weight:600; color:#16202b;">${this.esc(me.user.name)}</div>
+        <div style="font-size:12.5px; color:#8b99a6; font-weight:300;">${this.esc(me.user.email)} · synced to this account</div></div>
+        <button class="glass ghost" onclick="App.logOut()" style="border-radius:11px; padding:11px 20px; font-size:13px; font-weight:600;">Sign out</button></div>`;
+    } else {
+      box.innerHTML = `
+        <div style="font-size:12.5px; color:#8b99a6; font-weight:300; margin-bottom:14px;">Sign in so your settings, history and baseline follow you. (Cross-device sync works when the app is hosted online; on this Mac it keeps a private account file.)</div>
+        <input id="authName" placeholder="Name (for sign up)" style="width:100%; height:44px; border:1px solid #dde6ef; border-radius:11px; padding:0 14px; font-size:13.5px; outline:none; color:#16202b; background:#fff; margin-bottom:10px;" />
+        <input id="authEmail" type="email" placeholder="you@email.com" style="width:100%; height:44px; border:1px solid #dde6ef; border-radius:11px; padding:0 14px; font-size:13.5px; outline:none; color:#16202b; background:#fff; margin-bottom:10px;" />
+        <input id="authPass" type="password" placeholder="Password" style="width:100%; height:44px; border:1px solid #dde6ef; border-radius:11px; padding:0 14px; font-size:13.5px; outline:none; color:#16202b; background:#fff;" />
+        <div id="authErr" style="font-size:12.5px; color:#d2381f; margin-top:10px; display:none;"></div>
+        <div style="display:flex; gap:10px; margin-top:14px;">
+          <button class="glass" onclick="App.doAuth('login')" style="flex:1; border-radius:11px; padding:12px; font-size:14px; font-weight:600;">Sign in</button>
+          <button class="glass ghost" onclick="App.doAuth('signup')" style="flex:1; border-radius:11px; padding:12px; font-size:14px; font-weight:600;">Create account</button>
+        </div>`;
+    }
+  },
+  async doAuth(kind){
+    const email = (document.getElementById('authEmail').value || '').trim();
+    const password = document.getElementById('authPass').value || '';
+    const name = (document.getElementById('authName') && document.getElementById('authName').value || '').trim();
+    const err = document.getElementById('authErr');
+    try {
+      const res = await fetch('/api/' + (kind === 'signup' ? 'signup' : 'login'), {
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, password, name }) });
+      const d = await res.json();
+      if (!res.ok) { err.style.display='block'; err.textContent = d.error || 'Could not sign in.'; return; }
+      location.reload();   // reload into the signed-in account's data
+    } catch(e){ err.style.display='block'; err.textContent = 'Connection error.'; }
+  },
+  async logOut(){ await this.api('/api/logout', {}); location.reload(); },
+  async gateAuth(kind){
+    const email = (document.getElementById('gateEmail').value || '').trim();
+    const password = document.getElementById('gatePass').value || '';
+    const name = (document.getElementById('gateName').value || '').trim();
+    const err = document.getElementById('gateErr');
+    if (kind === 'signup' && !name){ err.style.display='block'; err.textContent = 'Add your name so SilentHelp knows what to call you.'; return; }
+    try {
+      const res = await fetch('/api/' + (kind === 'signup' ? 'signup' : 'login'), {
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, password, name }) });
+      const d = await res.json();
+      if (!res.ok) { err.style.display='block'; err.textContent = d.error || 'Could not sign in.'; return; }
+      location.reload();
+    } catch(e){ err.style.display='block'; err.textContent = 'Connection error — is the app reachable?'; }
+  },
+
+  // ---- snooze ("ignore for a while") ----
+  snoozed(){ return Date.now() < (+localStorage.getItem('sh_snooze') || 0); },
+  snooze(hours){
+    localStorage.setItem('sh_snooze', String(Date.now() + hours*3600e3));
+    this.closePopup(); this.paintSnooze();
+  },
+  clearSnooze(){ localStorage.removeItem('sh_snooze'); this.paintSnooze(); },
+  paintSnooze(){
+    const chip = document.getElementById('snoozeChip'); if (!chip) return;
+    if (this.snoozed()){
+      const until = new Date(+localStorage.getItem('sh_snooze'));
+      chip.style.display = 'block';
+      chip.textContent = '💤 Quiet until ' + until.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) + ' · tap to resume';
+    } else chip.style.display = 'none';
+  },
+
+  paintGreeting(){
+    const g = document.getElementById('dashGreet'); if (!g) return;
+    const h = new Date().getHours();
+    const part = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+    g.textContent = part + (this.name ? ', ' + this.name : '') + '.';
+  },
+  onName(e){ this.name = e.target.value; this.paintGreeting();
+    const sn = document.getElementById('sideName'); if (sn && this.name) sn.textContent = this.name;
+    const sa = document.getElementById('sideAvatar'); if (sa && this.name) sa.textContent = this.name[0].toUpperCase();
+    clearTimeout(this._nameT); this._nameT = setTimeout(() => this.api('/api/settings', { name: this.name }), 500); },
+  toggleNotify(){ this.toggle('notify'); },
+  async resetBaseline(){ if (!confirm('Reset your learned baseline and history? Your settings and trusted contact stay.')) return; await this.api('/api/reset-baseline', {}); location.reload(); },
+
+  paintNav(){
+    document.querySelectorAll('.navitem').forEach(it => {
+      const on = it.dataset.screen === this.screen;
+      it.style.background = on ? 'rgba(0,122,255,.1)' : 'transparent';
+      it.style.color = on ? '#0a6dff' : '#5a6b7a';
+      it.querySelector('.navdot').style.background = on ? '#007aff' : '#cdd6e0';
+    });
+  },
+
+  // ---- popups ----
+  triggerLine(){
+    if (!this.lastTrigger) return null;
+    const c = (this.lastTrigger.cat || 'distress').replace(/_/g,' ');
+    const sent = this.esc(this.lastTrigger.snippet || '');
+    const ph = this.lastTrigger.phrase;
+    if (ph) return `Triggered by “<b>${this.esc(ph)}</b>” in what you wrote:<br/>“${sent}”<br/><span style="color:#9aa7b3">read as ${this.lastTrigger.level} concern · ${c}</span>`;
+    return `Triggered by what you wrote:<br/>“${sent}”<br/><span style="color:#9aa7b3">read as ${this.lastTrigger.level} concern · ${c}</span>`;
+  },
+  openGentle(force){
+    if (!force && this.snoozed()) return;   // user asked for quiet
+    this.gentleShown = true;
+    const d = document.getElementById('gentleDesc'), t = this.triggerLine();
+    if (d && t) d.innerHTML = t + '<br/><br/>No alarm — just checking in. How are you doing?';
+    document.getElementById('popup-gentle').style.display = 'flex';
+  },
+  openUrgent(force){
+    // Crisis-level moments intentionally IGNORE the snooze — safety first.
+    this.urgentShown = true;
+    document.getElementById('popup-urgent').style.display = 'flex';
+    const d = document.getElementById('urgentDesc'), t = this.triggerLine();
+    if (d && t) d.innerHTML = t + '<br/><br/>You don’t have to carry this alone. Here’s a private note you can send to someone you trust — edit it however you like.';
+    document.getElementById('escSent').style.display = 'none';
+    document.getElementById('urgentDraft').style.display = 'block';
+    // Build the draft, INCLUDING what triggered it.
+    const tr = this.lastTrigger || {};
+    const snip = (tr.snippet || '').slice(0, 140);
+    const cat = (tr.cat || 'distress').replace(/_/g,' ');
+    document.getElementById('escTo').value = this.contact || '';
+    document.getElementById('escSubj').value = 'SilentHelp — I could use a check-in';
+    document.getElementById('escBody').value =
+      `Hi,\n\nI'm reaching out through SilentHelp. Something I wrote recently was flagged as ${tr.level || 'a'} concern` +
+      (cat ? ` (${cat})` : '') + `:\n\n  "${snip}"\n\n` +
+      `I think I could use some support — would you have time to check in with me soon?\n\nThank you,\n${this.name || ''}\n\n` +
+      `— If urgent, I can also reach 988 (call or text) or text HOME to 741741.`;
+  },
+  async sendEmail(){
+    const to = (document.getElementById('escTo').value || '').trim();
+    const subj = document.getElementById('escSubj').value || '';
+    const body = document.getElementById('escBody').value || '';
+    const s = document.getElementById('escSent');
+    let r = {};
+    try { r = await this.api('/api/escalation/send', { contact: to, subject: subj, body: body }); } catch(e){}
+    document.getElementById('urgentDraft').style.display = 'none';
+    s.style.display = 'block';
+    if (r && r.sent) {
+      // Real email actually delivered via the server.
+      s.textContent = `✓ Email sent to ${r.to || to}.`;
+    } else {
+      // No SMTP configured — fall back to opening the user's mail app.
+      const m = to.match(/[\w.+-]+@[\w-]+\.[\w.-]+/);
+      const addr = m ? m[0] : '';
+      window.location.href = `mailto:${encodeURIComponent(addr)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+      s.textContent = addr
+        ? `Opening your mail app to ${addr} — press send there. (Set up SMTP to auto-send.)`
+        : 'Opening your mail app — add a recipient and press send.';
+    }
+  },
+  closePopup(){ clearTimeout(this._t);
+    // Dismissed stays dismissed: the background gating poll may NOT re-open the
+    // same moment (gentleShown/urgentShown stay true). Only a NEW detection
+    // (chat/scan resets the flags explicitly) or a page reload surfaces again.
+    this._suppressUntil = Date.now() + 25000;
+    document.getElementById('popup-gentle').style.display = 'none';
+    document.getElementById('popup-urgent').style.display = 'none'; },
+  goChatFromPopup(){
+    this.closePopup();
+    if (this.lastTrigger) {
+      const c = (this.lastTrigger.cat || 'distress').replace(/_/g,' ');
+      const t = this.lastTrigger;
+      const part = t.phrase ? ` The part that stood out was “${t.phrase}.”` : '';
+      this.history.push({ role: 'assistant', content:
+        `I'm really glad you're here. A moment ago you wrote: “${t.snippet}.”${part} That read as ${t.level} concern (${c}), and I didn't want to let it pass. I'm here with you — do you want to talk about what's behind it?` });
+    }
+    this.go('chat');
+    this.renderChat(false);
+  },
+  goSettingsFromPopup(){ this.closePopup(); this.go('settings'); },
+
+  // ---- settings ----
+  onContact(e){ this.contact = e.target.value; clearTimeout(this._contactT);
+    this._contactT = setTimeout(()=>this.api('/api/settings', { contact: this.contact }), 500); },
+  toggle(key){ this.toggles[key] = !this.toggles[key]; this.paintToggles();
+    this.api('/api/settings', { toggles: { [key]: this.toggles[key] } }); },
+  paintToggles(){
+    document.querySelectorAll('.sw').forEach(sw => {
+      const on = this.toggles[sw.dataset.key];
+      sw.style.background = on ? '#007aff' : '#cdd6e0';
+      sw.querySelector('.swk').style.left = on ? '20px' : '2px';
+    });
+  },
+  async exportData(){
+    const data = await this.api('/api/export');
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'silenthelp-data.json'; a.click();
+    URL.revokeObjectURL(a.href);
+  },
+  async wipe(){
+    if (!confirm('Delete everything SilentHelp has remembered? This cannot be undone.')) return;
+    await this.api('/api/wipe', {});
+    location.reload();
+  },
+
+  // ---- live screens ----
+  async loadDashboard(){
+    const d = await this.api('/api/dashboard').catch(()=>null); if (!d) return;
+    this.paintGreeting();
+    document.getElementById('battNum').textContent = d.mental_battery;
+    document.getElementById('battLabel').textContent = (d.status || 'CHARGED').toUpperCase();
+    const bd = document.getElementById('battDelta');
+    if (bd) bd.textContent = d.delta > 0 ? `Up ${d.delta} point${d.delta===1?'':'s'} since yesterday. You're surfacing, steadily.`
+      : d.delta < 0 ? `Down ${-d.delta} point${d.delta===-1?'':'s'} since yesterday. Be gentle with yourself today.`
+      : (d.active_minutes > 0 ? 'Holding steady against your baseline.' : 'Learning your rhythm — check back after some normal use.');
+    const di = document.getElementById('dashInsight');
+    if (di && d.suggestions && d.suggestions.length) di.textContent = d.suggestions[0];
+    document.getElementById('rFocus').innerHTML = d.focus_score + '<span style="font-size:15px; color:#9aa7b3;"> / 100</span>';
+    document.getElementById('rTab').textContent = d.tab_switches;
+    const h = Math.floor((d.active_minutes||0)/60), m = (d.active_minutes||0)%60;
+    document.getElementById('rActive').innerHTML = h + '<span style="font-size:18px;">h</span> ' + m + '<span style="font-size:18px;">m</span>';
+    document.getElementById('rLate').innerHTML = (d.late_night_min||0) + '<span style="font-size:18px;">m</span>';
+    const rt = document.getElementById('rType'); if (rt) rt.innerHTML = (d.corrections||0) + '<span style="font-size:18px;">%</span>';
+  },
+  async loadAnalytics(){
+    const a = await this.api('/api/analytics').catch(()=>null); if (!a) return;
+    document.getElementById('weekChange').textContent = (a.week_change>=0?'+':'') + a.week_change + '% vs last week';
+    const t = a.trend.map(v => typeof v==='number'?v:0);
+    const xs = t.map((_,i)=> 20 + i*(840/6));
+    const ys = t.map(v => 180 - Math.max(0,Math.min(100,v))/100*150);
+    const line = xs.map((x,i)=> (i?'L':'M')+x.toFixed(0)+','+ys[i].toFixed(0)).join(' ');
+    document.getElementById('trendLine').setAttribute('d', line);
+    document.getElementById('trendArea').setAttribute('d', line + ' L860,200 L20,200 Z');
+    document.getElementById('trendDot').setAttribute('cx', xs[xs.length-1]);
+    document.getElementById('trendDot').setAttribute('cy', ys[ys.length-1]);
+    const bars = a.bars.map(v=>typeof v==='number'?v:0); const max = Math.max(a.baseline_tabs*1.6, ...bars, 1);
+    const dash = `<div style="position:absolute; left:0; right:0; top:${(1-a.baseline_tabs/max)*100}%; border-top:1px dashed #c2d4e8;"></div>`;
+    document.getElementById('tabBars').innerHTML = dash + bars.map(v=>{
+      const below = v < a.baseline_tabs; return `<div style="flex:1; height:${Math.max(6, v/max*100)}%; background:${below?'#007aff':'#bcd9ff'}; border-radius:4px;"></div>`;
+    }).join('');
+  },
+  async loadFindings(){
+    const f = await this.api('/api/findings').catch(()=>null); if (!f) return;
+    const fr = document.getElementById('fRange');
+    if (fr){ const end = new Date(), start = new Date(Date.now() - 6*864e5);
+      const fmt = d => d.toLocaleDateString(undefined, {month:'short', day:'numeric'});
+      fr.textContent = fmt(start) + ' – ' + fmt(end) + ' · your last seven days'; }
+    document.getElementById('fAvgBatt').textContent = f.avg_battery;
+    document.getElementById('fAvgFocus').textContent = f.avg_focus;
+    document.getElementById('fDeep').textContent = f.deep_focus_h;
+    document.getElementById('fLate').textContent = f.late_nights;
+    document.getElementById('fNarrative').textContent = f.narrative;
+    document.getElementById('fSugg').innerHTML = (f.suggestions||[]).map((s,i,arr)=>
+      `<div style="display:flex; gap:16px; padding:16px 0; ${i<arr.length-1?'border-bottom:1px solid #e9eef4;':''}"><div style="width:6px; height:6px; border-radius:50%; background:#007aff; margin-top:7px;"></div><div><div style="font-size:14px; color:#16202b;">${this.esc(s.title)}</div><div style="font-size:12.5px; color:#8b99a6; margin-top:3px; font-weight:300;">${this.esc(s.body)}</div></div></div>`
+    ).join('');
+  },
+
+  // ---- chat ----
+  renderChat(typing){
+    const wrap = document.getElementById('chatThread');
+    let html = this.history.map(m => m.role === 'user'
+      ? `<div style="display:flex; justify-content:flex-end;"><div style="max-width:76%; font-size:14px; line-height:1.62; color:#fff; background:#007aff; padding:13px 17px; border-radius:16px; animation:surface .6s cubic-bezier(.16,1,.3,1); white-space:pre-wrap;">${this.esc(m.content)}</div></div>`
+      : `<div style="display:flex; justify-content:flex-start;"><div style="max-width:76%; font-size:14px; line-height:1.62; color:#3c4a57; font-weight:300; animation:surface .6s cubic-bezier(.16,1,.3,1); white-space:pre-wrap;">${this.esc(m.content)}</div></div>`).join('');
+    if (typing) html += `<div style="display:flex; justify-content:flex-start;"><div style="display:flex; gap:5px; align-items:center; padding:4px 0;"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div></div>`;
+    wrap.innerHTML = html; wrap.scrollTop = wrap.scrollHeight;
+  },
+  async send(){
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text || this._sending) return;
+    this._sending = true;
+    this.history.push({ role: 'user', content: text });
+    input.value = ''; this.renderChat(true);
+    // INSTANT surface ONLY for explicit tier-3 crisis (~30ms, no model wait).
+    // Softer signals wait for the semantic verdict below — it reads context,
+    // so "this is killing me 😂" never pops but "i am so stressed" does.
+    this.api('/api/scan', { text }).then(r => {
+      if (!r) return;
+      const phrase = (r.hits && r.hits[0] && r.hits[0].phrase) || null;
+      const cat = (r.categories && r.categories[0]) || 'distress';
+      if (r.tier3) {
+        this.lastTrigger = { level:'crisis', cat:cat, snippet:text, phrase:phrase };
+        this.urgentShown = false; this._suppressUntil = 0; this.openUrgent();
+      }
+    }).catch(()=>{});
+    try {
+      const data = await this.api('/api/chat', { message: text, messages: this.history.slice(0, -1) });
+      this.history.push({ role: 'assistant', content: data.reply });
+      this.renderChat(false);
+      const act = data.action || {}, j = data.judgment || {}, lvl = j.risk_level;
+      const l1 = data.l1 || {};
+      const cat = ((l1.categories && l1.categories[0]) || (j.categories && j.categories[0]) || 'distress');
+      const phrase = (l1.hits && l1.hits[0] && l1.hits[0].phrase) || null;
+      this.lastTrigger = { level: lvl, cat: cat, snippet: text, phrase: phrase };
+      if (act.route_to_human && act.resources && act.resources.length) {
+        const lines = act.resources.map(r => `• ${r.name} — ${r.contact} (${r.available})`).join('\n');
+        this.history.push({ role: 'assistant', content: 'You deserve real support right now:\n' + lines });
+        this.renderChat(false);
+      }
+      // ALWAYS reset so a new message re-surfaces — dismissing never permanently silences it.
+      this._suppressUntil = 0; this.urgentShown = false; this.gentleShown = false;
+      if (lvl === 'crisis' || lvl === 'high' || act.route_to_human) this.openUrgent();
+      else if (lvl === 'moderate' || lvl === 'low') this.openGentle();
+    } catch (e) {
+      this.history.push({ role: 'assistant', content: "I'm here with you. (Connection hiccup — try again in a moment.)" });
+      this.renderChat(false);
+      // Even if the chat reply failed, still surface crisis from the local keyword DB.
+      try {
+        const r = await this.api('/api/scan', { text });
+        if (r && r.tier3) {
+          this.lastTrigger = { level: 'crisis', cat: (r.categories && r.categories[0]) || 'crisis', snippet: text, phrase: (r.hits && r.hits[0] && r.hits[0].phrase) || null };
+          this.urgentShown = false; this._suppressUntil = 0; this.openUrgent();
+        }
+      } catch (_) {}
+    } finally { this._sending = false; }
+  },
+
+  // ---- real behavioral logging (Layer 3) ----
+  M: { keys:0, back:0, blur:0, activeMs:0, lateMs:0, longest:0 }, _stretch:0, _lastT:Date.now(),
+  trackBehavior(){
+    const tick = () => {
+      const now = Date.now(), dt = now - this._lastT; this._lastT = now;
+      if (document.visibilityState === 'visible' && document.hasFocus()) {
+        this.M.activeMs += dt; this._stretch += dt;
+        const hr = new Date().getHours(); if (hr >= 0 && hr < 5) this.M.lateMs += dt;
+      }
+    };
+    setInterval(tick, 1000);
+    window.addEventListener('blur', () => { this.M.blur++; this.M.longest = Math.max(this.M.longest, this._stretch); this._stretch = 0; });
+    document.addEventListener('keydown', e => { this.M.keys++; if (e.key==='Backspace'||e.key==='Delete') this.M.back++; });
+    setInterval(() => this.logBehavior(), 8000);
+  },
+  signals(){
+    const activeMin = this.M.activeMs/60000, activeHr = Math.max(activeMin/60, 0.08);
+    const tab = Math.min(120, this.M.blur/activeHr);
+    return { tab_switches: tab, interruptions: tab*0.7,
+      avg_session_min: this.M.blur===0 ? 50 : Math.max(this.M.longest, this._stretch)/60000,
+      backspace_rate: this.M.keys>0 ? this.M.back/this.M.keys : 0,
+      late_night_min: this.M.lateMs/60000, active_minutes: activeMin };
+  },
+  async logBehavior(){
+    if (!this.toggles.behavioral) return;
+    await this.api('/api/behavioral/log', this.signals()).catch(()=>{});
+    if (this.screen === 'dashboard') this.loadDashboard();
+  },
+
+  // ---- real gating: surface a moment when the backend says so ----
+  async pollGating(){
+    if (this.snoozed()) return;                            // "ignore for a while" is on
+    if (Date.now() < (this._suppressUntil || 0)) return;  // just dismissed — don't nag
+    if (document.getElementById('popup-urgent').style.display !== 'none' || document.getElementById('popup-gentle').style.display !== 'none') return;
+    try {
+      const g = await this.api('/api/gating');
+      if (g.urgent && !this.urgentShown) this.openUrgent();
+      else if (g.gentle && !this.gentleShown && this.toggles.notify !== false) this.openGentle();
+    } catch(e){}
+  },
+
+  async init(){
+    this.paintNav();
+    // heatmap (cosmetic)
+    const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const seed = [0.2,0.3,0.7,0.85,0.8,0.6,0.4,0.3,0.5,0.7,0.55,0.25];
+    const hc = v => v<0.18?'#eef4fb':v<0.42?'#cfe2fb':v<0.62?'#9cc7ff':v<0.82?'#4aa0ff':'#0049c4';
+    document.getElementById('heatmap').innerHTML = days.map((day,di) =>
+      `<div style="display:flex; align-items:center; gap:5px;"><div style="width:32px; font-size:11px; color:#9aa7b3;">${day}</div>` +
+      Array.from({length:12},(_,hi)=>{ const v=Math.max(0.05,Math.min(1, seed[hi]*(di===2?1.15:0.9)+(((di*7+hi*13)%10)/28)-0.12)); return `<div style="flex:1; height:18px; border-radius:3px; background:${hc(v)};"></div>`; }).join('') +
+      `</div>`).join('');
+    document.getElementById('dashDate').textContent =
+      new Date().toLocaleDateString(undefined,{weekday:'long', month:'long', day:'numeric'}) + ' · surface conditions';
+    document.getElementById('chatInput').addEventListener('keydown', e => { if (e.key === 'Enter') App.send(); });
+
+    // SIGN-IN GATE: nobody gets in (or sees anyone's data) without an account.
+    let me = { signedIn: false };
+    try { me = await this.api('/api/me'); } catch(e){}
+    this.me = me;
+    if (!me.signedIn){ this.go('auth'); return; }
+    if (me.user){
+      const sn = document.getElementById('sideName'), sa = document.getElementById('sideAvatar');
+      if (sn) sn.textContent = me.user.name || me.user.email;
+      if (sa) sa.textContent = ((me.user.name || me.user.email || '?')[0] || '?').toUpperCase();
+    }
+
+    // load persisted state (this user's own file — never anyone else's)
+    try {
+      const s = await this.api('/api/state');
+      this.contact = s.settings.contact; this.name = s.settings.name || (me.user && me.user.name) || '';
+      this.toggles = Object.assign(this.toggles, s.settings.toggles || {});
+      this._onboarded = s.settings.onboarded;
+      document.getElementById('contactInput').value = this.contact;
+      this.paintToggles();
+      this.history = (s.chat || []).map(m => ({ role: m.role, content: m.content }));
+      if (!this.history.length) this.history = [{ role:'assistant', content:"Hi "+(this.name||'there')+" — I'm really glad you opened this. Nothing you say here is shared with anyone unless you choose to reach out. How are you feeling today?" }];
+    } catch(e){
+      this.history = [{ role:'assistant', content:"Hi — I'm really glad you opened this. How are you feeling today?" }];
+      this.paintToggles();
+    }
+    this.renderChat(false);
+    this.paintGreeting();
+    this.paintSnooze();
+    setInterval(() => this.paintSnooze(), 30000);
+
+    // deep-link support: /app#chat etc. opens straight to that screen
+    const valid = ['dashboard','analytics','reports','moments','chat','connection','settings','account'];
+    const fromHash = (location.hash || '').replace('#','');
+    if (this._onboarded) this.go(valid.includes(fromHash) ? fromHash : 'dashboard');
+    else this.go('onboarding');
+    window.addEventListener('hashchange', () => {
+      const h = (location.hash || '').replace('#','');
+      if (valid.includes(h)) this.go(h);
+    });
+
+    this.trackBehavior();
+    setInterval(() => this.pollGating(), 2000);  // near-instant surfacing
+  }
+};
+App.init();
+</script>
+</body>
+</html>

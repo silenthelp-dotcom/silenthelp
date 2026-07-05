@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Detection{% endblock %}
+
+{% block content %}
+<div class="panels">
+  <!-- Student surface -->
+  <section class="panel" aria-labelledby="student-h">
+    <div class="panel-head">
+      <h2 id="student-h">Student view</h2>
+      <p>What the student experiences · Layer 2</p>
+    </div>
+    <div class="dchat" id="chat" aria-live="polite">
+      <div class="dempty" id="chatEmpty">Type a message a student might send to see what they’d experience.</div>
+    </div>
+    <div class="composer">
+      <label for="msg" class="sr-only">Test message</label>
+      <textarea id="msg" placeholder="Type a message a student might send…"></textarea>
+      <div class="row">
+        <button class="btn" id="send" type="button">Analyze message</button>
+        <span class="hint">⌘/Ctrl + Enter</span>
+      </div>
+      <div class="samples">
+        <span>try</span>
+        <button class="chip" type="button">got an A on my chem test, finally!</button>
+        <button class="chip" type="button">ugh three tests this week and i'm exhausted</button>
+        <button class="chip" type="button">nothing i do matters, i'm just a burden to my family</button>
+        <button class="chip" type="button">i keep wishing i just wouldn't wake up, lol idk</button>
+        <button class="chip" type="button">i have a plan to end it this weekend and i'm at peace with it</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Detection readout -->
+  <section class="panel" aria-labelledby="readout-h">
+    <div class="panel-head">
+      <h2 id="readout-h">Detection readout</h2>
+      <p>Model flags · code decides</p>
+    </div>
+    <div class="readout" id="readout" aria-live="polite">
+      <div class="dempty">Run a message to see the risk judgment and the action the app takes.</div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+  const sendBtn = document.getElementById("send");
+  const msgBox = document.getElementById("msg");
+  const chat = document.getElementById("chat");
+  const readout = document.getElementById("readout");
+
+  document.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => { msgBox.value = c.textContent; msgBox.focus(); }));
+  msgBox.addEventListener("keydown", e => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") analyze(); });
+  sendBtn.addEventListener("click", analyze);
+
+  function esc(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+  function pct(v){ const n=Number(v); return Number.isFinite(n)&&n>=0&&n<=1?Math.round(n*100)+"%":esc(v); }
+
+  async function analyze(){
+    const message = msgBox.value.trim();
+    if(!message) return;
+    sendBtn.disabled = true; sendBtn.textContent = "Analyzing…";
+    try{
+      const res = await fetch("/classify", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ message }) });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || "request failed");
+      renderStudent(message, data.action, data.judgment);
+      renderReadout(data.judgment, data.action);
+    }catch(err){ readout.innerHTML = `<div class="err animate"><b>Error:</b> ${esc(err.message)}</div>`; }
+    finally{ sendBtn.disabled=false; sendBtn.textContent="Analyze message"; }
+  }
+
+  function renderStudent(message, a, j){
+    let reply = "";
+    if(a.action === "none"){ reply = `<div class="sys-note animate">SilentHelp didn’t surface anything.</div>`; }
+    else{
+      const care = (j.risk_level === "high" || j.risk_level === "crisis");
+      let resources = "";
+      if(a.resources && a.resources.length){
+        resources = `<ul class="resources">` + a.resources.map(r=>`<li><b>${esc(r.name)}</b><span>${esc(r.contact)} · ${esc(r.available)}</span></li>`).join("") + `</ul>`;
+      }
+      const stay = (a.dismissible === false)
+        ? `<div class="send-note" style="margin-top:10px"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 14s-5.5-3.3-5.5-7A2.8 2.8 0 018 4.2 2.8 2.8 0 0113.5 7c0 3.7-5.5 7-5.5 7z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg> We’ll stay with you — this won’t be dismissed.</div>` : "";
+      const say = a.message ? `<p style="margin:0">${esc(a.message)}</p>` : "";
+      reply = `<div class="reply animate"><div class="av"><span></span></div><div class="reply-body ${care?"care":""}"><p class="reply-name">SilentHelp</p>${say}${resources}${stay}</div></div>`;
+    }
+    chat.innerHTML = `<div class="bubble user animate">${esc(message)}</div>` + reply;
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function renderReadout(j, a){
+    const lvl = j.risk_level;
+    const cats = (j.categories && j.categories.length) ? `<div class="cats">`+j.categories.map(c=>`<span class="cat">${esc(c)}</span>`).join("")+`</div>` : `<span style="color:var(--text-3)">none</span>`;
+    const failsafe = j._source === "fail_safe" ? `<div class="failsafe"><b>Fail-safe.</b> Model unavailable — escalated by default rather than going silent.</div>` : "";
+    const source = j._source === "fail_safe" ? "fail-safe (model unavailable)" : esc(j._source || "model");
+    const escalation = a.route_to_human ? `<div class="esc" id="esc"><p class="esc-intro">This routes to a human. SilentHelp can draft a counselor email — <b>nothing is sent until you press send.</b></p><button class="btn ghost" id="draftBtn" type="button">Draft counselor email</button></div>` : "";
+
+    readout.innerHTML = `<div class="animate">
+      <span class="level-pill lv-${esc(lvl)}"><span class="dot"></span>${esc(lvl)}</span>
+      <dl class="judge-grid"><dt>Confidence</dt><dd>${pct(j.confidence)}</dd><dt>Categories</dt><dd>${cats}</dd><dt>Source</dt><dd>${source}</dd></dl>
+      <div class="rationale">${esc(j.rationale || "—")}</div>${failsafe}
+      <div class="divider"></div>
+      <div class="sect-label">App decision (hard-coded)</div>
+      <span class="action-name">${esc(a.action)}</span>
+      <div class="flags"><span class="flag ${a.route_to_human?"human":""}">route to human <b>${a.route_to_human?"yes":"no"}</b></span>${a.dismissible?`<span class="flag">dismissible</span>`:`<span class="flag nondismiss">non-dismissible</span>`}</div>
+      ${escalation}</div>`;
+    const b = document.getElementById("draftBtn"); if(b) b.addEventListener("click", draftEmail);
+  }
+
+  async function draftEmail(){
+    const e = document.getElementById("esc");
+    e.innerHTML = `<p class="esc-intro">Drafting…</p>`;
+    const d = await (await fetch("/api/escalation/draft",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"})).json();
+    e.innerHTML = `<div class="animate"><div class="sect-label">Draft counselor email</div>
+      <div class="draft-field"><label for="esc-to">To</label><input id="esc-to" type="text" value="${esc(d.contact)}"></div>
+      <div class="draft-field"><label for="esc-subj">Subject</label><input id="esc-subj" type="text" value="${esc(d.subject)}"></div>
+      <div class="draft-field"><label for="esc-body">Message</label><textarea id="esc-body">${esc(d.body)}</textarea></div>
+      <button class="btn" id="sendEmail" type="button">Send to counselor</button>
+      <div class="send-note"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Nothing is sent automatically. Review, edit, then send.</div></div>`;
+    document.getElementById("sendEmail").addEventListener("click", sendEmail);
+  }
+  async function sendEmail(){
+    const btn = document.getElementById("sendEmail"); btn.disabled=true; btn.textContent="Sending…";
+    const contact = document.getElementById("esc-to").value.trim();
+    const d = await (await fetch("/api/escalation/send",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contact})})).json();
+    document.getElementById("esc").innerHTML = `<div class="sent-confirm animate"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> Sent to <b>&nbsp;${esc(d.contact)}</b>. (Prototype — no real email left your device.)</div>`;
+  }
+</script>
+{% endblock %}

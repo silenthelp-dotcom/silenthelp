@@ -1,0 +1,10 @@
+.env
+silenthelp_data.json
+__pycache__/
+*.pyc
+*.tmp
+SilentHelpAgent/.build/
+SilentHelpAgent/SilentHelpAgent.app/
+users.json
+userdata/
+nohup.out

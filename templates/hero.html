@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SilentHelp — See beneath the surface</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500;1,600&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+  html, body { margin: 0; padding: 0; }
+  .font-playfair { font-family: 'Playfair Display', serif; }
+  @keyframes heroReveal { 0%{opacity:0;transform:translateY(28px);filter:blur(12px)} 100%{opacity:1;transform:translateY(0);filter:blur(0)} }
+  @keyframes heroFadeUp { 0%{opacity:0;transform:translateY(20px)} 100%{opacity:1;transform:translateY(0)} }
+  @keyframes heroZoom { 0%{transform:scale(1.12)} 100%{transform:scale(1)} }
+  .hero-anim { opacity:0; }
+  @media (max-width:767px){ .l-desk{ display:none !important; } }
+  @media (min-width:768px){ .l-mob{ display:none !important; } }
+  @media (prefers-reduced-motion: reduce){ .hero-anim{ animation:none !important; opacity:1 !important; } }
+  button { font-family:'Inter',sans-serif; }
+  .nav-pill:hover { background:rgba(0,122,255,0.1) !important; color:#007aff !important; }
+  .cta:hover { background:#0061d8 !important; transform:scale(1.03); box-shadow:0 12px 28px rgba(0,122,255,0.4) !important; }
+  .cta:active { transform:scale(0.95); }
+  .dl:hover { background:#0061d8 !important; }
+  /* Apple-style Liquid Glass buttons */
+  .glass { border:none !important; cursor:pointer; color:#fff !important; font-weight:600; font-family:'Inter',sans-serif;
+    background:linear-gradient(135deg, rgba(86,172,255,.95), rgba(0,122,255,.94)) !important;
+    -webkit-backdrop-filter:blur(16px) saturate(180%); backdrop-filter:blur(16px) saturate(180%);
+    box-shadow:0 8px 24px rgba(0,122,255,.34), inset 0 1px 0 rgba(255,255,255,.6), inset 0 -3px 8px rgba(0,60,140,.28) !important;
+    transition:transform .15s ease, box-shadow .2s ease, filter .2s ease; }
+  .glass:hover { transform:translateY(-1px); filter:brightness(1.06); box-shadow:0 13px 32px rgba(0,122,255,.44), inset 0 1px 0 rgba(255,255,255,.7) !important; }
+  .glass:active { transform:scale(.97); }
+  .glass.ghost { background:linear-gradient(135deg, rgba(255,255,255,.62), rgba(244,247,251,.42)) !important; color:#1a2632 !important;
+    box-shadow:0 6px 18px rgba(20,40,80,.12), inset 0 1px 0 rgba(255,255,255,.85), inset 0 0 0 1px rgba(10,40,80,.07) !important; }
+</style>
+</head>
+<body>
+<div style="min-height:100vh; background:#fff; letter-spacing:-0.02em; font-family:'Inter',sans-serif;">
+  <section style="position:relative; width:100%; overflow:hidden; height:100dvh; background:#fff;">
+
+    <svg width="0" height="0" style="position:absolute;" aria-hidden="true"><filter id="neuron" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values="0" result="g"/><feComponentTransfer in="g" result="duo"><feFuncR type="table" tableValues="0 0.16 0.95 1"/><feFuncG type="table" tableValues="0 0.20 0.14 0.12"/><feFuncB type="table" tableValues="0 0.96 0.34 0.22"/></feComponentTransfer><feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 1 1 0 0" result="lum"/><feComponentTransfer in="lum" result="alpha"><feFuncA type="gamma" amplitude="2.4" exponent="2.2" offset="0"/></feComponentTransfer><feComposite in="duo" in2="alpha" operator="in"/></filter></svg>
+
+    <!-- 1 · base image — inverted so the black rock reads white -->
+    <div id="heroBase" style="position:absolute; inset:0; background-position:center; background-size:cover; background-repeat:no-repeat; z-index:10; filter:invert(1) grayscale(0.92) brightness(1.16) contrast(0.86); animation:heroZoom 1.8s cubic-bezier(0.16,1,0.3,1) forwards;"></div>
+
+    <!-- 2 · reveal layer — same rock pushed to blue under a spotlight -->
+    <canvas id="heroCanvas" style="position:absolute; inset:0; pointer-events:none; display:none;"></canvas>
+    <div id="heroReveal" style="position:absolute; inset:0; background-position:center; background-size:cover; background-repeat:no-repeat; z-index:30; pointer-events:none; -webkit-mask-image:linear-gradient(#0000,#0000); mask-image:linear-gradient(#0000,#0000);"></div>
+
+    <!-- 3 · heading -->
+    <div style="position:absolute; top:12%; left:0; right:0; display:flex; flex-direction:column; align-items:center; text-align:center; padding:0 20px; pointer-events:none; z-index:60;">
+      <h1 style="line-height:0.95; margin:0; text-shadow:0 2px 22px rgba(255,255,255,0.9), 0 0 12px rgba(255,255,255,0.95);">
+        <span class="font-playfair hero-anim" style="display:block; font-style:italic; font-weight:400; font-size:clamp(3rem,9vw,6rem); letter-spacing:-0.05em; color:#0e1822; animation:heroReveal 1.1s cubic-bezier(0.16,1,0.3,1) 0.25s forwards;">See beneath</span>
+        <span class="hero-anim" style="display:block; font-weight:500; font-size:clamp(3rem,9vw,6rem); letter-spacing:-0.06em; margin-top:-4px; color:#007aff; animation:heroReveal 1.1s cubic-bezier(0.16,1,0.3,1) 0.42s forwards;">the surface</span>
+      </h1>
+      <p class="hero-anim" style="font-size:16px; color:#46535f; line-height:1.65; margin:26px 0 0; max-width:480px; text-shadow:0 1px 14px rgba(255,255,255,0.95), 0 0 8px rgba(255,255,255,0.95); animation:heroFadeUp 1s cubic-bezier(0.16,1,0.3,1) 0.7s forwards;">Every tab, every late night, every restless switch leaves a trace. SilentHelp reads those layers quietly — on your Mac, never sent anywhere.</p>
+    </div>
+
+    <!-- 5 · bottom-right block -->
+    <div class="hero-anim" style="position:absolute; bottom:96px; left:auto; right:56px; max-width:260px; display:flex; flex-direction:column; align-items:flex-start; gap:20px; z-index:50; animation:heroFadeUp 1s cubic-bezier(0.16,1,0.3,1) 0.85s forwards;">
+      <p style="font-size:14px; color:#46535f; line-height:1.625; margin:0;">It surfaces your focus, energy, and burnout risk before you'd think to ask — then points you to help the moment it matters.</p>
+      <button class="cta glass" onclick="location.href='/app'" style="font-size:14px; font-weight:600; padding:12px 28px; border-radius:9999px;">Start free — for Mac</button>
+    </div>
+
+    <!-- nav -->
+    <nav style="position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:20px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <svg width="26" height="26" viewBox="0 0 256 256" fill="#0e1822"><path d="M 256 256 L 128 256 L 0 128 L 128 128 Z M 256 128 L 128 128 L 0 0 L 128 0 Z"></path></svg>
+        <span style="color:#0e1822; font-size:24px; font-weight:600; letter-spacing:-0.01em;">SilentHelp</span>
+      </div>
+      <div class="l-desk" style="position:absolute; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:4px; background:rgba(255,255,255,0.7); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid rgba(10,40,80,0.08); border-radius:9999px; padding:8px; box-shadow:0 6px 20px rgba(20,40,80,0.08);">
+        <button onclick="scrollTo({top:0,behavior:'smooth'})" style="background:#007aff; color:#fff; padding:6px 16px; border:none; border-radius:9999px; font-size:14px; font-weight:500; cursor:pointer;">Overview</button>
+        <button class="nav-pill" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})" style="background:transparent; color:#46535f; padding:6px 16px; border:none; border-radius:9999px; font-size:14px; font-weight:500; cursor:pointer; transition:all .2s ease;">How it works</button>
+        <button class="nav-pill" onclick="document.getElementById('science').scrollIntoView({behavior:'smooth'})" style="background:transparent; color:#46535f; padding:6px 16px; border:none; border-radius:9999px; font-size:14px; font-weight:500; cursor:pointer; transition:all .2s ease;">The science</button>
+        <button class="nav-pill" onclick="document.getElementById('privacy').scrollIntoView({behavior:'smooth'})" style="background:transparent; color:#46535f; padding:6px 16px; border:none; border-radius:9999px; font-size:14px; font-weight:500; cursor:pointer; transition:all .2s ease;">Privacy</button>
+      </div>
+      <button class="l-desk glass" onclick="location.href='/download/agent'" style="font-size:14px; font-weight:600; padding:10px 24px; border-radius:9999px;">Download for Mac</button>
+      <button class="l-mob" aria-label="Menu" onclick="location.href='/download/agent'" style="background:transparent; border:none; cursor:pointer; padding:6px; display:flex; flex-direction:column; gap:5px;">
+        <span style="display:block; width:22px; height:2px; background:#0e1822;"></span>
+        <span style="display:block; width:22px; height:2px; background:#0e1822;"></span>
+        <span style="display:block; width:22px; height:2px; background:#0e1822;"></span>
+      </button>
+    </nav>
+
+  </section>
+
+  <!-- ════ HOW IT WORKS ════ -->
+  <section id="how" style="background:#fff; padding:120px 24px;">
+    <div style="max-width:1080px; margin:0 auto;">
+      <div style="font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:#7a93ad; text-align:center;">How it works</div>
+      <h2 class="font-playfair" style="font-style:italic; font-weight:500; font-size:clamp(2rem,5vw,3.2rem); color:#0e1822; text-align:center; margin:14px 0 0; letter-spacing:-0.03em;">Four quiet layers, one gentle signal</h2>
+      <p style="text-align:center; color:#5e6f7e; max-width:560px; margin:18px auto 0; font-weight:300; line-height:1.7;">Each layer is cheap, local, and humble. Nothing surfaces until a real pattern forms across days — so you're never alarmed over a single hard night.</p>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:20px; margin-top:56px;">
+        <div style="background:#f6f9fc; border:1px solid #eef2f6; border-radius:18px; padding:28px;"><div style="font-size:13px; font-weight:700; color:#007aff;">Layer 1</div><div style="font-size:18px; font-weight:600; color:#16202b; margin-top:10px;">Keyword scan</div><div style="font-size:13.5px; color:#5e6f7e; margin-top:8px; line-height:1.6; font-weight:300;">A local word list catches obvious signals instantly. No AI, no network.</div></div>
+        <div style="background:#f6f9fc; border:1px solid #eef2f6; border-radius:18px; padding:28px;"><div style="font-size:13px; font-weight:700; color:#007aff;">Layer 2</div><div style="font-size:18px; font-weight:600; color:#16202b; margin-top:10px;">Semantic context</div><div style="font-size:13.5px; color:#5e6f7e; margin-top:8px; line-height:1.6; font-weight:300;">A model reads meaning, not just words — "what's even the point" lands like it should.</div></div>
+        <div style="background:#f6f9fc; border:1px solid #eef2f6; border-radius:18px; padding:28px;"><div style="font-size:13px; font-weight:700; color:#007aff;">Layer 3</div><div style="font-size:18px; font-weight:600; color:#16202b; margin-top:10px;">Behavioral rhythm</div><div style="font-size:13.5px; color:#5e6f7e; margin-top:8px; line-height:1.6; font-weight:300;">Tab-switching, typing pace, late nights — measured against your own baseline. Reads no text.</div></div>
+        <div style="background:#f6f9fc; border:1px solid #eef2f6; border-radius:18px; padding:28px;"><div style="font-size:13px; font-weight:700; color:#007aff;">Layer 4</div><div style="font-size:18px; font-weight:600; color:#16202b; margin-top:10px;">Trend gate</div><div style="font-size:13.5px; color:#5e6f7e; margin-top:8px; line-height:1.6; font-weight:300;">A single bad day means nothing. Only a sustained pattern can surface a moment.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ THE SCIENCE ════ -->
+  <section id="science" style="background:#f6f9fc; padding:120px 24px;">
+    <div style="max-width:780px; margin:0 auto; text-align:center;">
+      <div style="font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:#7a93ad;">The science</div>
+      <h2 class="font-playfair" style="font-style:italic; font-weight:500; font-size:clamp(2rem,5vw,3.2rem); color:#0e1822; margin:14px 0 0; letter-spacing:-0.03em;">Your baseline is the truth</h2>
+      <p style="color:#46535f; margin:24px auto 0; font-weight:300; line-height:1.8; font-size:16px;">SilentHelp doesn't compare you to anyone else. It learns <em>your</em> normal — when you focus, how you type, when you wind down — and watches for drift away from it. Deviation from your own rhythm is the signal, not some universal threshold. The model only ever <strong style="font-weight:600; color:#16202b;">flags</strong>; plain, auditable code <strong style="font-weight:600; color:#16202b;">decides</strong> what you see, and a crisis phrase is escalated even if the model hesitates.</p>
+      <p style="color:#8b99a6; margin:24px auto 0; font-weight:300; line-height:1.7; font-size:13.5px;">SilentHelp is not a medical product and does not diagnose any condition. It surfaces patterns and points you toward real human support.</p>
+    </div>
+  </section>
+
+  <!-- ════ PRIVACY ════ -->
+  <section id="privacy" style="background:#0e1822; color:#fff; padding:120px 24px;">
+    <div style="max-width:880px; margin:0 auto; text-align:center;">
+      <div style="font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:#6f8aa6;">Privacy</div>
+      <h2 class="font-playfair" style="font-style:italic; font-weight:500; font-size:clamp(2rem,5vw,3.2rem); margin:14px 0 0; letter-spacing:-0.03em;">Everything stays on your Mac</h2>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:18px; margin-top:50px; text-align:left;">
+        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:24px;"><div style="font-size:15px; font-weight:600;">On-device only</div><div style="font-size:13px; color:#9fb0c0; margin-top:8px; line-height:1.6; font-weight:300;">Detection runs locally. Your data never leaves the device.</div></div>
+        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:24px;"><div style="font-size:15px; font-weight:600;">Never sold</div><div style="font-size:13px; color:#9fb0c0; margin-top:8px; line-height:1.6; font-weight:300;">No ads, no tracking, no data brokers. Not the business model.</div></div>
+        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:24px;"><div style="font-size:15px; font-weight:600;">You're in control</div><div style="font-size:13px; color:#9fb0c0; margin-top:8px; line-height:1.6; font-weight:300;">Toggle any layer, export everything, or delete it all in one tap.</div></div>
+        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:24px;"><div style="font-size:15px; font-weight:600;">You choose escalation</div><div style="font-size:13px; color:#9fb0c0; margin-top:8px; line-height:1.6; font-weight:300;">A note to someone you trust is only ever prepared with your permission.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ FREE FOR EVERYONE ════ -->
+  <section style="background:#fff; padding:120px 24px;">
+    <div style="max-width:760px; margin:0 auto; text-align:center;">
+      <div style="font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:#7a93ad;">Free for everyone</div>
+      <h2 class="font-playfair" style="font-style:italic; font-weight:500; font-size:clamp(2rem,5vw,3.2rem); color:#0e1822; margin:14px 0 0; letter-spacing:-0.03em;">No plans. No paywall. Just help.</h2>
+      <p style="color:#46535f; margin:22px auto 0; font-weight:300; line-height:1.8; font-size:16px;">Every feature is free — for <strong style="font-weight:600; color:#16202b;">students, parents, and schools</strong> alike. Same battery, focus, behavioral insights, coping chat, and on-device detection for everyone. Wellness shouldn't be behind a price tag.</p>
+      <div style="display:inline-flex; gap:28px; margin-top:40px; flex-wrap:wrap; justify-content:center;">
+        <div style="font-size:13px; color:#5e6f7e; font-weight:300;">✓ Students</div>
+        <div style="font-size:13px; color:#5e6f7e; font-weight:300;">✓ Parents</div>
+        <div style="font-size:13px; color:#5e6f7e; font-weight:300;">✓ Schools</div>
+        <div style="font-size:13px; color:#5e6f7e; font-weight:300;">✓ Always $0</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ FOOTER CTA ════ -->
+  <section style="background:#f6f9fc; padding:110px 24px 70px; text-align:center; border-top:1px solid #eef2f6;">
+    <h2 class="font-playfair" style="font-style:italic; font-weight:500; font-size:clamp(2.2rem,6vw,4rem); color:#0e1822; margin:0; letter-spacing:-0.04em;">See beneath the surface.</h2>
+    <div style="display:flex; gap:14px; justify-content:center; margin-top:34px; flex-wrap:wrap;">
+      <button class="glass" onclick="location.href='/app'" style="font-size:15px; font-weight:600; padding:14px 32px; border-radius:9999px;">Open the app</button>
+      <button class="glass ghost" onclick="location.href='/download/agent'" style="font-size:15px; font-weight:600; padding:14px 32px; border-radius:9999px;">Download for Mac</button>
+    </div>
+    <div style="font-size:12px; color:#9aa7b3; margin-top:40px; font-weight:300;">SilentHelp · prototype · not a medical product, does not diagnose · everything stays on your Mac</div>
+  </section>
+</div>
+
+<script>
+(function(){
+  const BG1 = 'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_195923_b0ba8ace-1d1d-4f2c-9a28-1ab84b330680.png&w=1280&q=85';
+  const BG2 = 'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_201152_bba90a12-bf12-459f-91f0-51f237dbaf3b.png&w=1280&q=85';
+  const REVEAL_R = 221;          // spotlight radius (design prop default)
+  const VIB = 1.2;               // vibrancy (design prop default)
+
+  const base = document.getElementById('heroBase');
+  const reveal = document.getElementById('heroReveal');
+  const canvas = document.getElementById('heroCanvas');
+  base.style.backgroundImage = `url("${BG1}")`;
+  reveal.style.backgroundImage = `url("${BG2}")`;
+
+  // Neural duotone look on the reveal layer (Neural — red & blue theme).
+  const contrast = (1.5 + 0.5 * VIB).toFixed(2);
+  const bright = (1.5 + 0.7 * VIB).toFixed(2);
+  const sat = (1.3 + 0.7 * VIB).toFixed(2);
+  reveal.style.filter = `brightness(${bright}) contrast(${contrast}) url(#neuron) saturate(${sat})`;
+
+  function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const mouse = { x: -999, y: -999 }, smooth = { x: -999, y: -999 };
+  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+
+  function draw(x, y){
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const g = ctx.createRadialGradient(x, y, 0, x, y, REVEAL_R);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.32, 'rgba(255,255,255,1)');
+    g.addColorStop(0.55, 'rgba(255,255,255,0.6)');
+    g.addColorStop(0.78, 'rgba(255,255,255,0.22)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, REVEAL_R, 0, Math.PI * 2);
+    ctx.fill();
+    const url = canvas.toDataURL();
+    reveal.style.webkitMaskImage = `url(${url})`;
+    reveal.style.maskImage = `url(${url})`;
+    reveal.style.webkitMaskSize = '100% 100%';
+    reveal.style.maskSize = '100% 100%';
+  }
+
+  function loop(){
+    smooth.x += (mouse.x - smooth.x) * 0.1;
+    smooth.y += (mouse.y - smooth.y) * 0.1;
+    draw(smooth.x, smooth.y);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Chat{% endblock %}
+
+{% block content %}
+<div class="chat-shell">
+  <div class="chat-window">
+    <div class="chat-top">
+      <div class="avatar" aria-hidden="true"><span></span></div>
+      <div class="who">SilentHelp <small>Support · here for you</small></div>
+    </div>
+    <div class="thread" id="thread" aria-live="polite">
+      <div class="msg bot">Hey — I’m glad you’re here. This is a private space to put down whatever’s on your mind. What’s going on?</div>
+    </div>
+    <div class="chat-compose">
+      <textarea id="msg" rows="1" placeholder="Type a message…"></textarea>
+      <button class="chat-send" id="send" type="button" aria-label="Send">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 12l16-8-6 8 6 8-16-8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="chat-starters" id="starters">
+    <button class="starter" type="button">I’m so behind and exhausted</button>
+    <button class="starter" type="button">I feel like a burden to everyone</button>
+    <button class="starter" type="button">I keep wishing I just wouldn’t wake up</button>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+  const thread = document.getElementById("thread");
+  const box = document.getElementById("msg");
+  const sendBtn = document.getElementById("send");
+  const history = [{ role: "assistant", content: "Hey — I’m glad you’re here. What’s going on?" }];
+
+  function esc(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+  function scroll(){ thread.scrollTop = thread.scrollHeight; }
+
+  document.querySelectorAll(".starter").forEach(s =>
+    s.addEventListener("click", () => { box.value = s.textContent; send(); }));
+
+  box.addEventListener("input", () => { box.style.height = "auto"; box.style.height = Math.min(140, box.scrollHeight) + "px"; });
+  box.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } });
+  sendBtn.addEventListener("click", send);
+
+  function addUser(text){ const d=document.createElement("div"); d.className="msg user animate"; d.textContent=text; thread.appendChild(d); scroll(); }
+  function addBot(text, care){ const d=document.createElement("div"); d.className="msg bot animate"+(care?" care":""); d.textContent=text; thread.appendChild(d); scroll(); }
+  function addTyping(){ const d=document.createElement("div"); d.className="typing"; d.id="typing"; d.innerHTML="<i></i><i></i><i></i>"; thread.appendChild(d); scroll(); return d; }
+  function removeTyping(){ const t=document.getElementById("typing"); if(t) t.remove(); }
+
+  function addResources(resources){
+    const d=document.createElement("div"); d.className="care-card animate";
+    d.innerHTML = `<div class="ch"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 14s-5.5-3.3-5.5-7A2.8 2.8 0 018 4.2 2.8 2.8 0 0113.5 7c0 3.7-5.5 7-5.5 7z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg> You deserve real support right now</div>
+      <ul class="resources">${resources.map(r=>`<li><b>${esc(r.name)}</b><span>${esc(r.contact)} · ${esc(r.available)}</span></li>`).join("")}</ul>`;
+    thread.appendChild(d); scroll();
+  }
+
+  async function send(){
+    const text = box.value.trim();
+    if(!text) return;
+    document.getElementById("starters").style.display = "none";
+    addUser(text);
+    box.value=""; box.style.height="auto";
+    sendBtn.disabled = true;
+    const typing = addTyping();
+    try{
+      const res = await fetch("/api/chat", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ message: text, messages: history })
+      });
+      const data = await res.json();
+      removeTyping();
+      if(!res.ok) throw new Error(data.error || "request failed");
+      const care = data.action && data.action.route_to_human;
+      addBot(data.reply, care);
+      history.push({ role:"user", content:text }, { role:"assistant", content:data.reply });
+      if (data.action && data.action.resources && data.action.resources.length) addResources(data.action.resources);
+    }catch(err){
+      removeTyping();
+      addBot("I’m here with you. (Connection hiccup — try again in a moment.)", false);
+    }finally{ sendBtn.disabled=false; box.focus(); }
+  }
+</script>
+{% endblock %}

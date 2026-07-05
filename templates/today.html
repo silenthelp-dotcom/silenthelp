@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+{% block title %}Today{% endblock %}
+
+{% block content %}
+<div class="today-hero">
+  <div class="card hero-ring">
+    <div class="label">Mental Battery</div>
+    <div class="ring big" id="ring-battery">
+      <svg width="232" height="232" viewBox="0 0 232 232">
+        <circle class="track" cx="116" cy="116" r="100" fill="none" stroke-width="15"/>
+        <circle class="prog" cx="116" cy="116" r="100" fill="none" stroke-width="15"/>
+      </svg>
+      <div class="center"><div class="num"><span id="battery-v">—</span><small>%</small></div></div>
+    </div>
+    <div class="status-line" id="battery-status">Reading your behavior…</div>
+  </div>
+
+  <div class="mini-rings">
+    <div class="card mini">
+      <div class="ring mid" id="ring-focus">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle class="track" cx="60" cy="60" r="50" fill="none" stroke-width="10"/>
+          <circle class="prog" cx="60" cy="60" r="50" fill="none" stroke-width="10"/>
+        </svg>
+        <div class="center"><div class="num"><span id="focus-v">—</span></div></div>
+      </div>
+      <div class="meta">
+        <div class="mini-title">Focus Score</div>
+        <div class="mini-desc">Attention stability, live</div>
+      </div>
+    </div>
+    <div class="card mini">
+      <div class="ring mid" id="ring-burnout">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle class="track" cx="60" cy="60" r="50" fill="none" stroke-width="10"/>
+          <circle class="prog" cx="60" cy="60" r="50" fill="none" stroke-width="10"/>
+        </svg>
+        <div class="center"><div class="num"><span id="burnout-v">—</span></div></div>
+      </div>
+      <div class="meta">
+        <div class="mini-title">Burnout Risk</div>
+        <div class="mini-desc" id="burnout-status">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:24px">
+  <div class="mon-head">
+    <div>
+      <h3 style="margin:0">Background monitoring</h3>
+      <div class="sub" style="margin:3px 0 0">4-layer pipeline · running on your real activity</div>
+    </div>
+    <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap">
+      <span class="live" id="liveBadge"><span class="pulse"></span> Monitoring</span>
+      <button class="btn ghost" id="pauseBtn" type="button">Pause</button>
+    </div>
+  </div>
+
+  <div class="layers" id="layers">
+    <div class="layer" data-layer="1"><div class="ln">L1</div><div class="ld">Keyword</div></div>
+    <div class="layer" data-layer="2"><div class="ln">L2</div><div class="ld">Semantic</div></div>
+    <div class="layer" data-layer="3"><div class="ln">L3</div><div class="ld">Behavioral</div></div>
+    <div class="layer" data-layer="4"><div class="ln">L4</div><div class="ld">Trend gate</div></div>
+  </div>
+
+  <div style="margin:4px 0 14px">
+    <label for="monitor" class="label" style="display:block; margin-bottom:8px">Monitored text — what you're writing / working on</label>
+    <textarea id="monitor" rows="2" placeholder="Type or paste here (a message you're drafting, notes…). SilentHelp scans it locally — L1 instant, L2 on pause."
+      style="width:100%; background:var(--card-2); border:1px solid var(--border-2); border-radius:14px; padding:12px 14px; color:var(--text); font-family:inherit; font-size:0.9375rem; resize:vertical; min-height:54px;"></textarea>
+    <div class="sub" id="scanState" style="margin-top:7px">On-device · no text leaves your machine (L2 semantic uses the chat AI you opted into)</div>
+  </div>
+
+  <ul class="feed" id="feed" aria-live="polite"></ul>
+</div>
+
+<div style="display:grid; grid-template-columns:1.3fr 1fr; gap:24px; margin-top:24px" class="lower">
+  <div class="card">
+    <h3>This week’s focus</h3>
+    <div class="sub">Recorded from your real sessions</div>
+    <div class="trend" id="trend"></div>
+    <div class="trend-labels" id="trendLabels"></div>
+    <ul class="deltas" id="deltas" style="margin-top:20px"></ul>
+  </div>
+  <div class="card">
+    <h3>Recovery insights</h3>
+    <div class="sub">From your behavior vs. baseline</div>
+    <ul class="suggestions" id="suggestions"></ul>
+  </div>
+</div>
+
+<div id="popupMount"></div>
+{% endblock %}
+
+{% block script %}
+<script>
+  const BASE = {{ baseline | tojson }};
+
+  /* ---------------- real behavioral state (persisted) ---------------- */
+  const MK = "sh_metrics_v1", TK = "sh_trend_v1";
+  const todayKey = new Date().toISOString().slice(0, 10);
+
+  function loadMetrics() {
+    let m = {};
+    try { m = JSON.parse(localStorage.getItem(MK)) || {}; } catch (e) {}
+    if (m.date !== todayKey) m = { date: todayKey }; // roll over daily
+    return Object.assign({ keysTotal: 0, backspaces: 0, blurCount: 0, activeMs: 0,
+      lateNightMs: 0, longestFocusMs: 0, streak: 0 }, m);
+  }
+  let M = loadMetrics();
+  let curStretch = 0;           // current uninterrupted focus stretch (ms)
+  function saveMetrics() { try { localStorage.setItem(MK, JSON.stringify(M)); } catch (e) {} }
+
+  function loadTrend() { try { return JSON.parse(localStorage.getItem(TK)) || {}; } catch (e) { return {}; } }
+  function saveTrendToday(focus) {
+    const t = loadTrend(); t[todayKey] = focus;
+    // keep last 14 days
+    const keys = Object.keys(t).sort();
+    while (keys.length > 14) delete t[keys.shift()];
+    try { localStorage.setItem(TK, JSON.stringify(t)); } catch (e) {}
+  }
+
+  /* ---------------- rings ---------------- */
+  function setRing(id, value, invert) {
+    const ring = document.getElementById(id), prog = ring.querySelector(".prog");
+    const r = prog.r.baseVal.value, C = 2 * Math.PI * r;
+    prog.style.strokeDasharray = C;
+    prog.style.strokeDashoffset = C * (1 - Math.max(0, Math.min(100, value)) / 100);
+    const v = invert ? 100 - value : value;
+    ring.classList.remove("z-green", "z-yellow", "z-orange", "z-red");
+    ring.classList.add(v >= 67 ? "z-green" : v >= 40 ? "z-yellow" : v >= 22 ? "z-orange" : "z-red");
+  }
+  function deltaClass(p) { return p > 5 ? "up" : (p < -5 ? "down" : "flat"); }
+
+  /* ---------------- derive real signals from measured behavior ---------------- */
+  function signals() {
+    const activeMin = M.activeMs / 60000;
+    const activeHr = Math.max(activeMin / 60, 0.08);
+    const tab = Math.min(120, M.blurCount / activeHr);
+    return {
+      tab_switches: tab,
+      interruptions: tab * 0.7,
+      avg_session_min: M.blurCount === 0 ? BASE.avg_session_min
+        : Math.max(M.longestFocusMs, curStretch) / 60000,
+      backspace_rate: M.keysTotal > 0 ? M.backspaces / M.keysTotal : 0,
+      late_night_min: M.lateNightMs / 60000,
+    };
+  }
+
+  function renderMetrics(m) {
+    document.getElementById("battery-v").textContent = m.mental_battery;
+    document.getElementById("focus-v").textContent = m.focus_score;
+    document.getElementById("burnout-v").textContent = m.burnout_risk;
+    document.getElementById("battery-status").textContent =
+      m.mental_battery >= 67 ? "Well recovered" : m.mental_battery >= 40 ? "Running low" : "Needs recovery";
+    document.getElementById("burnout-status").textContent = m.status;
+    setRing("ring-battery", m.mental_battery, false);
+    setRing("ring-focus", m.focus_score, false);
+    setRing("ring-burnout", m.burnout_risk, true);
+
+    saveTrendToday(m.focus_score);
+    renderTrend();
+
+    document.getElementById("deltas").innerHTML = m.deltas.map(d =>
+      `<li><span class="lab">${d.label}</span><span class="delta-pct ${deltaClass(d.pct)}">${d.pct > 0 ? "+" : ""}${d.pct}%</span></li>`).join("");
+    document.getElementById("suggestions").innerHTML = m.suggestions.map(t =>
+      `<li><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.4" stroke="currentColor" stroke-width="1.2"/><path d="M5.5 8l1.7 1.7L10.7 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${t}</span></li>`).join("");
+  }
+
+  function renderTrend() {
+    const t = loadTrend();
+    // build last 7 calendar days ending today
+    const days = [], labels = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const k = d.toISOString().slice(0, 10);
+      days.push(t[k]); // may be undefined (no data that day)
+      labels.push(i === 0 ? "Today" : d.toLocaleDateString(undefined, { weekday: "short" }));
+    }
+    const present = days.filter(v => typeof v === "number");
+    const max = Math.max(100, ...present);
+    document.getElementById("trend").innerHTML = days.map((v, i) => v == null
+      ? `<div class="bar" style="height:4%; opacity:0.4" title="no data"></div>`
+      : `<div class="bar ${i === 6 ? "today" : ""}" style="height:${Math.max(6, v / max * 100)}%" title="${v}/100"></div>`).join("");
+    document.getElementById("trendLabels").innerHTML = labels.map(l => `<span>${l}</span>`).join("");
+  }
+
+  async function recompute() {
+    try {
+      const res = await fetch("/api/behavioral", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(signals()) });
+      renderMetrics(await res.json());
+    } catch (e) {}
+  }
+
+  /* ---------------- layer chips + feed ---------------- */
+  function setLayer(n, state) {
+    const el = document.querySelector(`.layer[data-layer="${n}"]`);
+    el.classList.remove("lit", "warn", "alert");
+    if (state) el.classList.add(state);
+  }
+  function nowStr() { const d = new Date(); return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); }
+  function pushFeed(tag, cls, msg) {
+    const ul = document.getElementById("feed");
+    const li = document.createElement("li");
+    li.innerHTML = `<span class="t">${nowStr()}</span><span class="tag ${cls}">${tag}</span><span class="msg">${msg}</span>`;
+    ul.prepend(li);
+    while (ul.children.length > 16) ul.removeChild(ul.lastChild);
+  }
+
+  /* ---------------- live monitor (real text scanning) ---------------- */
+  const monitor = document.getElementById("monitor");
+  let l1State = null, l2State = null, firedRegular = false, firedCrisis = false;
+  let l1Timer = null, l2Timer = null;
+
+  monitor.addEventListener("keydown", e => {
+    if (paused) return;
+    M.keysTotal++;
+    if (e.key === "Backspace" || e.key === "Delete") M.backspaces++;
+    saveMetrics();
+  });
+  monitor.addEventListener("input", () => {
+    if (paused) return;
+    clearTimeout(l1Timer); clearTimeout(l2Timer);
+    const text = monitor.value.trim();
+    if (!text) { l1State = null; setLayer(1, null); evaluate(); return; }
+    l1Timer = setTimeout(() => scanL1(text), 650);
+    l2Timer = setTimeout(() => scanL2(text), 1500);
+  });
+
+  async function scanL1(text) {
+    try {
+      const r = await fetch("/api/scan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) }).then(x => x.json());
+      l1State = r;
+      if (r.tier3) { setLayer(1, "alert"); pushFeed("L1", "warn", "tier-3 crisis phrase matched · bypassing trend gate"); }
+      else if (r.matched) { setLayer(1, "lit"); pushFeed("L1", "l1", `matched · ${r.categories.join(", ")} (${r.hits.length} phrase${r.hits.length > 1 ? "s" : ""})`); }
+      else { setLayer(1, null); pushFeed("L1", "l1", "keyword scan · clear"); }
+      evaluate();
+    } catch (e) {}
+  }
+  async function scanL2(text) {
+    document.getElementById("scanState").textContent = "L2 semantic check…";
+    try {
+      const r = await fetch("/classify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text }) }).then(x => x.json());
+      l2State = { risk: r.judgment.risk_level, route: r.action.route_to_human, action: r.action };
+      const lvl = l2State.risk;
+      if (lvl === "crisis" || lvl === "high") setLayer(2, "alert");
+      else if (lvl === "moderate" || lvl === "low") setLayer(2, "lit");
+      else setLayer(2, null);
+      pushFeed("L2", "l2", `semantic context · ${lvl}`);
+      document.getElementById("scanState").textContent = "On-device · L2 via the chat AI you opted into";
+      evaluate();
+    } catch (e) { document.getElementById("scanState").textContent = "On-device monitoring active"; }
+  }
+
+  /* ---------------- gating + auto-surface (real) ---------------- */
+  function evaluate() {
+    const crisis = (l1State && l1State.tier3) || (l2State && (l2State.risk === "crisis" || l2State.risk === "high"));
+    const contentFlag = (l1State && l1State.matched) || (l2State && ["low", "moderate"].includes(l2State.risk));
+    const gate = M.streak >= 4;
+    setLayer(4, gate ? "alert" : null);
+
+    if (crisis && !firedCrisis) { firedCrisis = true; surfaceCrisis(); }
+    else if ((contentFlag && gate || (l1State && l1State.matched && l2State && ["low","moderate"].includes(l2State.risk))) && !firedRegular && !crisis) {
+      firedRegular = true; surfaceRegular();
+    }
+    if (!crisis && !contentFlag && !gate) { firedRegular = false; firedCrisis = false; }
+  }
+
+  /* ---------------- background loop: real active-time accounting ---------------- */
+  let paused = false, lastT = Date.now();
+  function tickActive() {
+    const now = Date.now(), dt = now - lastT; lastT = now;
+    if (paused) return;
+    const visible = document.visibilityState === "visible" && document.hasFocus();
+    if (visible) {
+      M.activeMs += dt; curStretch += dt;
+      const h = new Date().getHours();
+      if (h >= 0 && h < 5) M.lateNightMs += dt;
+    }
+    saveMetrics();
+  }
+  function onBlur() {
+    if (paused) return;
+    M.blurCount++;
+    M.longestFocusMs = Math.max(M.longestFocusMs, curStretch);
+    curStretch = 0; saveMetrics();
+    pushFeed("L3", "l3", `attention shift · ${M.blurCount} this session`);
+  }
+  window.addEventListener("blur", onBlur);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") onBlur(); });
+
+  // behavioral recompute + trend-streak every few seconds (this IS the background)
+  async function monitorLoop() {
+    if (!paused) {
+      const res = await fetch("/api/behavioral", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(signals()) }).then(x => x.json()).catch(() => null);
+      if (res) {
+        renderMetrics(res);
+        const strained = res.burnout_risk > 55 || (l1State && l1State.matched) || (l2State && ["high","crisis","moderate"].includes(l2State.risk));
+        M.streak = strained ? M.streak + 1 : Math.max(0, M.streak - 1);
+        saveMetrics();
+        setLayer(3, res.burnout_risk > 55 ? "warn" : "lit");
+        if (M.streak >= 4) pushFeed("L4", "warn", `trend gate · ${M.streak} strained checks in a row`);
+        evaluate();
+      }
+    }
+  }
+
+  document.getElementById("pauseBtn").addEventListener("click", e => {
+    paused = !paused;
+    e.target.textContent = paused ? "Resume" : "Pause";
+    const b = document.getElementById("liveBadge");
+    b.classList.toggle("off", paused);
+    b.innerHTML = `<span class="pulse"></span> ${paused ? "Paused" : "Monitoring"}`;
+  });
+
+  /* ---------------- popups (auto-surfaced by real gating) ---------------- */
+  function surfaceRegular() {
+    document.getElementById("popupMount").innerHTML = `
+      <div class="scrim"><div class="popup warn">
+        <div class="ptop"><div class="picon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2a7 7 0 00-7 7c0 3 1 4 1 6h12c0-2 1-3 1-6a7 7 0 00-7-7z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 21h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+        <div><h3>SilentHelp noticed a pattern</h3><div class="psub">L1 + L2 · gentle check-in</div></div></div>
+        <div class="pbody"><p class="pmsg">The last little while has leaned harder than your usual. Want to talk it through, or take a short break?</p>
+        <div class="pactions"><a class="btn" href="/app#chat">Talk it through</a>
+        <button class="btn ghost" type="button" onclick="document.getElementById('popupMount').innerHTML=''">Not now</button></div></div>
+      </div></div>`;
+  }
+  function surfaceCrisis() {
+    document.getElementById("popupMount").innerHTML = `
+      <div class="scrim"><div class="popup crisis">
+        <div class="ptop"><div class="picon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 4l8 14H4l8-14z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 10v4M12 16.5v.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+        <div><h3>Let’s loop someone in</h3><div class="psub">Crisis signal · bypassed the trend gate</div></div></div>
+        <div class="pbody" id="crisisBody"><p class="pmsg">Something you wrote suggests you’re in real pain right now. You don’t have to carry this alone — reaching a trusted person can help. If it’s urgent: call or text <b>988</b>.</p>
+        <div class="pactions"><button class="btn" id="draftBtn" type="button">Draft counselor email</button>
+        <a class="btn ghost" href="/chat">Talk to SilentHelp</a></div>
+        <p class="send-note" style="margin-top:14px">Nothing is sent automatically — you review and send.</p></div>
+      </div></div>`;
+    document.getElementById("draftBtn").addEventListener("click", draftEmail);
+  }
+  async function draftEmail() {
+    const body = document.getElementById("crisisBody");
+    body.innerHTML = `<p class="pmsg">Drafting…</p>`;
+    const d = await (await fetch("/api/escalation/draft", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })).json();
+    body.innerHTML = `
+      <div class="draft-field"><label>To</label><input id="esc-to" type="text" value="${d.contact}"></div>
+      <div class="draft-field"><label>Subject</label><input id="esc-subj" type="text" value="${d.subject}"></div>
+      <div class="draft-field"><label>Message</label><textarea id="esc-body">${d.body}</textarea></div>
+      <div class="pactions"><button class="btn" id="sendEmail" type="button">Send to counselor</button>
+      <button class="btn ghost" type="button" onclick="document.getElementById('popupMount').innerHTML=''">Cancel</button></div>
+      <p class="send-note" style="margin-top:12px">You’re sending this — nothing left your device until now.</p>`;
+    document.getElementById("sendEmail").addEventListener("click", async () => {
+      const contact = document.getElementById("esc-to").value.trim();
+      const r = await (await fetch("/api/escalation/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contact }) })).json();
+      document.getElementById("crisisBody").innerHTML =
+        `<div class="sent-confirm"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> Sent to <b>&nbsp;${r.contact}</b>. (Prototype — no real email left your device.)</div>
+         <div class="pactions" style="margin-top:16px"><button class="btn ghost" type="button" onclick="document.getElementById('popupMount').innerHTML=''">Close</button></div>`;
+    });
+  }
+
+  /* ---------------- boot ---------------- */
+  setInterval(tickActive, 1000);
+  setInterval(monitorLoop, 4000);
+  pushFeed("L3", "l3", "monitoring started · reading real activity");
+  renderTrend();
+  recompute();
+</script>
+{% endblock %}

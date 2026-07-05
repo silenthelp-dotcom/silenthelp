@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: silenthelp
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    # One worker: the on-device store is a single JSON file (no DB race).
+    startCommand: gunicorn app:app --workers 1 --timeout 120 --bind 0.0.0.0:$PORT
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false          # set this in the Render dashboard, never in git
+      - key: PYTHON_VERSION
+        value: "3.12.7"
