@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SilentHelp — Careers & HQ</title>
+<meta name="description" content="Join SilentHelp — build technology that helps people. Open roles, team, and company HQ.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,500;1,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0a0d13;            /* page base — night, screen-off */
+  --ink-raise:#10141c;      /* panel */
+  --ink-raise2:#161b25;     /* nested / hover */
+  --ink-pop:#1c2230;        /* popover / active */
+  --hairline:rgba(255,255,255,.07);
+  --hairline-2:rgba(255,255,255,.12);
+  --t1:#e9edf5;             /* primary text */
+  --t2:#a3adbf;             /* secondary */
+  --t3:#69738a;             /* meta */
+  --signal:#5aa2ff;         /* the one accent — SilentHelp blue, lifted for dark */
+  --signal-dim:rgba(90,162,255,.14);
+  --calm:#3ecf8e;           /* good */
+  --watch:#f0b453;          /* attention */
+  --crisis:#ff7070;         /* danger */
+  --r-s:6px; --r-m:10px; --r-l:16px;
+  --ease:cubic-bezier(.23,1,.32,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--ink);color:var(--t1);
+  font:400 15px/1.55 "Inter",-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+::selection{background:var(--signal-dim);color:var(--t1)}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,textarea,select{
+  font:inherit;color:var(--t1);width:100%;
+  background:#070a0f;border:1px solid var(--hairline);
+  border-radius:var(--r-s);padding:9px 12px;outline:none;
+  transition:border-color .15s var(--ease);
+}
+input:focus,textarea:focus,select:focus{border-color:var(--signal)}
+input[type=range]{-webkit-appearance:none;appearance:none;height:4px;padding:0;border:none;border-radius:2px;background:var(--ink-pop);cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--signal);border:none}
+textarea{resize:vertical;min-height:90px}
+label{display:block;font-size:12px;font-weight:500;color:var(--t2);margin:14px 0 5px;letter-spacing:.02em}
+h1,h2,h3{text-wrap:balance}
+.serif{font-family:"Playfair Display",serif;font-style:italic;font-weight:500;letter-spacing:-.01em}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- nav ---------- */
+nav{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;gap:26px;
+  padding:0 28px;height:58px;
+  background:rgba(10,13,19,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--hairline);
+}
+nav .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;margin-right:8px}
+nav .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--signal);box-shadow:0 0 12px var(--signal)}
+nav a.nl{font-size:13.5px;font-weight:500;color:var(--t2);padding:6px 2px;transition:color .15s}
+nav a.nl:hover{color:var(--t1)}
+nav a.nl.on{color:var(--t1)}
+nav .sp{flex:1}
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:13.5px;font-weight:600;
+  padding:9px 16px;border-radius:var(--r-s);
+  background:var(--signal);color:#08101e;
+  transition:transform .12s var(--ease),filter .15s;
+  white-space:nowrap;
+}
+.btn:hover{filter:brightness(1.08)}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:transparent;color:var(--t1);box-shadow:inset 0 0 0 1px var(--hairline-2)}
+.btn.ghost:hover{background:var(--ink-raise2)}
+.btn.sm{padding:6px 12px;font-size:12.5px}
+.btn.danger{background:transparent;color:var(--crisis);box-shadow:inset 0 0 0 1px rgba(255,112,112,.3)}
+
+/* ---------- layout ---------- */
+main{max-width:1120px;margin:0 auto;padding:0 28px 90px}
+.view{animation:vin .35s var(--ease)}
+@keyframes vin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.view{animation:none}}
+
+/* ---------- hero ---------- */
+.hero{padding:96px 0 64px;position:relative}
+.stage-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:12px;font-weight:500;color:var(--t2);
+  padding:5px 13px;border-radius:99px;
+  background:var(--ink-raise);border:1px solid var(--hairline);
+}
+.stage-pill b{color:var(--signal);font-weight:600}
+.hero h1{
+  font-size:clamp(38px,6vw,62px);line-height:1.08;
+  margin:26px 0 18px;letter-spacing:-.02em;font-weight:600;
+}
+.hero h1 em{font-family:"Playfair Display",serif;font-style:italic;font-weight:600;color:var(--signal)}
+.hero p.lede{font-size:17px;color:var(--t2);max-width:560px;text-wrap:pretty}
+.hero .cta{display:flex;gap:12px;margin-top:34px;flex-wrap:wrap}
+.pulse{height:44px;width:100%;max-width:640px;margin-top:52px;opacity:.55}
+.pulse path{stroke:var(--signal);stroke-width:1.5;fill:none;stroke-dasharray:1200;stroke-dashoffset:1200;animation:draw 3.2s var(--ease) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+
+/* signal meter — the team-capacity signature */
+.meter{display:flex;gap:4px;align-items:flex-end;height:22px}
+.meter i{width:9px;border-radius:2px;background:var(--ink-pop)}
+.meter i.on{background:var(--signal)}
+.meter i:nth-child(1){height:8px}.meter i:nth-child(2){height:10px}.meter i:nth-child(3){height:12px}
+.meter i:nth-child(4){height:14px}.meter i:nth-child(5){height:15px}.meter i:nth-child(6){height:17px}
+.meter i:nth-child(7){height:18px}.meter i:nth-child(8){height:20px}.meter i:nth-child(9){height:21px}
+.meter i:nth-child(10){height:22px}
+
+.statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:64px}
+.stat{
+  background:var(--ink-raise);border:1px solid var(--hairline);
+  border-radius:var(--r-m);padding:20px 22px;
+}
+.stat .k{font-size:11px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;color:var(--t3)}
+.stat .v{font-size:30px;font-weight:600;margin-top:8px;letter-spacing:-.02em}
+.stat .s{font-size:12.5px;color:var(--t2);margin-top:4px}
+
+/* ---------- section head ---------- */
+.shead{margin:74px 0 26px}
+.shead h2{font-size:26px;font-weight:600;letter-spacing:-.015em}
+.shead h2 .serif{color:var(--signal);font-size:27px}
+.shead p{color:var(--t2);margin-top:6px;font-size:14.5px}
+.shead .row{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+/* ---------- job cards ---------- */
+.jobs{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.job{
+  background:var(--ink-raise);border:1px solid var(--hairline);
+  border-radius:var(--r-l);padding:22px 24px;
+  display:flex;flex-direction:column;gap:12px;
+  transition:border-color .2s,transform .2s var(--ease);
+  cursor:pointer;
+}
+.job:hover{border-color:var(--hairline-2);transform:translateY(-2px)}
+.job .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.job h3{font-size:16.5px;font-weight:600;letter-spacing:-.01em}
+.jdept{font-size:12px;font-weight:500;color:var(--signal)}
+.tag{
+  font-size:11px;font-weight:500;color:var(--t2);
+  padding:3px 9px;border-radius:99px;
+  background:var(--ink-raise2);border:1px solid var(--hairline);
+  white-space:nowrap;
+}
+.tag.open{color:var(--calm);border-color:rgba(62,207,142,.25)}
+.tag.filled{color:var(--t3)}
+.job p{font-size:13.5px;color:var(--t2);flex:1;text-wrap:pretty}
+.job .foot{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--t3)}
+
+/* ---------- job detail ---------- */
+.back{font-size:13px;color:var(--t2);display:inline-flex;gap:6px;align-items:center;margin:34px 0 8px}
+.back:hover{color:var(--t1)}
+.jd{display:grid;grid-template-columns:1fr 300px;gap:40px;align-items:start}
+@media(max-width:840px){.jd{grid-template-columns:1fr}}
+.jd h1{font-size:34px;font-weight:600;letter-spacing:-.02em;margin:6px 0 10px}
+.jd .meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px}
+.jd h4{font-size:12px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--t3);margin:30px 0 12px}
+.jd ul{list-style:none}
+.jd ul li{padding:7px 0 7px 22px;position:relative;color:var(--t2);font-size:14.5px;border-bottom:1px solid var(--hairline)}
+.jd ul li::before{content:"";position:absolute;left:2px;top:15px;width:8px;height:2px;border-radius:2px;background:var(--signal)}
+.side{
+  background:var(--ink-raise);border:1px solid var(--hairline);
+  border-radius:var(--r-l);padding:24px;position:sticky;top:80px;
+}
+.side .kv{display:flex;justify-content:space-between;font-size:13px;padding:9px 0;border-bottom:1px solid var(--hairline)}
+.side .kv b{font-weight:500;color:var(--t3)}
+.side .kv span{color:var(--t1);text-align:right}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+
+/* ---------- team ---------- */
+.depts{display:flex;flex-direction:column;gap:12px}
+.deptbox{
+  background:var(--ink-raise);border:1px solid var(--hairline);
+  border-radius:var(--r-m);padding:18px 22px;
+}
+.deptbox .dh{display:flex;align-items:center;gap:14px}
+.deptbox .dh h3{font-size:15px;font-weight:600;flex:1}
+.deptbox .dh .cnt{font-size:12.5px;color:var(--t3)}
+.bar{height:4px;border-radius:2px;background:var(--ink-pop);margin-top:12px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:2px;background:var(--signal);transition:width .6s var(--ease)}
+.people{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.pchip{
+  display:flex;align-items:center;gap:9px;
+  background:var(--ink-raise2);border:1px solid var(--hairline);
+  border-radius:99px;padding:5px 14px 5px 5px;font-size:13px;
+  cursor:pointer;transition:border-color .15s;
+}
+.pchip:hover{border-color:var(--hairline-2)}
+.pchip.vac{border-style:dashed;color:var(--t3);padding:9px 14px;cursor:pointer}
+.av{
+  width:28px;height:28px;border-radius:50%;flex:none;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:600;color:#08101e;
+  background:var(--signal);overflow:hidden;
+}
+.av img{width:100%;height:100%;object-fit:cover}
+.av.lg{width:64px;height:64px;font-size:22px}
+
+/* profile */
+.prof{display:flex;gap:22px;align-items:center;margin:14px 0 30px}
+.prof h1{font-size:30px;font-weight:600;letter-spacing:-.02em}
+.prof .sub{color:var(--t2);font-size:14.5px;margin-top:3px}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:720px){.pgrid{grid-template-columns:1fr}}
+.card{
+  background:var(--ink-raise);border:1px solid var(--hairline);
+  border-radius:var(--r-m);padding:20px 22px;
+}
+.card h4{font-size:12px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--t3);margin-bottom:12px}
+
+/* ---------- admin / HQ ---------- */
+.hq{display:grid;grid-template-columns:200px 1fr;gap:34px;margin-top:40px;align-items:start}
+@media(max-width:820px){.hq{grid-template-columns:1fr}}
+.hq .tabs{display:flex;flex-direction:column;gap:2px;position:sticky;top:80px}
+@media(max-width:820px){.hq .tabs{flex-direction:row;flex-wrap:wrap;position:static}}
+.hq .tabs button{
+  text-align:left;font-size:13.5px;font-weight:500;color:var(--t2);
+  padding:9px 13px;border-radius:var(--r-s);transition:background .15s,color .15s;
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+}
+.hq .tabs button:hover{color:var(--t1);background:var(--ink-raise)}
+.hq .tabs button.on{color:var(--t1);background:var(--ink-raise2)}
+.pill{
+  min-width:20px;height:20px;padding:0 6px;border-radius:99px;
+  background:var(--signal);color:#08101e;font-size:11px;font-weight:700;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.wgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.prog .lbl{display:flex;justify-content:space-between;font-size:13px;margin-bottom:7px}
+.prog .lbl b{font-weight:500;color:var(--t2)}
+.prog{margin-top:16px}
+
+/* pipeline board */
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:236px;gap:12px;overflow-x:auto;padding-bottom:14px}
+.col{background:var(--ink-raise);border:1px solid var(--hairline);border-radius:var(--r-m);padding:12px;min-height:120px}
+.col h5{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);padding:2px 4px 10px;display:flex;justify-content:space-between}
+.appcard{
+  background:var(--ink-raise2);border:1px solid var(--hairline);
+  border-radius:var(--r-s);padding:12px;margin-bottom:8px;font-size:13px;
+  cursor:pointer;transition:border-color .15s;
+}
+.appcard:hover{border-color:var(--hairline-2)}
+.appcard b{font-weight:600;display:block}
+.appcard .r{color:var(--signal);font-size:12px;margin-top:2px}
+.appcard .d{color:var(--t3);font-size:11.5px;margin-top:6px}
+
+/* table-ish list rows */
+.rowitem{
+  display:flex;align-items:center;gap:14px;
+  padding:13px 4px;border-bottom:1px solid var(--hairline);font-size:14px;
+}
+.rowitem .grow{flex:1;min-width:0}
+.rowitem .grow small{display:block;color:var(--t3);font-size:12px;margin-top:1px}
+
+/* notifications */
+.note{display:flex;gap:13px;padding:13px 4px;border-bottom:1px solid var(--hairline);font-size:13.5px}
+.note .ic{width:8px;height:8px;border-radius:50%;background:var(--signal);margin-top:7px;flex:none}
+.note.dim{opacity:.5}.note.dim .ic{background:var(--t3)}
+.note time{color:var(--t3);font-size:12px;display:block;margin-top:2px}
+
+/* modal */
+.mback{
+  position:fixed;inset:0;z-index:100;background:rgba(4,6,10,.7);
+  backdrop-filter:blur(4px);display:flex;align-items:flex-start;justify-content:center;
+  padding:60px 20px;overflow-y:auto;animation:fadein .18s var(--ease);
+}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.modal{
+  background:var(--ink-pop);border:1px solid var(--hairline-2);
+  border-radius:var(--r-l);padding:28px;width:100%;max-width:520px;
+  animation:mup .22s var(--ease);
+}
+@keyframes mup{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+.modal h3{font-size:18px;font-weight:600;margin-bottom:4px}
+.modal .sub{font-size:13px;color:var(--t2)}
+.modal .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:24px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+@media(max-width:520px){.grid2{grid-template-columns:1fr}}
+
+/* toast */
+#toast{
+  position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--ink-pop);border:1px solid var(--hairline-2);color:var(--t1);
+  font-size:13.5px;font-weight:500;padding:11px 20px;border-radius:99px;
+  opacity:0;pointer-events:none;transition:all .25s var(--ease);z-index:200;
+  box-shadow:0 8px 30px rgba(0,0,0,.5);
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.empty{color:var(--t3);font-size:13.5px;padding:26px 0;text-align:center}
+footer{
+  border-top:1px solid var(--hairline);margin-top:100px;
+  padding:34px 28px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  font-size:12.5px;color:var(--t3);max-width:1120px;margin-left:auto;margin-right:auto;
+}
+footer a{color:var(--t2)}footer a:hover{color:var(--t1)}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="#/"><span class="dot"></span>SilentHelp <span style="color:var(--t3);font-weight:400">HQ</span></a>
+  <a class="nl" data-nav="careers" href="#/careers">Careers</a>
+  <a class="nl" data-nav="team" href="#/team">Team</a>
+  <a class="nl" data-nav="admin" href="#/admin">Founder HQ</a>
+  <span class="sp"></span>
+  <a class="nl" href="/" title="Back to product">← Product</a>
+  <a class="btn sm" href="#/careers">Apply</a>
+</nav>
+
+<main><div id="view"></div></main>
+
+<footer>
+  <div><b style="color:var(--t2)">SilentHelp</b> — technology that helps people. Prototype stage · Founded 2026.</div>
+  <div><a href="/privacy">Privacy</a> &nbsp;·&nbsp; <a href="/terms">Terms</a> &nbsp;·&nbsp; <a href="#/careers">Careers</a></div>
+</footer>
+
+<div id="toast"></div>
+<div id="modalhost"></div>
+
+<script>
+/* =========================================================
+   SilentHelp HQ — self-contained SPA (localStorage-backed)
+   ========================================================= */
+const DEPTS = ["Executive","Engineering","Artificial Intelligence","Product","Design","Privacy & Compliance","Community Outreach","Marketing","Research"];
+const STAGES = ["Applied","Under Review","Interview Scheduled","Technical Assessment","Final Interview","Offer Extended","Hired"];
+const TEAM_TARGET = 10;
+const KEY = "shq_v1";
+
+const seed = () => ({
+  stats: { activeProjects: 4, ai: 72, macos: 55, beta: 48, outreach: 30 },
+  positions: [
+    { id:"cto", title:"Chief Technology Officer", dept:"Executive", type:"Founding team · Equity", loc:"Remote / Hybrid", status:"open",
+      desc:"Own SilentHelp's technical vision — the on-device detection engine, the macOS agent, and the path from prototype to product.",
+      resp:["Set the technical roadmap from Flask prototype to native macOS product","Own the 4-layer detection architecture (keyword → semantic → behavioral → trend)","Make the on-device privacy guarantee real in every technical decision","Recruit and lead the engineering team"],
+      skills:["Systems architecture","Python + Swift","ML fundamentals","Shipping under constraints"],
+      pref:["Has built and shipped a real product","Cares about mental-health tech"],
+      tech:["Swift / ScreenCaptureKit","Flask","NVIDIA NIM","Vision OCR"],
+      projects:["macOS agent v2","Detection engine hardening"], team:"Works directly with the founder" },
+    { id:"ai-lead", title:"Lead AI Engineer", dept:"Artificial Intelligence", type:"Founding team · Equity", loc:"Remote", status:"open",
+      desc:"Make the semantic layer smart enough to catch what keywords miss — and small enough to run fully on-device.",
+      resp:["Own Layer 2 (semantic classification) and its move from cloud NIM to a local model","Tune precision so alerts fire when they matter and never when they don't","Design evaluation sets for crisis-language detection","Keep every inference on-device in production"],
+      skills:["NLP / transformers","Model distillation & quantization","Python","Eval design"],
+      pref:["Experience with on-device ML (CoreML, ONNX)","Read papers for fun"],
+      tech:["CoreML","ONNX Runtime","NVIDIA NIM","PyTorch"],
+      projects:["Local semantic model","Tier-3 precision pass"], team:"AI team · reports to CTO" },
+    { id:"fullstack", title:"Full Stack Engineer", dept:"Engineering", type:"Core team · Equity", loc:"Remote", status:"open",
+      desc:"Build the product surface — dashboard, coping chat, analytics — on a backend that never sees user text.",
+      resp:["Ship features across the Flask backend and web app","Own the API contract (/classify, /api/chat, /api/behavioral…)","Build the analytics and findings views","Keep the data model strictly on-device"],
+      skills:["Python / Flask","Vanilla JS or a framework","REST API design","SQL / JSON stores"],
+      pref:["Has deployed something real (Render, Vercel…)"],
+      tech:["Flask","Vanilla JS","Render"],
+      projects:["Web app v2","Findings redesign"], team:"Engineering" },
+    { id:"designer", title:"UI/UX Designer", dept:"Design", status:"open", type:"Core team · Equity", loc:"Remote",
+      desc:"Design calm. SilentHelp appears at someone's worst moment — every screen has to feel like a hand on the shoulder, not an alarm.",
+      resp:["Own the design language (Playfair + Inter, light product UI)","Design the escalation and popup flows with care","Prototype in Figma or claude.ai/design","Run the design system as the team grows"],
+      skills:["Product design","Typography & hierarchy","Prototyping","Empathy"],
+      pref:["Interest in crisis UX / calm technology"],
+      tech:["Figma","claude.ai/design","CSS"],
+      projects:["Escalation flow v2","Design system"], team:"Design · works with founder + engineering" },
+    { id:"pm", title:"Product Manager", dept:"Product", status:"open", type:"Core team · Equity", loc:"Remote / Hybrid",
+      desc:"Decide what we build next and why — balancing student needs, school requirements, and a hard privacy line.",
+      resp:["Own the roadmap from prototype to school beta","Talk to students, counselors, and administrators","Write specs the team can build from","Define success metrics that respect privacy"],
+      skills:["Prioritization","User interviews","Clear writing","Scrappiness"],
+      pref:["Knows the school-counseling world"],
+      tech:["Linear-style tracking","Docs"],
+      projects:["School beta plan","Onboarding v2"], team:"Product · everyone" },
+    { id:"privacy", title:"Privacy & Compliance Director", dept:"Privacy & Compliance", status:"open", type:"Advisory · Equity", loc:"Remote",
+      desc:"Our whole promise is that data never leaves the device. Prove it, document it, and keep us honest as we enter schools.",
+      resp:["Own the privacy architecture review","Handle COPPA / FERPA questions for school deployments","Write the plain-language privacy policy","Audit every feature before it ships"],
+      skills:["Privacy law basics","Threat modeling","Clear writing"],
+      pref:["Background in ed-tech or health-tech compliance"],
+      tech:["—"], projects:["School compliance pack"], team:"Reports to founder" },
+    { id:"community", title:"Community Partnerships Lead", dept:"Community Outreach", status:"open", type:"Core team", loc:"Hybrid",
+      desc:"Get SilentHelp into the hands of schools, counselors, and community programs — starting with our own city.",
+      resp:["Build relationships with schools and counselors","Run the pilot-program pipeline","Represent SilentHelp at community events","Collect feedback loops from partners"],
+      skills:["Communication","Organization","Persistence"],
+      pref:["Connected to local school community"],
+      tech:["—"], projects:["City pilot","Counselor advisory board"], team:"Outreach" },
+    { id:"marketing", title:"Marketing Director", dept:"Marketing", status:"open", type:"Core team", loc:"Remote",
+      desc:"Tell the story of technology that notices — without ever exploiting the pain it exists to catch.",
+      resp:["Own brand voice and the public site","Launch content for the school beta","Handle press and social presence","Keep marketing as ethical as the product"],
+      skills:["Copywriting","Social strategy","Basic design"],
+      pref:["Portfolio of real campaigns, any size"],
+      tech:["—"], projects:["Beta launch campaign"], team:"Marketing · works with design" },
+  ],
+  team: [
+    { id:"abhinav", name:"Abhinav Allani", role:"Founder & CEO", dept:"Executive",
+      skills:["Product vision","Python","Swift","Detection systems"],
+      projects:["macOS agent","Detection engine","School pilot"],
+      progress:80, joined:"2026-05-01", contact:"", photo:"", bio:"Started SilentHelp to catch the signals people don't say out loud." },
+  ],
+  applicants: [
+    { id:"a1", name:"Sample Applicant", role:"UI/UX Designer", stage:"Applied", email:"sample@example.com",
+      resume:"", portfolio:"", linkedin:"", github:"", cover:"This is a sample application — review or reject it from Founder HQ.", avail:"Weekends", ts: Date.now()-86400000*2 },
+  ],
+  notes: [
+    { t:"SilentHelp HQ is live — manage positions, team and applicants from Founder HQ.", ts: Date.now(), read:false },
+  ],
+  tasks: {},   /* memberId -> [{t, due, done}] */
+});
+
+let S;
+try { S = JSON.parse(localStorage.getItem(KEY)) || seed(); } catch(e){ S = seed(); }
+const save = () => localStorage.setItem(KEY, JSON.stringify(S));
+save();
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s??"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => Math.random().toString(36).slice(2,9);
+const initials = n => n.split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase();
+const ago = ts => { const d=(Date.now()-ts)/1000; if(d<3600)return Math.max(1,Math.round(d/60))+"m ago"; if(d<86400)return Math.round(d/3600)+"h ago"; return Math.round(d/86400)+"d ago"; };
+const toast = m => { const t=$("#toast"); t.textContent=m; t.classList.add("show"); clearTimeout(t._x); t._x=setTimeout(()=>t.classList.remove("show"),2400); };
+const notify = t => { S.notes.unshift({t, ts:Date.now(), read:false}); save(); };
+const openCount = () => S.positions.filter(p=>p.status==="open").length;
+const avat = (m,lg) => `<span class="av${lg?" lg":""}" style="${m.photo?"background:none":""}">${m.photo?`<img src="${esc(m.photo)}" alt="">`:esc(initials(m.name))}</span>`;
+const meterHTML = n => { let h='<span class="meter" title="'+n+' of '+TEAM_TARGET+'">'; for(let i=1;i<=TEAM_TARGET;i++) h+='<i class="'+(i<=n?"on":"")+'"></i>'; return h+'</span>'; };
+const tag = (txt,cls) => `<span class="tag ${cls||""}">${esc(txt)}</span>`;
+const bar = pct => `<div class="bar"><i style="width:${Math.max(0,Math.min(100,pct))}%"></i></div>`;
+
+/* ---------- modal ---------- */
+function modal(html, onmount){
+  const host = $("#modalhost");
+  host.innerHTML = `<div class="mback" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`;
+  document.body.style.overflow="hidden";
+  if(onmount) onmount(host);
+}
+function closeModal(){ $("#modalhost").innerHTML=""; document.body.style.overflow=""; }
+
+/* =========================================================
+   VIEWS
+   ========================================================= */
+const V = {};
+
+/* ---------- landing ---------- */
+V.home = () => `
+<section class="hero view">
+  <span class="stage-pill"><b>●</b> Current stage: Prototype → School Beta</span>
+  <h1>Build technology<br>that <em>helps people.</em></h1>
+  <p class="lede">SilentHelp is a privacy-first digital-wellness company that notices the signals people don't say out loud — and gets them help before they have to ask. Everything runs on-device. Nothing leaves without consent.</p>
+  <div class="cta">
+    <a class="btn" href="#/careers">View open positions →</a>
+    <a class="btn ghost" href="#/team">Meet the team</a>
+  </div>
+  <svg class="pulse" viewBox="0 0 640 44" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 26 H120 L138 26 148 10 158 38 168 20 178 26 H300 L316 26 326 4 338 42 350 26 H500 L512 26 520 16 528 32 536 26 H640"/>
+  </svg>
+  <div class="statrow">
+    <div class="stat"><div class="k">Team</div><div class="v num">${S.team.length}<span style="color:var(--t3);font-size:18px">/${TEAM_TARGET}</span></div><div class="s" style="margin-top:10px">${meterHTML(S.team.length)}</div></div>
+    <div class="stat"><div class="k">Open positions</div><div class="v num">${openCount()}</div><div class="s">across ${new Set(S.positions.filter(p=>p.status==="open").map(p=>p.dept)).size} departments</div></div>
+    <div class="stat"><div class="k">Active projects</div><div class="v num">${S.stats.activeProjects}</div><div class="s">detection engine · macOS agent · beta</div></div>
+    <div class="stat"><div class="k">Beta readiness</div><div class="v num">${S.stats.beta}%</div><div class="s">${bar(S.stats.beta)}</div></div>
+  </div>
+
+  <div class="shead"><h2>The <span class="serif">mission</span></h2></div>
+  <p style="max-width:640px;color:var(--t2);font-size:16px;text-wrap:pretty">
+    Most people in crisis never ask for help. SilentHelp watches for the quiet signs — in typing rhythm, in language, in behavior over days — and opens a door at exactly the right moment.
+    We're building it as a real company: on-device by architecture, consent by default, and honest about what technology should and shouldn't do.
+  </p>
+  <div class="cta" style="margin-top:30px"><a class="btn ghost" href="#/careers">Join us →</a></div>
+</section>`;
+
+/* ---------- careers list ---------- */
+V.careers = () => `
+<section class="view">
+  <div class="shead" style="margin-top:56px"><div class="row">
+    <div><h2>Open <span class="serif">positions</span></h2>
+    <p>${openCount()} open roles · remote-friendly · founding-team equity on core roles</p></div>
+  </div></div>
+  <div class="jobs">
+  ${S.positions.map(p => `
+    <article class="job" onclick="location.hash='#/job/${p.id}'">
+      <div class="top">
+        <div><div class="jdept">${esc(p.dept)}</div><h3 style="margin-top:4px">${esc(p.title)}</h3></div>
+        ${p.status==="open" ? tag("Open","open") : tag("Filled","filled")}
+      </div>
+      <p>${esc(p.desc)}</p>
+      <div class="foot">
+        <span>${esc(p.type)} · ${esc(p.loc)}</span>
+        ${p.status==="open" ? `<button class="btn sm" onclick="event.stopPropagation();location.hash='#/apply/${p.id}'">Apply</button>` : ""}
+      </div>
+    </article>`).join("")}
+  </div>
+</section>`;
+
+/* ---------- job detail ---------- */
+V.job = id => {
+  const p = S.positions.find(x=>x.id===id);
+  if(!p) return `<div class="empty view">Position not found. <a href="#/careers" style="color:var(--signal)">Back to careers</a></div>`;
+  const li = a => (a&&a.length? a.map(x=>`<li>${esc(x)}</li>`).join("") : "<li>—</li>");
+  return `
+<section class="view">
+  <a class="back" href="#/careers">← All positions</a>
+  <div class="jd">
+    <div>
+      <div class="dept" style="color:var(--signal);font-size:13px;font-weight:500">${esc(p.dept)}</div>
+      <h1>${esc(p.title)}</h1>
+      <div class="meta">${tag(p.type)}${tag(p.loc)}${p.status==="open"?tag("Open","open"):tag("Filled","filled")}</div>
+      <p style="color:var(--t2);font-size:15.5px;text-wrap:pretty">${esc(p.desc)}</p>
+      <h4>Responsibilities</h4><ul>${li(p.resp)}</ul>
+      <h4>Skills required</h4><ul>${li(p.skills)}</ul>
+      <h4>Preferred experience</h4><ul>${li(p.pref)}</ul>
+    </div>
+    <aside class="side">
+      <div class="kv"><b>Department</b><span>${esc(p.dept)}</span></div>
+      <div class="kv"><b>Type</b><span>${esc(p.type)}</span></div>
+      <div class="kv"><b>Location</b><span>${esc(p.loc)}</span></div>
+      <div class="kv"><b>Team</b><span>${esc(p.team||"—")}</span></div>
+      <h4 style="font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--t3);margin:18px 0 8px">Technologies</h4>
+      <div class="chips">${(p.tech||[]).map(t=>tag(t)).join("")||"—"}</div>
+      <h4 style="font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--t3);margin:18px 0 8px">Current projects</h4>
+      <div class="chips">${(p.projects||[]).map(t=>tag(t)).join("")||"—"}</div>
+      ${p.status==="open" ? `<a class="btn" style="width:100%;justify-content:center;margin-top:22px" href="#/apply/${p.id}">Apply for this role →</a>` : `<div class="empty" style="padding:14px 0 0">This role has been filled.</div>`}
+    </aside>
+  </div>
+</section>`;
+};
+
+/* ---------- apply ---------- */
+V.apply = id => {
+  const p = S.positions.find(x=>x.id===id);
+  const openPos = S.positions.filter(x=>x.status==="open");
+  return `
+<section class="view" style="max-width:600px;margin:0 auto">
+  <a class="back" href="${p?`#/job/${p.id}`:"#/careers"}">← Back</a>
+  <h1 style="font-size:30px;font-weight:600;letter-spacing:-.02em;margin:8px 0 4px">Apply to <span class="serif" style="color:var(--signal)">SilentHelp</span></h1>
+  <p style="color:var(--t2);font-size:14.5px">Applications go straight to the founder. Expect a reply within a few days.</p>
+  <form onsubmit="submitApp(event)" style="margin-top:14px">
+    <div class="grid2">
+      <div><label>Full name *</label><input name="name" required placeholder="Your name"></div>
+      <div><label>Email *</label><input name="email" type="email" required placeholder="you@email.com"></div>
+    </div>
+    <label>Desired role *</label>
+    <select name="role" required>${openPos.map(x=>`<option ${p&&x.id===p.id?"selected":""}>${esc(x.title)}</option>`).join("")}</select>
+    <div class="grid2">
+      <div><label>Resume link</label><input name="resume" placeholder="Drive / PDF link"></div>
+      <div><label>Portfolio</label><input name="portfolio" placeholder="yoursite.com"></div>
+    </div>
+    <div class="grid2">
+      <div><label>LinkedIn</label><input name="linkedin" placeholder="linkedin.com/in/…"></div>
+      <div><label>GitHub</label><input name="github" placeholder="github.com/…"></div>
+    </div>
+    <label>Availability</label><input name="avail" placeholder="e.g. 10 hrs/week, weekends">
+    <label>Cover letter — why SilentHelp? *</label>
+    <textarea name="cover" required placeholder="Tell us why this mission matters to you."></textarea>
+    <button class="btn" style="width:100%;justify-content:center;margin-top:22px">Submit application</button>
+  </form>
+</section>`;
+};
+
+/* ---------- team ---------- */
+V.team = () => {
+  const byDept = d => S.team.filter(m=>m.dept===d);
+  const openByDept = d => S.positions.filter(p=>p.dept===d && p.status==="open");
+  return `
+<section class="view">
+  <div class="shead" style="margin-top:56px"><div class="row">
+    <div><h2>The <span class="serif">team</span></h2>
+    <p>${S.team.length} of ${TEAM_TARGET} seats filled · ${openCount()} roles open</p></div>
+    ${meterHTML(S.team.length)}
+  </div></div>
+  <div class="depts">
+  ${DEPTS.map(d => {
+    const ms = byDept(d), vac = openByDept(d);
+    if(!ms.length && !vac.length) return "";
+    const cap = ms.length + vac.length;
+    return `<div class="deptbox">
+      <div class="dh"><h3>${esc(d)}</h3><span class="cnt num">${ms.length}/${cap} filled</span></div>
+      ${bar(cap? ms.length/cap*100 : 0)}
+      <div class="people">
+        ${ms.map(m=>`<span class="pchip" onclick="location.hash='#/member/${m.id}'">${avat(m)}<span><b style="font-weight:600">${esc(m.name)}</b> <span style="color:var(--t3)">· ${esc(m.role)}</span></span></span>`).join("")}
+        ${vac.map(p=>`<span class="pchip vac" onclick="location.hash='#/job/${p.id}'">+ ${esc(p.title)} — open</span>`).join("")}
+      </div>
+    </div>`;
+  }).join("")}
+  </div>
+</section>`;
+};
+
+/* ---------- member profile ---------- */
+V.member = id => {
+  const m = S.team.find(x=>x.id===id);
+  if(!m) return `<div class="empty view">Member not found.</div>`;
+  const tasks = S.tasks[m.id]||[];
+  return `
+<section class="view">
+  <a class="back" href="#/team">← Team</a>
+  <div class="prof">
+    ${avat(m,true)}
+    <div>
+      <h1>${esc(m.name)}</h1>
+      <div class="sub">${esc(m.role)} · ${esc(m.dept)} · joined ${esc(m.joined||"—")}</div>
+      ${m.bio?`<div class="sub" style="margin-top:8px;max-width:520px;text-wrap:pretty">${esc(m.bio)}</div>`:""}
+    </div>
+  </div>
+  <div class="pgrid">
+    <div class="card"><h4>Skills</h4><div class="chips">${(m.skills||[]).map(s=>tag(s)).join("")||'<span class="empty">—</span>'}</div></div>
+    <div class="card"><h4>Current projects</h4><div class="chips">${(m.projects||[]).map(s=>tag(s)).join("")||'<span class="empty">—</span>'}</div></div>
+    <div class="card"><h4>Progress</h4>
+      <div class="prog"><div class="lbl"><b>Current sprint</b><span class="num">${m.progress||0}%</span></div>${bar(m.progress||0)}</div>
+    </div>
+    <div class="card"><h4>Contact</h4><div style="font-size:14px;color:var(--t2)">${m.contact?esc(m.contact):"Private"}</div></div>
+    <div class="card" style="grid-column:1/-1"><h4>Assigned tasks</h4>
+      ${tasks.length? tasks.map((t,i)=>`
+        <div class="rowitem">
+          <input type="checkbox" style="width:16px;height:16px;flex:none" ${t.done?"checked":""} onchange="toggleTask('${m.id}',${i})">
+          <div class="grow" style="${t.done?"text-decoration:line-through;color:var(--t3)":""}">${esc(t.t)}<small>${t.due?("due "+esc(t.due)):""}</small></div>
+        </div>`).join("") : '<div class="empty">No tasks assigned yet.</div>'}
+    </div>
+  </div>
+</section>`;
+};
+
+/* ---------- founder HQ ---------- */
+let hqTab = "overview";
+V.admin = () => {
+  const unread = S.notes.filter(n=>!n.read).length;
+  const inPipe = S.applicants.filter(a=>a.stage!=="Hired"&&a.stage!=="Rejected").length;
+  const T = {
+    overview: hqOverview, pipeline: hqPipeline, positions: hqPositions,
+    team: hqTeam, notes: hqNotes,
+  };
+  return `
+<section class="view">
+  <div class="shead" style="margin:56px 0 0"><h2>Founder <span class="serif">HQ</span></h2>
+  <p>Internal — manage positions, applicants, team and company progress. Data lives in this browser.</p></div>
+  <div class="hq">
+    <div class="tabs">
+      ${[["overview","Overview"],["pipeline","Hiring pipeline",inPipe],["positions","Positions"],["team","Team"],["notes","Notifications",unread]]
+        .map(([k,l,n])=>`<button class="${hqTab===k?"on":""}" onclick="hqTab='${k}';render()">${l}${n?`<span class="pill num">${n}</span>`:""}</button>`).join("")}
+    </div>
+    <div>${T[hqTab]()}</div>
+  </div>
+</section>`;
+};
+
+function hqOverview(){
+  const st = S.stats;
+  const hired = S.applicants.filter(a=>a.stage==="Hired").length;
+  const w = (k,v,s)=>`<div class="stat"><div class="k">${k}</div><div class="v num">${v}</div><div class="s">${s||""}</div></div>`;
+  const p = (label,key)=>`
+    <div class="prog"><div class="lbl"><b>${label}</b><span class="num">${st[key]}%</span></div>
+    <input type="range" min="0" max="100" value="${st[key]}" oninput="S.stats.${key}=+this.value;save();this.closest('.prog').querySelector('.lbl span').textContent=this.value+'%'"></div>`;
+  return `
+  <div class="wgrid">
+    ${w("Team members", S.team.length+"<span style='color:var(--t3);font-size:16px'>/"+TEAM_TARGET+"</span>")}
+    ${w("Open roles", openCount())}
+    ${w("Hired via pipeline", hired)}
+    ${w("Active projects", `<input class="num" type="number" value="${st.activeProjects}" style="width:80px;font-size:24px;font-weight:600;padding:2px 8px" onchange="S.stats.activeProjects=+this.value;save()">`)}
+  </div>
+  <div class="card" style="margin-top:16px"><h4>Company progress <span style="text-transform:none;letter-spacing:0;color:var(--t3);font-weight:400">— drag to update, shown live on the public site</span></h4>
+    ${p("AI development","ai")}
+    ${p("macOS agent","macos")}
+    ${p("Beta readiness","beta")}
+    ${p("Community outreach","outreach")}
+  </div>`;
+}
+
+function hqPipeline(){
+  const active = S.applicants.filter(a=>a.stage!=="Rejected");
+  return `
+  <div class="board">
+    ${STAGES.map(st=>{
+      const list = active.filter(a=>a.stage===st);
+      return `<div class="col"><h5>${st}<span class="num">${list.length}</span></h5>
+        ${list.map(a=>`<div class="appcard" onclick="viewApp('${a.id}')"><b>${esc(a.name)}</b><span class="r">${esc(a.role)}</span><span class="d">${ago(a.ts)}</span></div>`).join("")}
+      </div>`;
+    }).join("")}
+  </div>
+  ${S.applicants.filter(a=>a.stage==="Rejected").length?`<div class="empty" style="text-align:left">${S.applicants.filter(a=>a.stage==="Rejected").length} rejected applicant(s) archived.</div>`:""}
+  ${!active.length?'<div class="empty">No applicants yet — share the careers page.</div>':""}`;
+}
+
+function hqPositions(){
+  return `
+  <button class="btn sm" onclick="editPosition()" style="margin-bottom:12px">+ New position</button>
+  ${S.positions.map(p=>`
+    <div class="rowitem">
+      <div class="grow"><b style="font-weight:600">${esc(p.title)}</b><small>${esc(p.dept)} · ${esc(p.loc)}</small></div>
+      ${p.status==="open"?tag("Open","open"):tag("Filled","filled")}
+      <button class="btn sm ghost" onclick="editPosition('${p.id}')">Edit</button>
+      <button class="btn sm ghost" onclick="togglePos('${p.id}')">${p.status==="open"?"Mark filled":"Reopen"}</button>
+      <button class="btn sm danger" onclick="delPos('${p.id}')">Delete</button>
+    </div>`).join("")}`;
+}
+
+function hqTeam(){
+  return `
+  <button class="btn sm" onclick="editMember()" style="margin-bottom:12px">+ Add teammate</button>
+  ${S.team.map(m=>`
+    <div class="rowitem">
+      ${avat(m)}
+      <div class="grow"><b style="font-weight:600">${esc(m.name)}</b><small>${esc(m.role)} · ${esc(m.dept)}</small></div>
+      <button class="btn sm ghost" onclick="assignTask('${m.id}')">Assign task</button>
+      <button class="btn sm ghost" onclick="editMember('${m.id}')">Edit</button>
+      <button class="btn sm danger" onclick="delMember('${m.id}')">Remove</button>
+    </div>`).join("")}`;
+}
+
+function hqNotes(){
+  const h = S.notes.length ? S.notes.map(n=>`
+    <div class="note ${n.read?"dim":""}"><span class="ic"></span><div>${esc(n.t)}<time>${ago(n.ts)}</time></div></div>`).join("")
+    : '<div class="empty">Quiet for now.</div>';
+  setTimeout(()=>{ S.notes.forEach(n=>n.read=true); save(); },800);
+  return `<div class="card">${h}</div>`;
+}
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+function submitApp(e){
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const a = { id:uid(), stage:"Applied", ts:Date.now() };
+  ["name","email","role","resume","portfolio","linkedin","github","avail","cover"].forEach(k=>a[k]=(f.get(k)||"").toString().trim());
+  S.applicants.push(a);
+  notify(`New applicant: ${a.name} → ${a.role}`);
+  save();
+  location.hash = "#/careers";
+  toast("Application submitted — we'll be in touch. ✓");
+}
+
+function viewApp(id){
+  const a = S.applicants.find(x=>x.id===id); if(!a) return;
+  const si = STAGES.indexOf(a.stage);
+  const link = (l,u)=>u?`<div class="kv"><b>${l}</b><span><a href="${esc(/^https?:/.test(u)?u:"https://"+u)}" target="_blank" style="color:var(--signal)">${esc(u)}</a></span></div>`:"";
+  modal(`
+    <h3>${esc(a.name)}</h3><div class="sub">${esc(a.role)} · applied ${ago(a.ts)} · <b style="color:var(--signal)">${esc(a.stage)}</b></div>
+    <div style="margin-top:14px">
+      <div class="kv"><b>Email</b><span>${esc(a.email)}</span></div>
+      <div class="kv"><b>Availability</b><span>${esc(a.avail||"—")}</span></div>
+      ${link("Resume",a.resume)}${link("Portfolio",a.portfolio)}${link("LinkedIn",a.linkedin)}${link("GitHub",a.github)}
+    </div>
+    <h4 style="font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--t3);margin:18px 0 8px">Cover letter</h4>
+    <p style="font-size:14px;color:var(--t2);white-space:pre-wrap">${esc(a.cover||"—")}</p>
+    <div class="acts">
+      <button class="btn sm danger" onclick="setStage('${a.id}','Rejected')">Reject</button>
+      ${si>0 && a.stage!=="Hired" ? `<button class="btn sm ghost" onclick="setStage('${a.id}','${STAGES[si-1]}')">← ${STAGES[si-1]}</button>`:""}
+      ${a.stage!=="Hired" ? (si<STAGES.length-2
+        ? `<button class="btn sm" onclick="setStage('${a.id}','${STAGES[si+1]}')">Advance → ${STAGES[si+1]}</button>`
+        : `<button class="btn sm" onclick="hireApp('${a.id}')">Hire 🎉</button>`) : ""}
+    </div>`);
+}
+function setStage(id, st){
+  const a = S.applicants.find(x=>x.id===id); if(!a) return;
+  a.stage = st; notify(`${a.name} moved to “${st}”`); save(); closeModal(); render();
+}
+function hireApp(id){
+  const a = S.applicants.find(x=>x.id===id); if(!a) return;
+  a.stage = "Hired";
+  const pos = S.positions.find(p=>p.title===a.role);
+  const m = { id:uid(), name:a.name, role:a.role, dept:pos?pos.dept:"Engineering",
+    skills:[], projects:pos?(pos.projects||[]):[], progress:0,
+    joined:new Date().toISOString().slice(0,10), contact:a.email, photo:"", bio:"" };
+  S.team.push(m);
+  if(pos) pos.status = "filled";
+  notify(`🎉 ${a.name} hired as ${a.role} — welcome to the team!`);
+  save(); closeModal(); render(); toast(`${a.name} added to the team ✓`);
+}
+
+/* positions CRUD */
+function togglePos(id){ const p=S.positions.find(x=>x.id===id); p.status=p.status==="open"?"filled":"open"; notify(`Position ${p.status==="open"?"reopened":"filled"}: ${p.title}`); save(); render(); }
+function delPos(id){ const p=S.positions.find(x=>x.id===id); if(!confirm(`Delete "${p.title}"?`))return; S.positions=S.positions.filter(x=>x.id!==id); save(); render(); }
+function editPosition(id){
+  const p = S.positions.find(x=>x.id===id) || {};
+  const j = a=>(a||[]).join("\n");
+  modal(`
+    <h3>${id?"Edit":"New"} position</h3>
+    <form onsubmit="savePosition(event,'${id||""}')">
+      <label>Title *</label><input name="title" required value="${esc(p.title||"")}">
+      <div class="grid2">
+        <div><label>Department</label><select name="dept">${DEPTS.map(d=>`<option ${p.dept===d?"selected":""}>${d}</option>`).join("")}</select></div>
+        <div><label>Location</label><input name="loc" value="${esc(p.loc||"Remote")}"></div>
+      </div>
+      <label>Employment type</label><input name="type" value="${esc(p.type||"Core team · Equity")}">
+      <label>Description</label><textarea name="desc">${esc(p.desc||"")}</textarea>
+      <label>Responsibilities (one per line)</label><textarea name="resp">${esc(j(p.resp))}</textarea>
+      <label>Skills required (one per line)</label><textarea name="skills">${esc(j(p.skills))}</textarea>
+      <label>Preferred experience (one per line)</label><textarea name="pref">${esc(j(p.pref))}</textarea>
+      <div class="grid2">
+        <div><label>Technologies (one per line)</label><textarea name="tech">${esc(j(p.tech))}</textarea></div>
+        <div><label>Current projects (one per line)</label><textarea name="projects">${esc(j(p.projects))}</textarea></div>
+      </div>
+      <label>Team blurb</label><input name="team" value="${esc(p.team||"")}">
+      <div class="acts"><button type="button" class="btn sm ghost" onclick="closeModal()">Cancel</button><button class="btn sm">Save position</button></div>
+    </form>`);
+}
+function savePosition(e, id){
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const lines = k => (f.get(k)||"").toString().split("\n").map(s=>s.trim()).filter(Boolean);
+  const p = id ? S.positions.find(x=>x.id===id) : { id:uid(), status:"open" };
+  p.title=f.get("title").toString().trim(); p.dept=f.get("dept"); p.loc=f.get("loc");
+  p.type=f.get("type"); p.desc=f.get("desc"); p.team=f.get("team");
+  p.resp=lines("resp"); p.skills=lines("skills"); p.pref=lines("pref");
+  p.tech=lines("tech"); p.projects=lines("projects");
+  if(!id){ S.positions.push(p); notify(`New position opened: ${p.title}`); }
+  save(); closeModal(); render(); toast("Position saved ✓");
+}
+
+/* team CRUD */
+function delMember(id){ const m=S.team.find(x=>x.id===id); if(!confirm(`Remove ${m.name} from the team?`))return; S.team=S.team.filter(x=>x.id!==id); notify(`${m.name} removed from the team directory`); save(); render(); }
+function editMember(id){
+  const m = S.team.find(x=>x.id===id) || {};
+  modal(`
+    <h3>${id?"Edit teammate":"Add teammate"}</h3>
+    <form onsubmit="saveMember(event,'${id||""}')">
+      <div class="grid2">
+        <div><label>Name *</label><input name="name" required value="${esc(m.name||"")}"></div>
+        <div><label>Role *</label><input name="role" required value="${esc(m.role||"")}" placeholder="e.g. Lead AI Engineer"></div>
+      </div>
+      <div class="grid2">
+        <div><label>Department</label><select name="dept">${DEPTS.map(d=>`<option ${m.dept===d?"selected":""}>${d}</option>`).join("")}</select></div>
+        <div><label>Joined</label><input name="joined" type="date" value="${esc(m.joined||new Date().toISOString().slice(0,10))}"></div>
+      </div>
+      <label>Skills (comma-separated)</label><input name="skills" value="${esc((m.skills||[]).join(", "))}">
+      <label>Current projects (comma-separated)</label><input name="projects" value="${esc((m.projects||[]).join(", "))}">
+      <div class="grid2">
+        <div><label>Sprint progress %</label><input name="progress" type="number" min="0" max="100" value="${m.progress||0}"></div>
+        <div><label>Contact (optional, shown on profile)</label><input name="contact" value="${esc(m.contact||"")}"></div>
+      </div>
+      <label>Profile picture</label><input name="photofile" type="file" accept="image/*" style="padding:7px">
+      <label>Short bio</label><textarea name="bio" style="min-height:60px">${esc(m.bio||"")}</textarea>
+      <div class="acts"><button type="button" class="btn sm ghost" onclick="closeModal()">Cancel</button><button class="btn sm">Save</button></div>
+    </form>`);
+}
+function saveMember(e, id){
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const m = id ? S.team.find(x=>x.id===id) : { id:uid(), photo:"" };
+  const csv = k => (f.get(k)||"").toString().split(",").map(s=>s.trim()).filter(Boolean);
+  m.name=f.get("name").toString().trim(); m.role=f.get("role").toString().trim();
+  m.dept=f.get("dept"); m.joined=f.get("joined"); m.skills=csv("skills"); m.projects=csv("projects");
+  m.progress=Math.max(0,Math.min(100,+f.get("progress")||0)); m.contact=f.get("contact"); m.bio=f.get("bio");
+  const done = () => { if(!id){ S.team.push(m); notify(`${m.name} joined as ${m.role}`); } else notify(`${m.name}'s profile updated`); save(); closeModal(); render(); toast("Saved ✓"); };
+  const file = f.get("photofile");
+  if(file && file.size){
+    if(file.size > 400*1024){ toast("Image too large — keep under 400 KB"); return; }
+    const r = new FileReader(); r.onload = () => { m.photo = r.result; done(); }; r.readAsDataURL(file);
+  } else done();
+}
+function assignTask(id){
+  const m = S.team.find(x=>x.id===id);
+  modal(`
+    <h3>Assign task — ${esc(m.name)}</h3>
+    <form onsubmit="saveTask(event,'${id}')">
+      <label>Task *</label><input name="t" required placeholder="What needs to get done?">
+      <label>Deadline</label><input name="due" type="date">
+      <div class="acts"><button type="button" class="btn sm ghost" onclick="closeModal()">Cancel</button><button class="btn sm">Assign</button></div>
+    </form>`);
+}
+function saveTask(e, id){
+  e.preventDefault();
+  const f = new FormData(e.target);
+  (S.tasks[id] = S.tasks[id]||[]).push({ t:f.get("t").toString().trim(), due:f.get("due"), done:false });
+  const m = S.team.find(x=>x.id===id);
+  notify(`Task assigned to ${m.name}: ${f.get("t")}`);
+  save(); closeModal(); render(); toast("Task assigned ✓");
+}
+function toggleTask(id, i){ S.tasks[id][i].done = !S.tasks[id][i].done; save(); }
+
+/* =========================================================
+   ROUTER
+   ========================================================= */
+function render(){
+  const h = location.hash.replace(/^#\/?/, "") || "";
+  const [r, arg] = h.split("/");
+  const map = { "":["home"], careers:["careers"], job:["job",arg], apply:["apply",arg],
+                team:["team"], member:["member",arg], admin:["admin"] };
+  const [fn, a] = map[r] || ["home"];
+  $("#view").innerHTML = V[fn](a);
+  document.querySelectorAll("nav a.nl[data-nav]").forEach(el=>el.classList.toggle("on", el.dataset.nav===r || (r==="job"||r==="apply")&&el.dataset.nav==="careers" || r==="member"&&el.dataset.nav==="team"));
+  if(!location.hash.includes("keep-scroll")) window.scrollTo({top:0});
+}
+window.addEventListener("hashchange", render);
+render();
+</script>
+</body>
+</html>

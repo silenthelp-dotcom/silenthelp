@@ -297,6 +297,12 @@ def landing():
     return render_template("hero.html")
 
 
+@app.route("/careers")
+def careers():
+    # SilentHelp HQ — careers, team directory, and founder admin (self-contained SPA).
+    return render_template("careers.html")
+
+
 @app.route("/app")
 def app_home():
     # The SilentHelp app UI (ported from the Claude Design "SilentHelp App").
