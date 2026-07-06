@@ -573,6 +573,8 @@ V.member = id => {
 /* ---------- founder HQ ---------- */
 let hqTab = "overview";
 V.admin = () => {
+  // Live re-check the convenience unlock param each render (robust to load order).
+  if(!isAdmin){ try{ if(new URLSearchParams(location.search).get("hq")===ADMIN_PASS){ isAdmin=true; localStorage.setItem("shq_admin", ADMIN_PASS); } }catch(e){} }
   if(!isAdmin) return adminLock();
   const unread = S.notes.filter(n=>!n.read).length;
   const inPipe = S.applicants.filter(a=>a.stage!=="Hired"&&a.stage!=="Rejected").length;
