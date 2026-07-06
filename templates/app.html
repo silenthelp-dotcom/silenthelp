@@ -29,6 +29,7 @@
   /* Apple-style Liquid Glass buttons */
   /* Apple-style white Liquid Glass — frosted, translucent, dark text */
   .glass { position:relative; border:none !important; cursor:pointer; color:#1b2430 !important; font-weight:600; font-family:inherit;
+    text-align:center; align-items:center; justify-content:center;
     background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.5)) !important;
     -webkit-backdrop-filter:blur(22px) saturate(150%); backdrop-filter:blur(22px) saturate(150%);
     box-shadow:0 10px 26px rgba(20,40,80,.20), 0 2px 6px rgba(20,40,80,.10),
@@ -57,7 +58,7 @@
         <div style="font-size:13px; letter-spacing:.34em; text-transform:uppercase; color:#7a93ad;">SilentHelp</div>
         <div class="pf" style="font-size:clamp(2.6rem,6vw,3.5rem); line-height:1.02; color:#0e1822; margin-top:18px; max-width:760px; letter-spacing:-.01em;">It notices what stays<br/>beneath the surface.</div>
         <div style="font-size:16px; color:#5e6f7e; line-height:1.7; margin:26px auto 0; max-width:500px; font-weight:300;">A quiet companion that learns your rhythm and feels when you're running low — long before you'd think to ask for help. Everything stays on your Mac.</div>
-        <button class="hovup glass" onclick="App.onb(2)" style="margin-top:40px; display:inline-flex; align-items:center; gap:13px; background:#007aff; color:#fff; border:none; border-radius:999px; padding:15px 18px 15px 30px; font-size:15px; font-weight:600; cursor:pointer; box-shadow:0 12px 34px rgba(0,122,255,.35);">
+        <button class="hovup glass" onclick="App.onb(2)" style="margin-top:40px; display:inline-flex; align-items:center; justify-content:center; gap:13px; background:#007aff; color:#fff; border:none; border-radius:999px; padding:15px 18px 15px 30px; font-size:15px; font-weight:600; cursor:pointer; box-shadow:0 12px 34px rgba(0,122,255,.35);">
           Begin <span style="width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,.22); display:flex; align-items:center; justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
         </button>
         <div style="font-size:11.5px; color:#9aa7b3; margin-top:34px; letter-spacing:.02em;">Not a medical product · doesn't diagnose · you're always in control</div>
@@ -90,7 +91,7 @@
 
     <!-- ════ SIGN IN (gate) ════ -->
     <div id="scr-auth" class="screen-anim" style="display:none; position:relative; z-index:6; flex:1; min-height:0; overflow-y:auto; background:radial-gradient(120% 90% at 50% 0%, #f2f8ff, #f6f9fc 60%, #eef3f9);">
-      <div style="min-height:100%; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:56px 40px;">
+      <div style="min-height:100%; width:100%; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:56px 40px;">
         <div style="width:64px; height:64px; border-radius:50%; margin-bottom:30px; background:radial-gradient(circle at 50% 38%, #7cc4ff, #007aff 56%, #0049c4 100%); box-shadow:0 14px 40px rgba(0,122,255,.38); animation:emBreath 6s ease-in-out infinite;"></div>
         <div style="font-size:12px; letter-spacing:.32em; text-transform:uppercase; color:#7a93ad;">SilentHelp</div>
         <div class="pf" style="font-size:clamp(2rem,5vw,2.7rem); color:#0e1822; margin-top:12px; letter-spacing:-.01em; text-align:center;">Your own quiet space.</div>
