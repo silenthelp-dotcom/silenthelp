@@ -102,6 +102,7 @@
           <div id="gateErr" style="font-size:12.5px; color:#d2381f; margin-top:10px; display:none;"></div>
           <button class="glass" onclick="App.gateAuth('signup')" style="width:100%; margin-top:16px; border-radius:12px; padding:14px; font-size:14.5px; font-weight:600; background:#007aff !important; color:#fff !important;">Create my space</button>
           <button class="glass ghost" onclick="App.gateAuth('login')" style="width:100%; margin-top:10px; border-radius:12px; padding:13px; font-size:14px; font-weight:600;">I already have an account — sign in</button>
+          <div style="font-size:11.5px; color:#9aa7b3; margin-top:14px; text-align:center; font-weight:300; line-height:1.6;">By creating an account you agree to the<br/><a href="/terms" target="_blank" style="color:#0a6dff; text-decoration:none;">Terms of Use</a> &nbsp;·&nbsp; <a href="/privacy" target="_blank" style="color:#0a6dff; text-decoration:none;">Privacy Policy</a></div>
         </div>
         <div style="font-size:11.5px; color:#9aa7b3; margin-top:24px; font-weight:300; text-align:center; max-width:380px; line-height:1.6;">Private by design · your data is stored only in your own account file · nothing is shared with other people who use this link</div>
       </div>
@@ -198,7 +199,8 @@
           <div class="appscreen" id="scr-analytics" style="display:none;">
             <div class="screen-anim" style="padding:34px 40px;">
               <div style="font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:#7a93ad;">This week · against your own baseline</div>
-              <div class="pf" style="font-size:40px; color:#0e1822; margin-top:8px; line-height:1;">Analytics</div>
+              <div class="pf" style="font-size:40px; color:#0e1822; margin-top:8px; line-height:1;">Analytics <span id="anPreview" style="display:none; vertical-align:middle; font-family:'Inter',sans-serif; font-style:normal; font-size:10.5px; font-weight:700; letter-spacing:.08em; color:#a4701f; background:#fff6ec; border:1px solid #f6e0c4; border-radius:999px; padding:5px 12px; margin-left:10px;">SAMPLE PREVIEW</span></div>
+              <div id="anPreviewNote" style="display:none; font-size:12.5px; color:#8b99a6; margin-top:10px; font-weight:300;">This is what your analytics will look like — the real chart fills in as SilentHelp learns your days.</div>
 
               <div style="margin-top:34px; background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:22px;">
                 <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:6px;"><div style="font-size:13px; color:#3c4a57; font-weight:600;">Focus trend</div><div style="font-size:12px; color:#1f9d55; font-weight:600;" id="weekChange">+9% vs last week</div></div>
@@ -245,7 +247,7 @@
               <div style="display:flex; align-items:flex-start; justify-content:space-between;">
                 <div>
                   <div style="font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:#7a93ad;" id="fRange">This week</div>
-                  <div class="pf" style="font-size:40px; color:#0e1822; margin-top:8px; line-height:1;">Surface Findings</div>
+                  <div class="pf" style="font-size:40px; color:#0e1822; margin-top:8px; line-height:1;">Surface Findings <span id="fPreview" style="display:none; vertical-align:middle; font-family:'Inter',sans-serif; font-style:normal; font-size:10.5px; font-weight:700; letter-spacing:.08em; color:#a4701f; background:#fff6ec; border:1px solid #f6e0c4; border-radius:999px; padding:5px 12px; margin-left:10px;">SAMPLE PREVIEW</span></div>
                 </div>
                 <button class="hov" onclick="App.exportData()" style="font-size:12px; color:#0a6dff; background:#eef5ff; border:1px solid #d3e4fb; border-radius:999px; padding:9px 16px; font-weight:600; cursor:pointer;">Export data</button>
               </div>
@@ -412,6 +414,15 @@
               <div style="margin-top:30px; font-size:11px; letter-spacing:.2em; color:#7a93ad;">BASELINE</div>
               <div style="font-size:12.5px; color:#8b99a6; line-height:1.6; margin:12px 0 14px; font-weight:300;">SilentHelp learns your normal rhythm over time. If your routine changed, you can have it start learning fresh.</div>
               <button class="hov" onclick="App.resetBaseline()" style="background:#fff; border:1px solid #f3d6d0; border-radius:11px; padding:13px 20px; font-size:13px; font-weight:600; color:#d2381f; cursor:pointer;">Reset my baseline</button>
+
+              <div style="margin-top:36px; font-size:11px; letter-spacing:.2em; color:#c25a45;">DANGER ZONE</div>
+              <div style="margin-top:12px; background:#fff; border:1px solid #f3d6d0; border-radius:16px; padding:20px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+                  <div style="max-width:420px;"><div style="font-size:14px; font-weight:600; color:#16202b;">Delete my account</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300; line-height:1.6;">Permanently removes your account and every piece of data — history, chat, settings, baseline. This cannot be undone. You can sign up again later with the same email, starting completely fresh.</div></div>
+                  <button class="hov" onclick="App.deleteAccount()" style="background:#d2381f; color:#fff; border:none; border-radius:11px; padding:12px 20px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;">Delete account</button>
+                </div>
+              </div>
+              <div style="font-size:11.5px; color:#9aa7b3; margin-top:22px; font-weight:300;"><a href="/terms" target="_blank" style="color:#8b99a6;">Terms of Use</a> &nbsp;·&nbsp; <a href="/privacy" target="_blank" style="color:#8b99a6;">Privacy Policy</a></div>
             </div>
           </div>
 
@@ -626,6 +637,19 @@ const App = {
     clearTimeout(this._nameT); this._nameT = setTimeout(() => this.api('/api/settings', { name: this.name }), 500); },
   toggleNotify(){ this.toggle('notify'); },
   async resetBaseline(){ if (!confirm('Reset your learned baseline and history? Your settings and trusted contact stay.')) return; await this.api('/api/reset-baseline', {}); location.reload(); },
+  async deleteAccount(){
+    if (!confirm('Delete your account and ALL data permanently? This cannot be undone.')) return;
+    const email = (this.me && this.me.user && this.me.user.email) || '';
+    const typed = prompt('Type your email to confirm deletion:');
+    if ((typed || '').trim().toLowerCase() !== email.toLowerCase()) { alert('Email did not match — nothing was deleted.'); return; }
+    try {
+      const r = await fetch('/api/account/delete', { method:'POST' });
+      const d = await r.json();
+      if (!r.ok) { alert(d.error === 'not signed in' ? 'Sign in first (on this Mac, use the Account page to sign in) — then delete.' : (d.error || 'Could not delete.')); return; }
+      alert('Your account and all data are gone. You can sign up again anytime.');
+      location.reload();
+    } catch(e){ alert('Connection error — try again.'); }
+  },
 
   paintNav(){
     document.querySelectorAll('.navitem').forEach(it => {
@@ -761,7 +785,10 @@ const App = {
   },
   async loadAnalytics(){
     const a = await this.api('/api/analytics').catch(()=>null); if (!a) return;
-    document.getElementById('weekChange').textContent = (a.week_change>=0?'+':'') + a.week_change + '% vs last week';
+    const pv = document.getElementById('anPreview'), pn = document.getElementById('anPreviewNote');
+    if (pv) pv.style.display = a.seeded ? 'inline-block' : 'none';
+    if (pn) pn.style.display = a.seeded ? 'block' : 'none';
+    document.getElementById('weekChange').textContent = a.seeded ? 'sample data' : (a.week_change>=0?'+':'') + a.week_change + '% vs last week';
     const t = a.trend.map(v => typeof v==='number'?v:0);
     const xs = t.map((_,i)=> 20 + i*(840/6));
     const ys = t.map(v => 180 - Math.max(0,Math.min(100,v))/100*150);
@@ -778,6 +805,8 @@ const App = {
   },
   async loadFindings(){
     const f = await this.api('/api/findings').catch(()=>null); if (!f) return;
+    const fp = document.getElementById('fPreview');
+    if (fp) fp.style.display = f.seeded ? 'inline-block' : 'none';
     const fr = document.getElementById('fRange');
     if (fr){ const end = new Date(), start = new Date(Date.now() - 6*864e5);
       const fmt = d => d.toLocaleDateString(undefined, {month:'short', day:'numeric'});
@@ -877,7 +906,11 @@ const App = {
   },
   async logBehavior(){
     if (!this.toggles.behavioral) return;
-    await this.api('/api/behavioral/log', this.signals()).catch(()=>{});
+    const sig = this.signals();
+    // Under 3 minutes of real activity the extrapolated rates are noise —
+    // logging them made the battery jump around. Wait for signal.
+    if (sig.active_minutes < 3) return;
+    await this.api('/api/behavioral/log', sig).catch(()=>{});
     if (this.screen === 'dashboard') this.loadDashboard();
   },
 

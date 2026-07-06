@@ -89,3 +89,17 @@ def get_user(uid: str) -> Optional[Dict[str, Any]]:
     with _LOCK:
         u = _load()["users"].get(uid)
         return {"uid": uid, "email": u["email"], "name": u["name"]} if u else None
+
+
+def delete_user(uid: str) -> bool:
+    """Permanently remove an account. Frees the email for future re-signup."""
+    if not uid:
+        return False
+    with _LOCK:
+        data = _load()
+        u = data["users"].pop(uid, None)
+        if not u:
+            return False
+        data["by_email"].pop(u.get("email", ""), None)
+        _save(data)
+        return True

@@ -175,6 +175,31 @@ def api_logout():
     return jsonify({"ok": True})
 
 
+@app.route("/api/account/delete", methods=["POST"])
+def api_account_delete():
+    """Permanently delete the signed-in account: credentials AND all data.
+    The email is freed immediately, so re-signing up later works."""
+    uid = session.get("uid")
+    if not (uid and auth.get_user(uid)):
+        return jsonify({"error": "not signed in"}), 401
+    auth.delete_user(uid)
+    data_file = os.path.join(USERDATA_DIR, f"user_{uid}.json")
+    if os.path.exists(data_file):
+        os.remove(data_file)
+    session.pop("uid", None)
+    return jsonify({"ok": True})
+
+
+@app.route("/privacy")
+def privacy_page():
+    return render_template("privacy.html")
+
+
+@app.route("/terms")
+def terms_page():
+    return render_template("terms.html")
+
+
 def _common():
     return {
         "model": detection.MODEL,

@@ -60,11 +60,18 @@ def compute_metrics(signals: Dict[str, Any]) -> Dict[str, Any]:
     """
     s = {k: float(signals.get(k, BASELINE[k])) for k in BASELINE}
 
-    late = _excess(s["late_night_min"], BASELINE["late_night_min"])
-    tabs = _excess(s["tab_switches"], BASELINE["tab_switches"])
-    intr = _excess(s["interruptions"], BASELINE["interruptions"])
-    back = _excess(s["backspace_rate"], BASELINE["backspace_rate"])
-    frag = _shortfall(s["avg_session_min"], BASELINE["avg_session_min"])
+    # CONFIDENCE RAMP: with only a few minutes of activity, extrapolated rates
+    # are garbage (30s of browsing reads as "fragmented, thrashing"). Blend all
+    # deviation penalties toward baseline until ~45 min of real signal exists,
+    # so the battery doesn't whiplash 100 → 57 → 100 between page loads.
+    _active = float(signals.get("active_minutes", 0) or 0)
+    conf = min(1.0, _active / 45.0) if "active_minutes" in signals else 1.0
+
+    late = _excess(s["late_night_min"], BASELINE["late_night_min"]) * conf
+    tabs = _excess(s["tab_switches"], BASELINE["tab_switches"]) * conf
+    intr = _excess(s["interruptions"], BASELINE["interruptions"]) * conf
+    back = _excess(s["backspace_rate"], BASELINE["backspace_rate"]) * conf
+    frag = _shortfall(s["avg_session_min"], BASELINE["avg_session_min"]) * conf
 
     # --- Marathon / "stuck on tabs for hours" signal (no breaks) ---
     # active_minutes isn't a baseline key, so read it from the raw signals.

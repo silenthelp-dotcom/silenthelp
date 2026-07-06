@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — SilentHelp</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500;1,600&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing:border-box; font-family:'Inter',-apple-system,sans-serif; }
+  body { margin:0; background:#f6f8fb; color:#3c4a57; }
+  .pf { font-family:'Playfair Display',serif; font-style:italic; font-weight:500; }
+  .wrap { max-width:720px; margin:0 auto; padding:56px 28px 80px; }
+  h2 { font-size:15px; color:#16202b; margin:34px 0 8px; }
+  p, li { font-size:14px; line-height:1.75; font-weight:300; color:#5e6f7e; }
+  a { color:#0a6dff; }
+  .card { background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:28px 32px; margin-top:28px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="/app" style="font-size:13px; text-decoration:none;">← Back to SilentHelp</a>
+  <div style="font-size:12px; letter-spacing:.28em; text-transform:uppercase; color:#7a93ad; margin-top:28px;">SilentHelp</div>
+  <div class="pf" style="font-size:40px; color:#0e1822; margin-top:8px;">Privacy Policy</div>
+  <p style="margin-top:10px;">Last updated: July 5, 2026 · SilentHelp is a student project. This policy is written plainly on purpose.</p>
+
+  <div class="card">
+    <p style="margin:0;"><b style="color:#16202b; font-weight:600;">The short version:</b> your words are analyzed to keep you safe, then discarded. We store signals, not sentences. Nothing is ever sent to another person without you pressing send. You can export or delete everything, anytime.</p>
+  </div>
+
+  <h2>What SilentHelp looks at</h2>
+  <p>Only text you actively write — messages in the Coping Chat, and (if you install the optional Mac agent) the text on your screen or in your focused text field. Plus rhythm signals that contain no words at all: tab switches, typing correction rate, late-night minutes, active time. SilentHelp never reads your files, photos, passwords, or browsing history.</p>
+
+  <h2>What gets stored</h2>
+  <ul>
+    <li><b>Detection events:</b> only a category (e.g. "high stress") and a severity level with a timestamp. The sentence that triggered it is <b>not</b> saved.</li>
+    <li><b>Chat history:</b> your Coping Chat conversation, kept in your own account file so the chat has memory. Delete it anytime.</li>
+    <li><b>Behavioral metrics:</b> daily rhythm numbers (focus score, battery), no text.</li>
+    <li><b>Account:</b> your email and a salted hash of your password. We cannot see your password.</li>
+  </ul>
+
+  <h2>What leaves the device</h2>
+  <p>One thing, only when Layer 2 (semantic understanding) is on: the text being checked is sent to an AI model (via Groq) to judge meaning and context, then discarded. It is not used to train models and is not stored by us. Turn Layer 2 off in Settings and nothing leaves at all.</p>
+
+  <h2>Who ever gets told</h2>
+  <p>No one — unless a sustained pattern crosses every layer's threshold, and even then SilentHelp only <i>drafts</i> a note to the trusted contact you chose. You read it, you can edit it, and nothing is sent unless you press send. There is no silent reporting to parents, schools, or anyone else.</p>
+
+  <h2>Your data, your rules</h2>
+  <ul>
+    <li><b>Export:</b> download everything as one JSON file from Settings.</li>
+    <li><b>Delete data:</b> "Delete everything" in Settings wipes your history instantly.</li>
+    <li><b>Delete account:</b> removes your account and all data permanently. You can re-sign-up with the same email later, starting fresh.</li>
+  </ul>
+
+  <h2>What SilentHelp is not</h2>
+  <p>SilentHelp is not a medical product, does not diagnose any condition, and is not a substitute for professional help. If you are in crisis, call or text <b>988</b> (Suicide &amp; Crisis Lifeline) or text <b>HOME to 741741</b> (Crisis Text Line) — real people, any time.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy: open an issue on the <a href="https://github.com/abhinavallani02-cyber/silenthelp">GitHub repository</a>.</p>
+</div>
+</body>
+</html>

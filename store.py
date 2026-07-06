@@ -191,7 +191,10 @@ def analytics() -> Dict[str, Any]:
         week_change = 0
         if len(present) >= 2:
             week_change = round((present[-1] - present[0]) / max(present[0], 1) * 100)
-        return {"trend": trend, "bars": bars, "baseline_tabs": 45, "week_change": week_change or 9}
+        # seeded = showing the illustrative sample because there's no real data
+        # yet — the UI labels it as a preview instead of passing it off as real.
+        return {"trend": trend, "bars": bars, "baseline_tabs": 45,
+                "week_change": week_change or 9, "seeded": not present}
 
 
 def findings() -> Dict[str, Any]:
