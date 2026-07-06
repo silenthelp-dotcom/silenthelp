@@ -29,7 +29,12 @@ import Vision
 
 // MARK: - Config
 enum Config {
-    static let backend = "http://127.0.0.1:5055"
+    static let localBackend = "http://127.0.0.1:5055"
+    static let hostedBackend = "https://silenthelp.onrender.com"   // the deployed app
+    /// Resolved at launch: local backend if one is running (the developer's
+    /// fully-on-device setup), else the hosted app (a friend's install).
+    /// Manual override: put a URL in ~/Library/Application Support/SilentHelp/backend.txt
+    static var backend = localBackend
     static let pollSeconds: TimeInterval = 1.5   // how often we read the focused field
     static let minChars = 8                       // ignore very short text
     static let cooldownSeconds: TimeInterval = 90 // after a popup, stay quiet
@@ -39,6 +44,31 @@ enum Config {
     static let ocrMaxDim: CGFloat = 2400          // capture cap — Retina-scale so
                                                   // normal-size document text is
                                                   // big enough for OCR to read
+}
+
+// MARK: - Backend resolution (local first, hosted fallback)
+func resolveBackend() {
+    // 1. Explicit override file wins.
+    let cfgPath = (NSString(string: "~/Library/Application Support/SilentHelp/backend.txt")).expandingTildeInPath
+    if let s = try? String(contentsOfFile: cfgPath, encoding: .utf8)
+        .trimmingCharacters(in: .whitespacesAndNewlines), s.hasPrefix("http") {
+        Config.backend = s
+        shLog("backend from config file: \(s)")
+        return
+    }
+    // 2. Probe localhost quickly; if a local backend answers, use it (private).
+    guard let url = URL(string: Config.localBackend + "/api/me") else { return }
+    var req = URLRequest(url: url)
+    req.timeoutInterval = 1.5
+    let sem = DispatchSemaphore(value: 0)
+    var localUp = false
+    URLSession.shared.dataTask(with: req) { _, resp, _ in
+        localUp = (resp as? HTTPURLResponse)?.statusCode == 200
+        sem.signal()
+    }.resume()
+    _ = sem.wait(timeout: .now() + 2)
+    Config.backend = localUp ? Config.localBackend : Config.hostedBackend
+    shLog("backend resolved: \(Config.backend) (local up: \(localUp))")
 }
 
 // MARK: - Diagnostic log (/tmp/silenthelp-agent.log)
@@ -549,6 +579,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory) // menu-bar only, no dock icon
+        resolveBackend()  // local backend if running, else the hosted app
         shLog("LAUNCH path=\(Bundle.main.bundlePath) ax=\(AXIsProcessTrusted()) screen=\(CGPreflightScreenCaptureAccess())")
 
         // Gatekeeper "app translocation": launched from a randomized quarantine

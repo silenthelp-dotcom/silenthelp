@@ -65,6 +65,7 @@ import auth
 import behavioral
 import chat
 import detection
+import hq_store
 import layer1
 import store
 
@@ -102,10 +103,12 @@ def _owner_uid():
 
 
 # Endpoints anyone may call without an account: auth itself + stateless compute.
+# /api/monitor is public so a friend's Mac agent (no login) still gets the
+# context-checked verdict — the handler skips all storage for anonymous callers.
 _PUBLIC_PATHS = {
     "/", "/app", "/chat", "/detection", "/today", "/download/agent",
     "/api/me", "/api/signup", "/api/login", "/api/logout",
-    "/api/scan", "/classify", "/api/behavioral",
+    "/api/scan", "/classify", "/api/behavioral", "/api/monitor",
 }
 
 
@@ -124,6 +127,11 @@ def _bind_user_store():
         store.set_data_file(os.path.join(USERDATA_DIR, f"user_{uid}.json"))
         return None
     store.set_data_file(None)
+
+    # HQ (careers / team / founder admin) is shared company data, not personal
+    # on-device data — always public so every visitor sees the same live site.
+    if request.path.startswith("/api/hq"):
+        return None
 
     # Anonymous + remote: only public routes; personal APIs require sign-in.
     if request.path.startswith("/api/") and request.path not in _PUBLIC_PATHS:
@@ -299,8 +307,97 @@ def landing():
 
 @app.route("/careers")
 def careers():
-    # SilentHelp HQ — careers, team directory, and founder admin (self-contained SPA).
+    # SilentHelp HQ — careers, team directory, and founder admin (shared, server-backed SPA).
     return render_template("careers.html")
+
+
+# ----------------------------------------------------------------------------
+# SilentHelp HQ — shared company state (positions, team, applicants, pipeline).
+# Everyone who opens /careers sees the same live data (hq_store JSON file).
+# ----------------------------------------------------------------------------
+
+@app.route("/api/hq")
+def hq_state():
+    return jsonify(hq_store.state())
+
+
+@app.route("/api/hq/apply", methods=["POST"])
+def hq_apply():
+    d = request.get_json(silent=True) or {}
+    fields = ["name", "email", "role", "resume", "portfolio", "linkedin", "github", "avail", "cover"]
+    a = {k: str(d.get(k, "")).strip() for k in fields}
+    if not a["name"] or not a["email"]:
+        return jsonify(error="Name and email required"), 400
+    return jsonify(hq_store.add_applicant(a))
+
+
+@app.route("/api/hq/stage", methods=["POST"])
+def hq_stage():
+    d = request.get_json(silent=True) or {}
+    return jsonify(hq_store.set_stage(d.get("id", ""), d.get("stage", "")))
+
+
+@app.route("/api/hq/hire", methods=["POST"])
+def hq_hire():
+    d = request.get_json(silent=True) or {}
+    return jsonify(hq_store.hire(d.get("id", "")))
+
+
+@app.route("/api/hq/position", methods=["POST"])
+def hq_position():
+    d = request.get_json(silent=True) or {}
+    pid = d.get("id") or None
+    p = {k: d.get(k) for k in ["title", "dept", "loc", "type", "desc", "team", "resp", "skills", "pref", "tech", "projects"] if k in d}
+    return jsonify(hq_store.save_position(p, pid))
+
+
+@app.route("/api/hq/position/toggle", methods=["POST"])
+def hq_position_toggle():
+    d = request.get_json(silent=True) or {}
+    return jsonify(hq_store.toggle_position(d.get("id", "")))
+
+
+@app.route("/api/hq/position/delete", methods=["POST"])
+def hq_position_delete():
+    d = request.get_json(silent=True) or {}
+    return jsonify(hq_store.delete_position(d.get("id", "")))
+
+
+@app.route("/api/hq/member", methods=["POST"])
+def hq_member():
+    d = request.get_json(silent=True) or {}
+    mid = d.get("id") or None
+    m = {k: d.get(k) for k in ["name", "role", "dept", "joined", "skills", "projects", "progress", "contact", "bio", "photo"] if k in d}
+    return jsonify(hq_store.save_member(m, mid))
+
+
+@app.route("/api/hq/member/delete", methods=["POST"])
+def hq_member_delete():
+    d = request.get_json(silent=True) or {}
+    return jsonify(hq_store.delete_member(d.get("id", "")))
+
+
+@app.route("/api/hq/stats", methods=["POST"])
+def hq_stats():
+    d = request.get_json(silent=True) or {}
+    return jsonify(hq_store.set_stats(d))
+
+
+@app.route("/api/hq/task", methods=["POST"])
+def hq_task():
+    d = request.get_json(silent=True) or {}
+    return jsonify(hq_store.add_task(d.get("id", ""), str(d.get("t", "")).strip(), d.get("due", "")))
+
+
+@app.route("/api/hq/task/toggle", methods=["POST"])
+def hq_task_toggle():
+    d = request.get_json(silent=True) or {}
+    return jsonify(hq_store.toggle_task(d.get("id", ""), int(d.get("idx", 0))))
+
+
+@app.route("/api/hq/notes/read", methods=["POST"])
+def hq_notes_read():
+    return jsonify(hq_store.mark_notes_read())
 
 
 @app.route("/app")
@@ -533,9 +630,16 @@ def api_monitor():
     text = (data.get("text") or "").strip()
     if not text:
         return jsonify({"error": "empty"}), 400
-    l1, judgment, action = _pipeline(text, record=True)
+    # Anonymous callers (a friend's agent) get the full context-checked verdict
+    # but we record NOTHING for them — no events, no shared-store writes. Their
+    # popup decision comes from judgment.surface alone.
+    uid = session.get("uid")
+    authed = bool(uid and auth.get_user(uid)) or (_is_local_request() and _owner_uid())
+    l1, judgment, action = _pipeline(text, record=bool(authed))
+    gating = store.gating() if authed else {"gentle": False, "urgent": False,
+                                            "streak": 0, "layers": []}
     return jsonify({"l1": l1, "judgment": judgment, "action": action,
-                    "gating": store.gating()})
+                    "gating": gating})
 
 
 @app.route("/api/gating")

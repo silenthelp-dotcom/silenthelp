@@ -243,13 +243,16 @@ main{max-width:1120px;margin:0 auto;padding:0 28px 90px}
 /* pipeline board */
 .board{display:grid;grid-auto-flow:column;grid-auto-columns:236px;gap:12px;overflow-x:auto;padding-bottom:14px}
 .col{background:var(--ink-raise);border:1px solid var(--hairline);border-radius:var(--r-m);padding:12px;min-height:120px}
-.col h5{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);padding:2px 4px 10px;display:flex;justify-content:space-between}
+.col h5{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);padding:2px 4px 12px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+.col h5::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--stage,var(--t3));flex:none;margin-right:auto;box-shadow:0 0 8px var(--stage,transparent)}
+.col h5 .num{color:var(--t2);background:var(--ink-raise2);padding:1px 7px;border-radius:99px;font-size:11px}
 .appcard{
   background:var(--ink-raise2);border:1px solid var(--hairline);
   border-radius:var(--r-s);padding:12px;margin-bottom:8px;font-size:13px;
-  cursor:pointer;transition:border-color .15s;
+  cursor:pointer;transition:border-color .15s,transform .15s var(--ease);
+  border-left:2px solid var(--stage,var(--signal));
 }
-.appcard:hover{border-color:var(--hairline-2)}
+.appcard:hover{border-color:var(--hairline-2);transform:translateY(-1px)}
 .appcard b{font-weight:600;display:block}
 .appcard .r{color:var(--signal);font-size:12px;margin-top:2px}
 .appcard .d{color:var(--t3);font-size:11.5px;margin-top:6px}
@@ -330,99 +333,44 @@ footer a{color:var(--t2)}footer a:hover{color:var(--t1)}
 
 <script>
 /* =========================================================
-   SilentHelp HQ — self-contained SPA (localStorage-backed)
+   SilentHelp HQ — shared SPA (server-backed via /api/hq)
+   Everyone who opens this page sees the same live company.
    ========================================================= */
 const DEPTS = ["Executive","Engineering","Artificial Intelligence","Product","Design","Privacy & Compliance","Community Outreach","Marketing","Research"];
 const STAGES = ["Applied","Under Review","Interview Scheduled","Technical Assessment","Final Interview","Offer Extended","Hired"];
 const TEAM_TARGET = 10;
-const KEY = "shq_v1";
 
-const seed = () => ({
-  stats: { activeProjects: 4, ai: 72, macos: 55, beta: 48, outreach: 30 },
-  positions: [
-    { id:"cto", title:"Chief Technology Officer", dept:"Executive", type:"Founding team · Equity", loc:"Remote / Hybrid", status:"open",
-      desc:"Own SilentHelp's technical vision — the on-device detection engine, the macOS agent, and the path from prototype to product.",
-      resp:["Set the technical roadmap from Flask prototype to native macOS product","Own the 4-layer detection architecture (keyword → semantic → behavioral → trend)","Make the on-device privacy guarantee real in every technical decision","Recruit and lead the engineering team"],
-      skills:["Systems architecture","Python + Swift","ML fundamentals","Shipping under constraints"],
-      pref:["Has built and shipped a real product","Cares about mental-health tech"],
-      tech:["Swift / ScreenCaptureKit","Flask","NVIDIA NIM","Vision OCR"],
-      projects:["macOS agent v2","Detection engine hardening"], team:"Works directly with the founder" },
-    { id:"ai-lead", title:"Lead AI Engineer", dept:"Artificial Intelligence", type:"Founding team · Equity", loc:"Remote", status:"open",
-      desc:"Make the semantic layer smart enough to catch what keywords miss — and small enough to run fully on-device.",
-      resp:["Own Layer 2 (semantic classification) and its move from cloud NIM to a local model","Tune precision so alerts fire when they matter and never when they don't","Design evaluation sets for crisis-language detection","Keep every inference on-device in production"],
-      skills:["NLP / transformers","Model distillation & quantization","Python","Eval design"],
-      pref:["Experience with on-device ML (CoreML, ONNX)","Read papers for fun"],
-      tech:["CoreML","ONNX Runtime","NVIDIA NIM","PyTorch"],
-      projects:["Local semantic model","Tier-3 precision pass"], team:"AI team · reports to CTO" },
-    { id:"fullstack", title:"Full Stack Engineer", dept:"Engineering", type:"Core team · Equity", loc:"Remote", status:"open",
-      desc:"Build the product surface — dashboard, coping chat, analytics — on a backend that never sees user text.",
-      resp:["Ship features across the Flask backend and web app","Own the API contract (/classify, /api/chat, /api/behavioral…)","Build the analytics and findings views","Keep the data model strictly on-device"],
-      skills:["Python / Flask","Vanilla JS or a framework","REST API design","SQL / JSON stores"],
-      pref:["Has deployed something real (Render, Vercel…)"],
-      tech:["Flask","Vanilla JS","Render"],
-      projects:["Web app v2","Findings redesign"], team:"Engineering" },
-    { id:"designer", title:"UI/UX Designer", dept:"Design", status:"open", type:"Core team · Equity", loc:"Remote",
-      desc:"Design calm. SilentHelp appears at someone's worst moment — every screen has to feel like a hand on the shoulder, not an alarm.",
-      resp:["Own the design language (Playfair + Inter, light product UI)","Design the escalation and popup flows with care","Prototype in Figma or claude.ai/design","Run the design system as the team grows"],
-      skills:["Product design","Typography & hierarchy","Prototyping","Empathy"],
-      pref:["Interest in crisis UX / calm technology"],
-      tech:["Figma","claude.ai/design","CSS"],
-      projects:["Escalation flow v2","Design system"], team:"Design · works with founder + engineering" },
-    { id:"pm", title:"Product Manager", dept:"Product", status:"open", type:"Core team · Equity", loc:"Remote / Hybrid",
-      desc:"Decide what we build next and why — balancing student needs, school requirements, and a hard privacy line.",
-      resp:["Own the roadmap from prototype to school beta","Talk to students, counselors, and administrators","Write specs the team can build from","Define success metrics that respect privacy"],
-      skills:["Prioritization","User interviews","Clear writing","Scrappiness"],
-      pref:["Knows the school-counseling world"],
-      tech:["Linear-style tracking","Docs"],
-      projects:["School beta plan","Onboarding v2"], team:"Product · everyone" },
-    { id:"privacy", title:"Privacy & Compliance Director", dept:"Privacy & Compliance", status:"open", type:"Advisory · Equity", loc:"Remote",
-      desc:"Our whole promise is that data never leaves the device. Prove it, document it, and keep us honest as we enter schools.",
-      resp:["Own the privacy architecture review","Handle COPPA / FERPA questions for school deployments","Write the plain-language privacy policy","Audit every feature before it ships"],
-      skills:["Privacy law basics","Threat modeling","Clear writing"],
-      pref:["Background in ed-tech or health-tech compliance"],
-      tech:["—"], projects:["School compliance pack"], team:"Reports to founder" },
-    { id:"community", title:"Community Partnerships Lead", dept:"Community Outreach", status:"open", type:"Core team", loc:"Hybrid",
-      desc:"Get SilentHelp into the hands of schools, counselors, and community programs — starting with our own city.",
-      resp:["Build relationships with schools and counselors","Run the pilot-program pipeline","Represent SilentHelp at community events","Collect feedback loops from partners"],
-      skills:["Communication","Organization","Persistence"],
-      pref:["Connected to local school community"],
-      tech:["—"], projects:["City pilot","Counselor advisory board"], team:"Outreach" },
-    { id:"marketing", title:"Marketing Director", dept:"Marketing", status:"open", type:"Core team", loc:"Remote",
-      desc:"Tell the story of technology that notices — without ever exploiting the pain it exists to catch.",
-      resp:["Own brand voice and the public site","Launch content for the school beta","Handle press and social presence","Keep marketing as ethical as the product"],
-      skills:["Copywriting","Social strategy","Basic design"],
-      pref:["Portfolio of real campaigns, any size"],
-      tech:["—"], projects:["Beta launch campaign"], team:"Marketing · works with design" },
-  ],
-  team: [
-    { id:"abhinav", name:"Abhinav Allani", role:"Founder & CEO", dept:"Executive",
-      skills:["Product vision","Python","Swift","Detection systems"],
-      projects:["macOS agent","Detection engine","School pilot"],
-      progress:80, joined:"2026-05-01", contact:"", photo:"", bio:"Started SilentHelp to catch the signals people don't say out loud." },
-  ],
-  applicants: [
-    { id:"a1", name:"Sample Applicant", role:"UI/UX Designer", stage:"Applied", email:"sample@example.com",
-      resume:"", portfolio:"", linkedin:"", github:"", cover:"This is a sample application — review or reject it from Founder HQ.", avail:"Weekends", ts: Date.now()-86400000*2 },
-  ],
-  notes: [
-    { t:"SilentHelp HQ is live — manage positions, team and applicants from Founder HQ.", ts: Date.now(), read:false },
-  ],
-  tasks: {},   /* memberId -> [{t, due, done}] */
-});
+/* S holds the latest server state; empty until first load. */
+let S = { stats:{activeProjects:0,ai:0,macos:0,beta:0,outreach:0}, positions:[], team:[], applicants:[], notes:[], tasks:{} };
+let loaded = false;
 
-let S;
-try { S = JSON.parse(localStorage.getItem(KEY)) || seed(); } catch(e){ S = seed(); }
-const save = () => localStorage.setItem(KEY, JSON.stringify(S));
-save();
+/* Admin gate: Founder HQ is unlocked with a passcode kept in this browser.
+   Editing endpoints are open on the server (small trusted team), but the
+   admin *screens* stay hidden until unlocked so casual visitors don't see them. */
+const ADMIN_PASS = "silenthelp";           // change any time; only gates the UI
+let isAdmin = localStorage.getItem("shq_admin") === ADMIN_PASS;
+// Convenience: open /careers?hq=silenthelp to unlock HQ directly (shareable link).
+try{ const q=new URLSearchParams(location.search).get("hq"); if(q===ADMIN_PASS){ isAdmin=true; localStorage.setItem("shq_admin", ADMIN_PASS); } }catch(e){}
+
+async function pull(){
+  try{
+    const r = await fetch("/api/hq", {cache:"no-store"});
+    S = await r.json();
+    loaded = true;
+  }catch(e){ /* keep last state */ }
+}
+async function post(url, body){
+  const r = await fetch(url, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body||{})});
+  S = await r.json();        // every mutation returns fresh full state
+  return S;
+}
 
 /* ---------- helpers ---------- */
 const $ = s => document.querySelector(s);
 const esc = s => String(s??"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const uid = () => Math.random().toString(36).slice(2,9);
 const initials = n => n.split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase();
-const ago = ts => { const d=(Date.now()-ts)/1000; if(d<3600)return Math.max(1,Math.round(d/60))+"m ago"; if(d<86400)return Math.round(d/3600)+"h ago"; return Math.round(d/86400)+"d ago"; };
+const ago = ts => { const d=(Date.now()-ts)/1000; if(d<60)return "just now"; if(d<3600)return Math.max(1,Math.round(d/60))+"m ago"; if(d<86400)return Math.round(d/3600)+"h ago"; return Math.round(d/86400)+"d ago"; };
 const toast = m => { const t=$("#toast"); t.textContent=m; t.classList.add("show"); clearTimeout(t._x); t._x=setTimeout(()=>t.classList.remove("show"),2400); };
-const notify = t => { S.notes.unshift({t, ts:Date.now(), read:false}); save(); };
 const openCount = () => S.positions.filter(p=>p.status==="open").length;
 const avat = (m,lg) => `<span class="av${lg?" lg":""}" style="${m.photo?"background:none":""}">${m.photo?`<img src="${esc(m.photo)}" alt="">`:esc(initials(m.name))}</span>`;
 const meterHTML = n => { let h='<span class="meter" title="'+n+' of '+TEAM_TARGET+'">'; for(let i=1;i<=TEAM_TARGET;i++) h+='<i class="'+(i<=n?"on":"")+'"></i>'; return h+'</span>'; };
@@ -625,6 +573,7 @@ V.member = id => {
 /* ---------- founder HQ ---------- */
 let hqTab = "overview";
 V.admin = () => {
+  if(!isAdmin) return adminLock();
   const unread = S.notes.filter(n=>!n.read).length;
   const inPipe = S.applicants.filter(a=>a.stage!=="Hired"&&a.stage!=="Rejected").length;
   const T = {
@@ -633,8 +582,11 @@ V.admin = () => {
   };
   return `
 <section class="view">
-  <div class="shead" style="margin:56px 0 0"><h2>Founder <span class="serif">HQ</span></h2>
-  <p>Internal — manage positions, applicants, team and company progress. Data lives in this browser.</p></div>
+  <div class="shead" style="margin:56px 0 0"><div class="row">
+    <div><h2>Founder <span class="serif">HQ</span></h2>
+    <p>Shared workspace — everyone on the team sees these changes live.</p></div>
+    <button class="btn sm ghost" onclick="lockAdmin()">Lock HQ</button>
+  </div></div>
   <div class="hq">
     <div class="tabs">
       ${[["overview","Overview"],["pipeline","Hiring pipeline",inPipe],["positions","Positions"],["team","Team"],["notes","Notifications",unread]]
@@ -645,19 +597,41 @@ V.admin = () => {
 </section>`;
 };
 
+function adminLock(){
+  return `
+<section class="view" style="max-width:420px;margin:90px auto 0;text-align:center">
+  <div class="stage-pill" style="margin-bottom:20px">🔒 Founder HQ</div>
+  <h1 style="font-size:26px;font-weight:600;letter-spacing:-.02em">Enter the <span class="serif" style="color:var(--signal)">passcode</span></h1>
+  <p style="color:var(--t2);font-size:14px;margin-top:8px">This unlocks the shared founder workspace on this device.</p>
+  <form onsubmit="unlockAdmin(event)" style="margin-top:22px;text-align:left">
+    <input name="pass" type="password" autofocus placeholder="Passcode" style="text-align:center;letter-spacing:.2em">
+    <button class="btn" style="width:100%;justify-content:center;margin-top:14px">Unlock →</button>
+  </form>
+</section>`;
+}
+function unlockAdmin(e){
+  e.preventDefault();
+  const v = new FormData(e.target).get("pass");
+  if(v === ADMIN_PASS){ isAdmin=true; localStorage.setItem("shq_admin", ADMIN_PASS); render(); toast("Welcome to Founder HQ ✓"); }
+  else toast("Wrong passcode");
+}
+function lockAdmin(){ isAdmin=false; localStorage.removeItem("shq_admin"); render(); }
+
 function hqOverview(){
   const st = S.stats;
   const hired = S.applicants.filter(a=>a.stage==="Hired").length;
   const w = (k,v,s)=>`<div class="stat"><div class="k">${k}</div><div class="v num">${v}</div><div class="s">${s||""}</div></div>`;
   const p = (label,key)=>`
     <div class="prog"><div class="lbl"><b>${label}</b><span class="num">${st[key]}%</span></div>
-    <input type="range" min="0" max="100" value="${st[key]}" oninput="S.stats.${key}=+this.value;save();this.closest('.prog').querySelector('.lbl span').textContent=this.value+'%'"></div>`;
+    <input type="range" min="0" max="100" value="${st[key]}"
+      oninput="this.closest('.prog').querySelector('.lbl span').textContent=this.value+'%'"
+      onchange="saveStat('${key}',+this.value)"></div>`;
   return `
   <div class="wgrid">
     ${w("Team members", S.team.length+"<span style='color:var(--t3);font-size:16px'>/"+TEAM_TARGET+"</span>")}
     ${w("Open roles", openCount())}
     ${w("Hired via pipeline", hired)}
-    ${w("Active projects", `<input class="num" type="number" value="${st.activeProjects}" style="width:80px;font-size:24px;font-weight:600;padding:2px 8px" onchange="S.stats.activeProjects=+this.value;save()">`)}
+    ${w("Active projects", `<input class="num" type="number" value="${st.activeProjects}" style="width:80px;font-size:24px;font-weight:600;padding:2px 8px" onchange="saveStat('activeProjects',+this.value)">`)}
   </div>
   <div class="card" style="margin-top:16px"><h4>Company progress <span style="text-transform:none;letter-spacing:0;color:var(--t3);font-weight:400">— drag to update, shown live on the public site</span></h4>
     ${p("AI development","ai")}
@@ -666,19 +640,24 @@ function hqOverview(){
     ${p("Community outreach","outreach")}
   </div>`;
 }
+async function saveStat(key, val){ await post("/api/hq/stats", {[key]: val}); toast("Saved ✓"); }
 
+/* stage accent: cool grey → SilentHelp blue → warm → green (hired) */
+const STAGE_COLOR = ["#69738a","#5aa2ff","#5aa2ff","#8a7cf0","#c99bf0","#f0b453","#3ecf8e"];
 function hqPipeline(){
   const active = S.applicants.filter(a=>a.stage!=="Rejected");
+  const rejected = S.applicants.filter(a=>a.stage==="Rejected");
   return `
   <div class="board">
-    ${STAGES.map(st=>{
+    ${STAGES.map((st,si)=>{
       const list = active.filter(a=>a.stage===st);
-      return `<div class="col"><h5>${st}<span class="num">${list.length}</span></h5>
-        ${list.map(a=>`<div class="appcard" onclick="viewApp('${a.id}')"><b>${esc(a.name)}</b><span class="r">${esc(a.role)}</span><span class="d">${ago(a.ts)}</span></div>`).join("")}
+      const c = STAGE_COLOR[si]||"var(--t3)";
+      return `<div class="col" style="--stage:${c}"><h5>${st}<span class="num">${list.length}</span></h5>
+        ${list.map(a=>`<div class="appcard" style="--stage:${c}" onclick="viewApp('${a.id}')"><b>${esc(a.name)}</b><span class="r">${esc(a.role)}</span><span class="d">${ago(a.ts)}</span></div>`).join("") || '<div style="color:var(--t3);font-size:12px;padding:6px 4px">—</div>'}
       </div>`;
     }).join("")}
   </div>
-  ${S.applicants.filter(a=>a.stage==="Rejected").length?`<div class="empty" style="text-align:left">${S.applicants.filter(a=>a.stage==="Rejected").length} rejected applicant(s) archived.</div>`:""}
+  ${rejected.length?`<div class="empty" style="text-align:left">${rejected.length} rejected applicant(s) archived.</div>`:""}
   ${!active.length?'<div class="empty">No applicants yet — share the careers page.</div>':""}`;
 }
 
@@ -712,22 +691,21 @@ function hqNotes(){
   const h = S.notes.length ? S.notes.map(n=>`
     <div class="note ${n.read?"dim":""}"><span class="ic"></span><div>${esc(n.t)}<time>${ago(n.ts)}</time></div></div>`).join("")
     : '<div class="empty">Quiet for now.</div>';
-  setTimeout(()=>{ S.notes.forEach(n=>n.read=true); save(); },800);
+  if(S.notes.some(n=>!n.read)) setTimeout(()=>{ post("/api/hq/notes/read"); },900);
   return `<div class="card">${h}</div>`;
 }
 
 /* =========================================================
    ACTIONS
    ========================================================= */
-function submitApp(e){
+async function submitApp(e){
   e.preventDefault();
   const f = new FormData(e.target);
-  const a = { id:uid(), stage:"Applied", ts:Date.now() };
+  const a = {};
   ["name","email","role","resume","portfolio","linkedin","github","avail","cover"].forEach(k=>a[k]=(f.get(k)||"").toString().trim());
-  S.applicants.push(a);
-  notify(`New applicant: ${a.name} → ${a.role}`);
-  save();
-  location.hash = "#/careers";
+  const btn = e.target.querySelector("button"); btn.disabled=true; btn.textContent="Submitting…";
+  await post("/api/hq/apply", a);
+  location.hash = "#/careers"; render();
   toast("Application submitted — we'll be in touch. ✓");
 }
 
@@ -752,26 +730,18 @@ function viewApp(id){
         : `<button class="btn sm" onclick="hireApp('${a.id}')">Hire 🎉</button>`) : ""}
     </div>`);
 }
-function setStage(id, st){
-  const a = S.applicants.find(x=>x.id===id); if(!a) return;
-  a.stage = st; notify(`${a.name} moved to “${st}”`); save(); closeModal(); render();
+async function setStage(id, st){
+  await post("/api/hq/stage", {id, stage:st}); closeModal(); render();
 }
-function hireApp(id){
-  const a = S.applicants.find(x=>x.id===id); if(!a) return;
-  a.stage = "Hired";
-  const pos = S.positions.find(p=>p.title===a.role);
-  const m = { id:uid(), name:a.name, role:a.role, dept:pos?pos.dept:"Engineering",
-    skills:[], projects:pos?(pos.projects||[]):[], progress:0,
-    joined:new Date().toISOString().slice(0,10), contact:a.email, photo:"", bio:"" };
-  S.team.push(m);
-  if(pos) pos.status = "filled";
-  notify(`🎉 ${a.name} hired as ${a.role} — welcome to the team!`);
-  save(); closeModal(); render(); toast(`${a.name} added to the team ✓`);
+async function hireApp(id){
+  const a = S.applicants.find(x=>x.id===id);
+  await post("/api/hq/hire", {id}); closeModal(); render();
+  toast(`${a?a.name:"Applicant"} added to the team ✓`);
 }
 
 /* positions CRUD */
-function togglePos(id){ const p=S.positions.find(x=>x.id===id); p.status=p.status==="open"?"filled":"open"; notify(`Position ${p.status==="open"?"reopened":"filled"}: ${p.title}`); save(); render(); }
-function delPos(id){ const p=S.positions.find(x=>x.id===id); if(!confirm(`Delete "${p.title}"?`))return; S.positions=S.positions.filter(x=>x.id!==id); save(); render(); }
+async function togglePos(id){ await post("/api/hq/position/toggle", {id}); render(); }
+async function delPos(id){ const p=S.positions.find(x=>x.id===id); if(!confirm(`Delete "${p.title}"?`))return; await post("/api/hq/position/delete", {id}); render(); toast("Position deleted"); }
 function editPosition(id){
   const p = S.positions.find(x=>x.id===id) || {};
   const j = a=>(a||[]).join("\n");
@@ -796,21 +766,20 @@ function editPosition(id){
       <div class="acts"><button type="button" class="btn sm ghost" onclick="closeModal()">Cancel</button><button class="btn sm">Save position</button></div>
     </form>`);
 }
-function savePosition(e, id){
+async function savePosition(e, id){
   e.preventDefault();
   const f = new FormData(e.target);
   const lines = k => (f.get(k)||"").toString().split("\n").map(s=>s.trim()).filter(Boolean);
-  const p = id ? S.positions.find(x=>x.id===id) : { id:uid(), status:"open" };
-  p.title=f.get("title").toString().trim(); p.dept=f.get("dept"); p.loc=f.get("loc");
-  p.type=f.get("type"); p.desc=f.get("desc"); p.team=f.get("team");
-  p.resp=lines("resp"); p.skills=lines("skills"); p.pref=lines("pref");
-  p.tech=lines("tech"); p.projects=lines("projects");
-  if(!id){ S.positions.push(p); notify(`New position opened: ${p.title}`); }
-  save(); closeModal(); render(); toast("Position saved ✓");
+  const p = { title:f.get("title").toString().trim(), dept:f.get("dept"), loc:f.get("loc"),
+    type:f.get("type"), desc:f.get("desc"), team:f.get("team"),
+    resp:lines("resp"), skills:lines("skills"), pref:lines("pref"),
+    tech:lines("tech"), projects:lines("projects") };
+  if(id) p.id = id;
+  await post("/api/hq/position", p); closeModal(); render(); toast("Position saved ✓");
 }
 
 /* team CRUD */
-function delMember(id){ const m=S.team.find(x=>x.id===id); if(!confirm(`Remove ${m.name} from the team?`))return; S.team=S.team.filter(x=>x.id!==id); notify(`${m.name} removed from the team directory`); save(); render(); }
+async function delMember(id){ const m=S.team.find(x=>x.id===id); if(!confirm(`Remove ${m.name} from the team?`))return; await post("/api/hq/member/delete", {id}); render(); toast("Removed"); }
 function editMember(id){
   const m = S.team.find(x=>x.id===id) || {};
   modal(`
@@ -838,12 +807,12 @@ function editMember(id){
 function saveMember(e, id){
   e.preventDefault();
   const f = new FormData(e.target);
-  const m = id ? S.team.find(x=>x.id===id) : { id:uid(), photo:"" };
   const csv = k => (f.get(k)||"").toString().split(",").map(s=>s.trim()).filter(Boolean);
-  m.name=f.get("name").toString().trim(); m.role=f.get("role").toString().trim();
-  m.dept=f.get("dept"); m.joined=f.get("joined"); m.skills=csv("skills"); m.projects=csv("projects");
-  m.progress=Math.max(0,Math.min(100,+f.get("progress")||0)); m.contact=f.get("contact"); m.bio=f.get("bio");
-  const done = () => { if(!id){ S.team.push(m); notify(`${m.name} joined as ${m.role}`); } else notify(`${m.name}'s profile updated`); save(); closeModal(); render(); toast("Saved ✓"); };
+  const m = { name:f.get("name").toString().trim(), role:f.get("role").toString().trim(),
+    dept:f.get("dept"), joined:f.get("joined"), skills:csv("skills"), projects:csv("projects"),
+    progress:Math.max(0,Math.min(100,+f.get("progress")||0)), contact:f.get("contact"), bio:f.get("bio") };
+  if(id) m.id = id;
+  const done = async () => { await post("/api/hq/member", m); closeModal(); render(); toast("Saved ✓"); };
   const file = f.get("photofile");
   if(file && file.size){
     if(file.size > 400*1024){ toast("Image too large — keep under 400 KB"); return; }
@@ -860,15 +829,13 @@ function assignTask(id){
       <div class="acts"><button type="button" class="btn sm ghost" onclick="closeModal()">Cancel</button><button class="btn sm">Assign</button></div>
     </form>`);
 }
-function saveTask(e, id){
+async function saveTask(e, id){
   e.preventDefault();
   const f = new FormData(e.target);
-  (S.tasks[id] = S.tasks[id]||[]).push({ t:f.get("t").toString().trim(), due:f.get("due"), done:false });
-  const m = S.team.find(x=>x.id===id);
-  notify(`Task assigned to ${m.name}: ${f.get("t")}`);
-  save(); closeModal(); render(); toast("Task assigned ✓");
+  await post("/api/hq/task", {id, t:f.get("t").toString().trim(), due:f.get("due")});
+  closeModal(); render(); toast("Task assigned ✓");
 }
-function toggleTask(id, i){ S.tasks[id][i].done = !S.tasks[id][i].done; save(); }
+async function toggleTask(id, i){ await post("/api/hq/task/toggle", {id, idx:i}); }
 
 /* =========================================================
    ROUTER
@@ -879,12 +846,15 @@ function render(){
   const map = { "":["home"], careers:["careers"], job:["job",arg], apply:["apply",arg],
                 team:["team"], member:["member",arg], admin:["admin"] };
   const [fn, a] = map[r] || ["home"];
+  if(!loaded){ $("#view").innerHTML = '<div class="empty view" style="padding:120px 0">Loading SilentHelp HQ…</div>'; return; }
   $("#view").innerHTML = V[fn](a);
   document.querySelectorAll("nav a.nl[data-nav]").forEach(el=>el.classList.toggle("on", el.dataset.nav===r || (r==="job"||r==="apply")&&el.dataset.nav==="careers" || r==="member"&&el.dataset.nav==="team"));
   if(!location.hash.includes("keep-scroll")) window.scrollTo({top:0});
 }
 window.addEventListener("hashchange", render);
-render();
+
+/* boot: load shared state, then render */
+(async () => { await pull(); render(); })();
 </script>
 </body>
 </html>
