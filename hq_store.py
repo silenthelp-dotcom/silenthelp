@@ -228,7 +228,10 @@ def _db_write(data: Dict[str, Any]) -> None:
 def state() -> Dict[str, Any]:
     with _LOCK:
         d = _load()
-        d["_meta"] = {"target": TEAM_TARGET, "depts": DEPTS, "stages": STAGES}
+        d["_meta"] = {
+            "target": TEAM_TARGET, "depts": DEPTS, "stages": STAGES,
+            "backend": "postgres" if _USE_DB else "file",
+        }
         return d
 
 
