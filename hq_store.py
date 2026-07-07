@@ -41,7 +41,8 @@ if _DB_URL.startswith("postgres://"):
     _DB_URL = "postgresql://" + _DB_URL[len("postgres://"):]
 
 _USE_DB = bool(_DB_URL)
-_pool = None  # lazy psycopg connection pool when using Postgres
+_pool = None            # lazy psycopg connection pool when using Postgres
+_db_error = None        # last DB error (surfaced in _meta so we can diagnose)
 
 
 def _get_pool():
@@ -54,8 +55,11 @@ def _get_pool():
         url = _DB_URL
         if "sslmode=" not in url:
             url += ("&" if "?" in url else "?") + "sslmode=require"
-        _pool = ConnectionPool(url, min_size=1, max_size=4, kwargs={"autocommit": True})
-        with _pool.connection() as conn:
+        # open=True (eager connect) is deprecated; open explicitly after build.
+        pool = ConnectionPool(url, min_size=1, max_size=4,
+                              kwargs={"autocommit": True}, open=False)
+        pool.open(wait=True, timeout=15)
+        with pool.connection() as conn:
             conn.execute(
                 "CREATE TABLE IF NOT EXISTS hq_state ("
                 "  id INT PRIMARY KEY DEFAULT 1,"
@@ -63,6 +67,7 @@ def _get_pool():
                 "  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()"
                 ")"
             )
+        _pool = pool
     return _pool
 
 TEAM_TARGET = 10
@@ -162,13 +167,25 @@ def _seed() -> Dict[str, Any]:
 
 
 def _load() -> Dict[str, Any]:
-    """Read the current HQ document, seeding it on first use. Backend-agnostic."""
-    data = _db_load() if _USE_DB else _file_load()
+    """Read the current HQ document, seeding it on first use. Backend-agnostic.
+    If the DB is configured but unreachable, log it and fall back to the local
+    file so the site stays up (degraded to non-persistent) instead of 500ing."""
+    global _db_error
+    if _use_db():
+        try:
+            data = _db_load()
+            _db_error = None
+        except Exception as e:  # noqa: BLE001 — never let the site 500 on DB issues
+            _db_error = f"{type(e).__name__}: {e}"
+            print(f"[hq_store] DB read failed, using file fallback — {_db_error}", flush=True)
+            data = _file_load()
+    else:
+        data = _file_load()
+
     if data is None:
         data = _seed()
         _write(data)
         return data
-    # Guarantee shape when new keys are added to the seed over time.
     seed = _seed()
     for k, v in seed.items():
         data.setdefault(k, v)
@@ -176,10 +193,22 @@ def _load() -> Dict[str, Any]:
 
 
 def _write(data: Dict[str, Any]) -> None:
-    if _USE_DB:
-        _db_write(data)
-    else:
-        _file_write(data)
+    global _db_error
+    if _use_db():
+        try:
+            _db_write(data)
+            _db_error = None
+            return
+        except Exception as e:  # noqa: BLE001
+            _db_error = f"{type(e).__name__}: {e}"
+            print(f"[hq_store] DB write failed, using file fallback — {_db_error}", flush=True)
+    _file_write(data)
+
+
+def _use_db() -> bool:
+    """Use Postgres only while it's healthy. After a hard failure we stick to
+    the file for the rest of the process so we don't thrash on every request."""
+    return _USE_DB and _db_error is None
 
 
 # ---- file backend (local dev) ----
@@ -230,7 +259,8 @@ def state() -> Dict[str, Any]:
         d = _load()
         d["_meta"] = {
             "target": TEAM_TARGET, "depts": DEPTS, "stages": STAGES,
-            "backend": "postgres" if _USE_DB else "file",
+            "backend": "postgres" if _use_db() else ("file (db-fallback)" if _USE_DB else "file"),
+            "db_error": _db_error,
         }
         return d
 
