@@ -7,8 +7,16 @@ founder admin) is *shared*: every visitor sees the same live company state —
 open positions, the team directory, applicants moving through the pipeline,
 and company-progress numbers.
 
-Backed by a single JSON file (silenthelp_hq.json). Thread-safe for the Flask
-dev server and a single gunicorn worker (one lock around read-modify-write).
+Storage backend is chosen at import time:
+
+  • If DATABASE_URL is set (e.g. Render Postgres), the whole HQ document is
+    stored as a single JSONB row (table hq_state, id=1). This survives restarts
+    and redeploys — the reason this module exists in DB form.
+  • Otherwise it falls back to a local JSON file (silenthelp_hq.json), so local
+    development needs no database.
+
+Either way, all mutations go through _load()/_write() under one lock, so the
+rest of the module (seed + mutation helpers) is backend-agnostic.
 """
 
 from __future__ import annotations
@@ -23,6 +31,39 @@ from typing import Any, Dict, List
 
 HQ_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "silenthelp_hq.json")
 _LOCK = threading.RLock()
+
+# ---------------------------------------------------------------------------
+# Storage backend selection
+# ---------------------------------------------------------------------------
+# Render hands us a postgres:// URL; SQLAlchemy/psycopg want postgresql://.
+_DB_URL = os.environ.get("DATABASE_URL", "").strip()
+if _DB_URL.startswith("postgres://"):
+    _DB_URL = "postgresql://" + _DB_URL[len("postgres://"):]
+
+_USE_DB = bool(_DB_URL)
+_pool = None  # lazy psycopg connection pool when using Postgres
+
+
+def _get_pool():
+    """Lazily build a small psycopg connection pool. Imported only when a
+    DATABASE_URL is configured, so local dev never needs psycopg installed."""
+    global _pool
+    if _pool is None:
+        from psycopg_pool import ConnectionPool
+        # sslmode=require for Render managed Postgres; harmless elsewhere.
+        url = _DB_URL
+        if "sslmode=" not in url:
+            url += ("&" if "?" in url else "?") + "sslmode=require"
+        _pool = ConnectionPool(url, min_size=1, max_size=4, kwargs={"autocommit": True})
+        with _pool.connection() as conn:
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS hq_state ("
+                "  id INT PRIMARY KEY DEFAULT 1,"
+                "  data JSONB NOT NULL,"
+                "  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()"
+                ")"
+            )
+    return _pool
 
 TEAM_TARGET = 10
 DEPTS = [
@@ -121,18 +162,13 @@ def _seed() -> Dict[str, Any]:
 
 
 def _load() -> Dict[str, Any]:
-    if not os.path.exists(HQ_PATH):
+    """Read the current HQ document, seeding it on first use. Backend-agnostic."""
+    data = _db_load() if _USE_DB else _file_load()
+    if data is None:
         data = _seed()
         _write(data)
         return data
-    try:
-        with open(HQ_PATH, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except (json.JSONDecodeError, OSError):
-        data = _seed()
-        _write(data)
-        return data
-    # Guarantee shape for older files.
+    # Guarantee shape when new keys are added to the seed over time.
     seed = _seed()
     for k, v in seed.items():
         data.setdefault(k, v)
@@ -140,10 +176,53 @@ def _load() -> Dict[str, Any]:
 
 
 def _write(data: Dict[str, Any]) -> None:
+    if _USE_DB:
+        _db_write(data)
+    else:
+        _file_write(data)
+
+
+# ---- file backend (local dev) ----
+
+def _file_load() -> "Dict[str, Any] | None":
+    if not os.path.exists(HQ_PATH):
+        return None
+    try:
+        with open(HQ_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def _file_write(data: Dict[str, Any]) -> None:
     tmp = HQ_PATH + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
     os.replace(tmp, HQ_PATH)
+
+
+# ---- Postgres backend (Render, persistent across restarts) ----
+
+def _db_load() -> "Dict[str, Any] | None":
+    pool = _get_pool()
+    with pool.connection() as conn:
+        row = conn.execute("SELECT data FROM hq_state WHERE id = 1").fetchone()
+    if not row:
+        return None
+    data = row[0]
+    # psycopg returns JSONB as a dict already; be defensive if it's a string.
+    return json.loads(data) if isinstance(data, str) else data
+
+
+def _db_write(data: Dict[str, Any]) -> None:
+    pool = _get_pool()
+    payload = json.dumps(data, ensure_ascii=False)
+    with pool.connection() as conn:
+        conn.execute(
+            "INSERT INTO hq_state (id, data, updated_at) VALUES (1, %s, now()) "
+            "ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data, updated_at = now()",
+            (payload,),
+        )
 
 
 def state() -> Dict[str, Any]:

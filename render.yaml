@@ -1,12 +1,24 @@
+databases:
+  # Free managed Postgres — the shared HQ (positions, team, applicants,
+  # pipeline) lives here so it survives web-service restarts and redeploys.
+  - name: silenthelp-hq
+    plan: free
+    databaseName: silenthelp_hq
+    user: silenthelp
+
 services:
   - type: web
     name: silenthelp
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    # One worker: the on-device store is a single JSON file (no DB race).
+    # One worker keeps HQ writes serialized (single lock, no cross-process race).
     startCommand: gunicorn app:app --workers 1 --timeout 120 --bind 0.0.0.0:$PORT
     envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: silenthelp-hq
+          property: connectionString
       - key: GROQ_API_KEY
         sync: false          # set this in the Render dashboard, never in git
       - key: SECRET_KEY
