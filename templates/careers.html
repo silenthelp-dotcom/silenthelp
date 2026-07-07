@@ -81,6 +81,13 @@ nav .sp{flex:1}
 .btn.ghost:hover{background:var(--ink-raise2)}
 .btn.sm{padding:6px 12px;font-size:12.5px}
 .btn.danger{background:transparent;color:var(--crisis);box-shadow:inset 0 0 0 1px rgba(255,112,112,.3)}
+/* nav auth chip */
+.who{display:inline-flex;align-items:center;gap:9px}
+.who .name{font-size:13px;font-weight:500;color:var(--t1)}
+.who .name small{display:block;color:var(--t3);font-size:11px;font-weight:400}
+.who .av{width:26px;height:26px}
+.livedot{width:7px;height:7px;border-radius:50%;background:var(--calm);box-shadow:0 0 8px var(--calm);display:inline-block;margin-right:2px;transition:background .3s}
+.livedot.off{background:var(--t3);box-shadow:none}
 
 /* ---------- layout ---------- */
 main{max-width:1120px;margin:0 auto;padding:0 28px 90px}
@@ -110,12 +117,8 @@ main{max-width:1120px;margin:0 auto;padding:0 28px 90px}
 
 /* signal meter — the team-capacity signature */
 .meter{display:flex;gap:4px;align-items:flex-end;height:22px}
-.meter i{width:9px;border-radius:2px;background:var(--ink-pop)}
+.meter i{width:8px;height:22px;border-radius:2px;background:var(--ink-pop)}
 .meter i.on{background:var(--signal)}
-.meter i:nth-child(1){height:8px}.meter i:nth-child(2){height:10px}.meter i:nth-child(3){height:12px}
-.meter i:nth-child(4){height:14px}.meter i:nth-child(5){height:15px}.meter i:nth-child(6){height:17px}
-.meter i:nth-child(7){height:18px}.meter i:nth-child(8){height:20px}.meter i:nth-child(9){height:21px}
-.meter i:nth-child(10){height:22px}
 
 .statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:64px}
 .stat{
@@ -197,6 +200,22 @@ main{max-width:1120px;margin:0 auto;padding:0 28px 90px}
 }
 .pchip:hover{border-color:var(--hairline-2)}
 .pchip.vac{border-style:dashed;color:var(--t3);padding:9px 14px;cursor:pointer}
+/* team slots — filled / hiring / planned */
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:14px}
+.slot{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r-m);border:1px solid var(--hairline);background:var(--ink-raise2);transition:border-color .15s,transform .15s var(--ease)}
+.slot .sl{min-width:0}
+.slot .sl b{font-weight:600;font-size:13px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot .sl small{color:var(--t3);font-size:11.5px}
+.slot .dotc{width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center}
+.slot.filled{cursor:pointer;border-left:2px solid var(--calm)}
+.slot.filled:hover{border-color:var(--hairline-2);transform:translateY(-1px)}
+.slot.hiring{cursor:pointer;border-left:2px solid var(--signal)}
+.slot.hiring:hover{border-color:var(--signal)}
+.slot.hiring .dotc{background:var(--signal-dim)}
+.slot.hiring .dotc::after{content:"+";color:var(--signal);font-weight:700}
+.slot.hiring .sl small{color:var(--signal)}
+.slot.empty{border-style:dashed;opacity:.7}
+.slot.empty .dotc{box-shadow:inset 0 0 0 1.5px var(--hairline-2)}
 .av{
   width:28px;height:28px;border-radius:50%;flex:none;
   display:flex;align-items:center;justify-content:center;
@@ -264,6 +283,10 @@ main{max-width:1120px;margin:0 auto;padding:0 28px 90px}
 }
 .rowitem .grow{flex:1;min-width:0}
 .rowitem .grow small{display:block;color:var(--t3);font-size:12px;margin-top:1px}
+.checkbtn{width:20px;height:20px;flex:none;border-radius:6px;border:1.5px solid var(--hairline-2);background:transparent;position:relative;transition:all .15s var(--ease)}
+.checkbtn:hover{border-color:var(--signal)}
+.checkbtn.on{background:var(--calm);border-color:var(--calm)}
+.checkbtn.on::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#08101e;font-size:12px;font-weight:700}
 
 /* notifications */
 .note{display:flex;gap:13px;padding:13px 4px;border-bottom:1px solid var(--hairline);font-size:13.5px}
@@ -315,10 +338,11 @@ footer a{color:var(--t2)}footer a:hover{color:var(--t1)}
   <a class="brand" href="#/"><span class="dot"></span>SilentHelp <span style="color:var(--t3);font-weight:400">HQ</span></a>
   <a class="nl" data-nav="careers" href="#/careers">Careers</a>
   <a class="nl" data-nav="team" href="#/team">Team</a>
+  <a class="nl" data-nav="tasks" href="#/tasks" id="nav-tasks" style="display:none">My Tasks</a>
   <a class="nl" data-nav="admin" href="#/admin">Founder HQ</a>
   <span class="sp"></span>
   <a class="nl" href="/" title="Back to product">← Product</a>
-  <a class="btn sm" href="#/careers">Apply</a>
+  <span id="nav-auth"></span>
 </nav>
 
 <main><div id="view"></div></main>
@@ -338,31 +362,70 @@ footer a{color:var(--t2)}footer a:hover{color:var(--t1)}
    ========================================================= */
 const DEPTS = ["Executive","Engineering","Artificial Intelligence","Product","Design","Privacy & Compliance","Community Outreach","Marketing","Research"];
 const STAGES = ["Applied","Under Review","Interview Scheduled","Technical Assessment","Final Interview","Offer Extended","Hired"];
-const TEAM_TARGET = 10;
 
 /* S holds the latest server state; empty until first load. */
-let S = { stats:{activeProjects:0,ai:0,macos:0,beta:0,outreach:0}, positions:[], team:[], applicants:[], notes:[], tasks:{} };
+let S = { stats:{activeProjects:0,ai:0,macos:0,beta:0,outreach:0}, positions:[], team:[], applicants:[], notes:[], tasks:{}, accounts:{}, department_plan:{}, rev:0 };
 let loaded = false;
+let ME = null;               // logged-in HQ account (or null)
+let lastRev = 0;
 
-/* Admin gate: Founder HQ is unlocked with a passcode kept in this browser.
-   Editing endpoints are open on the server (small trusted team), but the
-   admin *screens* stay hidden until unlocked so casual visitors don't see them. */
+/* Target team size = sum of the department plan (falls back to 10). */
+const teamTarget = () => { const p=S.department_plan||{}; const s=Object.values(p).reduce((a,b)=>a+b,0); return s||10; };
+
+/* Admin gate: Founder HQ is unlocked with a passcode kept in this browser,
+   OR automatically if the logged-in account is the Founder. */
 const ADMIN_PASS = "silenthelp";           // change any time; only gates the UI
 let isAdmin = localStorage.getItem("shq_admin") === ADMIN_PASS;
-// Convenience: open /careers?hq=silenthelp to unlock HQ directly (shareable link).
 try{ const q=new URLSearchParams(location.search).get("hq"); if(q===ADMIN_PASS){ isAdmin=true; localStorage.setItem("shq_admin", ADMIN_PASS); } }catch(e){}
 
 async function pull(){
   try{
     const r = await fetch("/api/hq", {cache:"no-store"});
     S = await r.json();
+    lastRev = S.rev||0;
     loaded = true;
   }catch(e){ /* keep last state */ }
 }
+async function pullMe(){
+  try{ const r = await fetch("/api/hq/me", {cache:"no-store"}); ME = (await r.json()).account; if(ME && ME.isFounder) isAdmin=true; }catch(e){ ME=null; }
+}
 async function post(url, body){
   const r = await fetch(url, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body||{})});
-  S = await r.json();        // every mutation returns fresh full state
-  return S;
+  const j = await r.json();
+  if(j && j.positions){ S = j; lastRev = S.rev||lastRev; }   // full-state mutations
+  return j;
+}
+
+/* ---------- live updates: SSE with polling fallback ---------- */
+let _es = null, _poll = null;
+function startLive(){
+  stopLive();
+  if(window.EventSource){
+    try{
+      _es = new EventSource("/api/hq/stream");
+      _es.onmessage = ev => { const rev=+ev.data; if(rev && rev!==lastRev) onRemoteChange(rev); };
+      _es.onerror = () => { _es.close(); _es=null; startPolling(); };  // fall back
+      return;
+    }catch(e){ /* fall through to polling */ }
+  }
+  startPolling();
+}
+function startPolling(){
+  if(_poll) return;
+  _poll = setInterval(async () => {
+    try{ const r=await fetch("/api/hq",{cache:"no-store"}); const d=await r.json();
+      if((d.rev||0)!==lastRev){ S=d; lastRev=d.rev||0; softRender(); } }catch(e){}
+  }, 4000);
+}
+function stopLive(){ if(_es){_es.close();_es=null;} if(_poll){clearInterval(_poll);_poll=null;} }
+async function onRemoteChange(rev){ await pull(); softRender(); }
+
+/* Re-render only when it won't stomp on the user (no modal / not typing). */
+function softRender(){
+  if($("#modalhost").innerHTML) return;               // a dialog is open — don't disrupt
+  const a=document.activeElement;
+  if(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;  // user is typing
+  render();
 }
 
 /* ---------- helpers ---------- */
@@ -373,7 +436,7 @@ const ago = ts => { const d=(Date.now()-ts)/1000; if(d<60)return "just now"; if(
 const toast = m => { const t=$("#toast"); t.textContent=m; t.classList.add("show"); clearTimeout(t._x); t._x=setTimeout(()=>t.classList.remove("show"),2400); };
 const openCount = () => S.positions.filter(p=>p.status==="open").length;
 const avat = (m,lg) => `<span class="av${lg?" lg":""}" style="${m.photo?"background:none":""}">${m.photo?`<img src="${esc(m.photo)}" alt="">`:esc(initials(m.name))}</span>`;
-const meterHTML = n => { let h='<span class="meter" title="'+n+' of '+TEAM_TARGET+'">'; for(let i=1;i<=TEAM_TARGET;i++) h+='<i class="'+(i<=n?"on":"")+'"></i>'; return h+'</span>'; };
+const meterHTML = (n,total) => { total=total||teamTarget(); const bars=Math.min(total,14); const on=Math.round(n/total*bars); let h='<span class="meter" title="'+n+' of '+total+'">'; for(let i=1;i<=bars;i++) h+='<i class="'+(i<=on?"on":"")+'"></i>'; return h+'</span>'; };
 const tag = (txt,cls) => `<span class="tag ${cls||""}">${esc(txt)}</span>`;
 const bar = pct => `<div class="bar"><i style="width:${Math.max(0,Math.min(100,pct))}%"></i></div>`;
 
@@ -405,7 +468,7 @@ V.home = () => `
     <path d="M0 26 H120 L138 26 148 10 158 38 168 20 178 26 H300 L316 26 326 4 338 42 350 26 H500 L512 26 520 16 528 32 536 26 H640"/>
   </svg>
   <div class="statrow">
-    <div class="stat"><div class="k">Team</div><div class="v num">${S.team.length}<span style="color:var(--t3);font-size:18px">/${TEAM_TARGET}</span></div><div class="s" style="margin-top:10px">${meterHTML(S.team.length)}</div></div>
+    <div class="stat"><div class="k">Team</div><div class="v num">${S.team.length}<span style="color:var(--t3);font-size:18px">/${teamTarget()}</span></div><div class="s" style="margin-top:10px">${meterHTML(S.team.length)}</div></div>
     <div class="stat"><div class="k">Open positions</div><div class="v num">${openCount()}</div><div class="s">across ${new Set(S.positions.filter(p=>p.status==="open").map(p=>p.dept)).size} departments</div></div>
     <div class="stat"><div class="k">Active projects</div><div class="v num">${S.stats.activeProjects}</div><div class="s">detection engine · macOS agent · beta</div></div>
     <div class="stat"><div class="k">Beta readiness</div><div class="v num">${S.stats.beta}%</div><div class="s">${bar(S.stats.beta)}</div></div>
@@ -419,28 +482,40 @@ V.home = () => `
   <div class="cta" style="margin-top:30px"><a class="btn ghost" href="#/careers">Join us →</a></div>
 </section>`;
 
-/* ---------- careers list ---------- */
-V.careers = () => `
-<section class="view">
-  <div class="shead" style="margin-top:56px"><div class="row">
-    <div><h2>Open <span class="serif">positions</span></h2>
-    <p>${openCount()} open roles · remote-friendly · founding-team equity on core roles</p></div>
-  </div></div>
-  <div class="jobs">
-  ${S.positions.map(p => `
+/* ---------- careers list (open roles only, grouped by department) ---------- */
+const DEPT_ORDER = ["Executive","Engineering","Artificial Intelligence","Research","Product","Design","Privacy & Compliance","Community Outreach","Marketing"];
+V.careers = () => {
+  const open = S.positions.filter(p=>p.status==="open");
+  const depts = DEPT_ORDER.filter(d => open.some(p=>p.dept===d));
+  const card = p => `
     <article class="job" onclick="location.hash='#/job/${p.id}'">
       <div class="top">
         <div><div class="jdept">${esc(p.dept)}</div><h3 style="margin-top:4px">${esc(p.title)}</h3></div>
-        ${p.status==="open" ? tag("Open","open") : tag("Filled","filled")}
+        ${tag("Open","open")}
       </div>
       <p>${esc(p.desc)}</p>
       <div class="foot">
         <span>${esc(p.type)} · ${esc(p.loc)}</span>
-        ${p.status==="open" ? `<button class="btn sm" onclick="event.stopPropagation();location.hash='#/apply/${p.id}'">Apply</button>` : ""}
+        <button class="btn sm" onclick="event.stopPropagation();location.hash='#/apply/${p.id}'">Apply</button>
       </div>
-    </article>`).join("")}
-  </div>
+    </article>`;
+  return `
+<section class="view">
+  <div class="shead" style="margin-top:56px"><div class="row">
+    <div><h2>Open <span class="serif">positions</span></h2>
+    <p>${open.length} open role${open.length===1?'':'s'} across ${depts.length} department${depts.length===1?'':'s'} · remote-friendly · founding-team equity on core roles</p></div>
+    <a class="btn ghost" href="#/team">See the team →</a>
+  </div></div>
+  ${open.length ? depts.map(d => `
+    <div style="margin-top:30px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <h3 style="font-size:15px;font-weight:600">${esc(d)}</h3>
+        <span style="color:var(--t3);font-size:12.5px">${open.filter(p=>p.dept===d).length} open</span>
+      </div>
+      <div class="jobs">${open.filter(p=>p.dept===d).map(card).join("")}</div>
+    </div>`).join("") : '<div class="empty" style="padding:60px 0">All roles are filled right now. Check back soon.</div>'}
 </section>`;
+};
 
 /* ---------- job detail ---------- */
 V.job = id => {
@@ -509,30 +584,36 @@ V.apply = id => {
 
 /* ---------- team ---------- */
 V.team = () => {
+  const plan = S.department_plan||{};
   const byDept = d => S.team.filter(m=>m.dept===d);
   const openByDept = d => S.positions.filter(p=>p.dept===d && p.status==="open");
+  const target = teamTarget();
   return `
 <section class="view">
   <div class="shead" style="margin-top:56px"><div class="row">
     <div><h2>The <span class="serif">team</span></h2>
-    <p>${S.team.length} of ${TEAM_TARGET} seats filled · ${openCount()} roles open</p></div>
-    ${meterHTML(S.team.length)}
+    <p>${S.team.length} of ${target} seats filled · ${openCount()} roles open · ${target-S.team.length} to hire</p></div>
+    ${meterHTML(S.team.length, target)}
   </div></div>
   <div class="depts">
-  ${DEPTS.map(d => {
+  ${DEPT_ORDER.map(d => {
     const ms = byDept(d), vac = openByDept(d);
-    if(!ms.length && !vac.length) return "";
-    const cap = ms.length + vac.length;
+    const cap = Math.max(plan[d]||0, ms.length + vac.length);
+    if(!cap) return "";
+    // empty planned slots = capacity beyond filled members and posted openings
+    const emptySlots = Math.max(0, cap - ms.length - vac.length);
     return `<div class="deptbox">
-      <div class="dh"><h3>${esc(d)}</h3><span class="cnt num">${ms.length}/${cap} filled</span></div>
+      <div class="dh"><h3>${esc(d)}</h3><span class="cnt num">${ms.length}/${cap} filled${vac.length?` · ${vac.length} hiring`:""}</span></div>
       ${bar(cap? ms.length/cap*100 : 0)}
-      <div class="people">
-        ${ms.map(m=>`<span class="pchip" onclick="location.hash='#/member/${m.id}'">${avat(m)}<span><b style="font-weight:600">${esc(m.name)}</b> <span style="color:var(--t3)">· ${esc(m.role)}</span></span></span>`).join("")}
-        ${vac.map(p=>`<span class="pchip vac" onclick="location.hash='#/job/${p.id}'">+ ${esc(p.title)} — open</span>`).join("")}
+      <div class="slots">
+        ${ms.map(m=>`<span class="slot filled" onclick="location.hash='#/member/${m.id}'">${avat(m)}<span class="sl"><b>${esc(m.name)}</b><small>${esc(m.role)}</small></span></span>`).join("")}
+        ${vac.map(p=>`<span class="slot hiring" onclick="location.hash='#/job/${p.id}'"><span class="dotc"></span><span class="sl"><b>${esc(p.title)}</b><small>Open — apply</small></span></span>`).join("")}
+        ${Array.from({length:emptySlots}).map(()=>`<span class="slot empty"><span class="dotc"></span><span class="sl"><b>Open seat</b><small>Planned</small></span></span>`).join("")}
       </div>
     </div>`;
   }).join("")}
   </div>
+  <p style="color:var(--t3);font-size:12.5px;margin-top:20px">Legend: <span style="color:var(--calm)">● filled</span> · <span style="color:var(--signal)">● hiring now</span> · <span style="color:var(--t3)">○ planned seat</span></p>
 </section>`;
 };
 
@@ -580,8 +661,9 @@ V.admin = () => {
   const inPipe = S.applicants.filter(a=>a.stage!=="Hired"&&a.stage!=="Rejected").length;
   const T = {
     overview: hqOverview, pipeline: hqPipeline, positions: hqPositions,
-    team: hqTeam, notes: hqNotes,
+    team: hqTeam, people: hqPeople, planning: hqPlanning, notes: hqNotes,
   };
+  const accts = Object.keys(S.accounts||{}).length;
   return `
 <section class="view">
   <div class="shead" style="margin:56px 0 0"><div class="row">
@@ -591,7 +673,7 @@ V.admin = () => {
   </div></div>
   <div class="hq">
     <div class="tabs">
-      ${[["overview","Overview"],["pipeline","Hiring pipeline",inPipe],["positions","Positions"],["team","Team"],["notes","Notifications",unread]]
+      ${[["overview","Overview"],["pipeline","Hiring pipeline",inPipe],["positions","Positions"],["team","Team"],["people","People",accts],["planning","Planning"],["notes","Notifications",unread]]
         .map(([k,l,n])=>`<button class="${hqTab===k?"on":""}" onclick="hqTab='${k}';render()">${l}${n?`<span class="pill num">${n}</span>`:""}</button>`).join("")}
     </div>
     <div>${T[hqTab]()}</div>
@@ -630,7 +712,7 @@ function hqOverview(){
       onchange="saveStat('${key}',+this.value)"></div>`;
   return `
   <div class="wgrid">
-    ${w("Team members", S.team.length+"<span style='color:var(--t3);font-size:16px'>/"+TEAM_TARGET+"</span>")}
+    ${w("Team members", S.team.length+"<span style='color:var(--t3);font-size:16px'>/"+teamTarget()+"</span>")}
     ${w("Open roles", openCount())}
     ${w("Hired via pipeline", hired)}
     ${w("Active projects", `<input class="num" type="number" value="${st.activeProjects}" style="width:80px;font-size:24px;font-weight:600;padding:2px 8px" onchange="saveStat('activeProjects',+this.value)">`)}
@@ -643,6 +725,8 @@ function hqOverview(){
   </div>`;
 }
 async function saveStat(key, val){ await post("/api/hq/stats", {[key]: val}); toast("Saved ✓"); }
+async function planAdjust(dept, delta){ const cur=(S.department_plan||{})[dept]||0; await post("/api/hq/plan", {dept, target:Math.max(0,cur+delta)}); render(); }
+function linkAccount(email){ editMember(); setTimeout(()=>{ const el=document.querySelector('input[name=contact]'); if(el) el.value=email; },30); toast("Fill in the role, keep the email to link this person"); }
 
 /* stage accent: cool grey → SilentHelp blue → warm → green (hired) */
 const STAGE_COLOR = ["#69738a","#5aa2ff","#5aa2ff","#8a7cf0","#c99bf0","#f0b453","#3ecf8e"];
@@ -677,16 +761,53 @@ function hqPositions(){
 }
 
 function hqTeam(){
+  const claimed = email => Object.values(S.accounts||{}).some(a=>a.email===(email||"").toLowerCase());
   return `
   <button class="btn sm" onclick="editMember()" style="margin-bottom:12px">+ Add teammate</button>
-  ${S.team.map(m=>`
+  ${S.team.map(m=>{
+    const tasks = S.tasks[m.id]||[]; const openT = tasks.filter(t=>!t.done).length;
+    return `
     <div class="rowitem">
       ${avat(m)}
-      <div class="grow"><b style="font-weight:600">${esc(m.name)}</b><small>${esc(m.role)} · ${esc(m.dept)}</small></div>
+      <div class="grow"><b style="font-weight:600">${esc(m.name)}</b><small>${esc(m.role)} · ${esc(m.dept)}${m.contact?` · ${esc(m.contact)}`:""}</small></div>
+      ${tasks.length?`<span class="tag" title="${openT} open of ${tasks.length}">${openT}/${tasks.length} tasks</span>`:""}
+      ${m.contact?(claimed(m.contact)?`<span class="tag open" title="Has an account">● account</span>`:`<span class="tag" style="opacity:.6" title="Hasn't signed up yet">○ invite</span>`):""}
       <button class="btn sm ghost" onclick="assignTask('${m.id}')">Assign task</button>
       <button class="btn sm ghost" onclick="editMember('${m.id}')">Edit</button>
       <button class="btn sm danger" onclick="delMember('${m.id}')">Remove</button>
-    </div>`).join("")}`;
+    </div>`;}).join("")}`;
+}
+
+function hqPeople(){
+  const accts = Object.values(S.accounts||{}).sort((a,b)=>(b.ts||0)-(a.ts||0));
+  return `
+  <p style="color:var(--t2);font-size:13.5px;margin-bottom:14px">Everyone who's signed up for HQ. Accounts auto-link to a teammate when their email matches one you added.</p>
+  ${accts.length ? accts.map(a=>{
+    const m = S.team.find(x=>x.id===a.memberId);
+    return `<div class="rowitem">
+      ${avat({name:a.name,photo:(m&&m.photo)||""})}
+      <div class="grow"><b style="font-weight:600">${esc(a.name)}</b><small>${esc(a.email)} · joined ${ago(a.ts||Date.now())}</small></div>
+      ${m?`<span class="tag open">linked → ${esc(m.role)}</span>`:`<span class="tag" style="opacity:.7">not on team</span>`}
+      ${!m?`<button class="btn sm ghost" onclick="linkAccount('${esc(a.email)}')">Add to team</button>`:""}
+    </div>`;
+  }).join("") : '<div class="empty">No one has signed up yet. Share the careers link and have teammates click “Sign up”.</div>'}`;
+}
+
+function hqPlanning(){
+  const plan = S.department_plan||{};
+  const filled = d => S.team.filter(m=>m.dept===d).length;
+  return `
+  <p style="color:var(--t2);font-size:13.5px;margin-bottom:14px">Set the target headcount per department. The Team page shows filled vs. planned seats from these numbers.</p>
+  <div class="card">
+    ${DEPT_ORDER.map(d=>`
+      <div class="rowitem">
+        <div class="grow"><b style="font-weight:600">${esc(d)}</b><small>${filled(d)} filled of ${plan[d]||0} planned</small></div>
+        <button class="btn sm ghost" onclick="planAdjust('${esc(d)}',-1)">−</button>
+        <span class="num" style="min-width:26px;text-align:center;font-weight:600">${plan[d]||0}</span>
+        <button class="btn sm ghost" onclick="planAdjust('${esc(d)}',1)">+</button>
+      </div>`).join("")}
+  </div>
+  <p style="color:var(--t3);font-size:12.5px;margin-top:12px">Total planned team size: <b style="color:var(--t1)">${teamTarget()}</b></p>`;
 }
 
 function hqNotes(){
@@ -697,9 +818,86 @@ function hqNotes(){
   return `<div class="card">${h}</div>`;
 }
 
+/* ---------- auth: login / signup ---------- */
+V.login = () => `
+<section class="view" style="max-width:400px;margin:80px auto 0">
+  <div class="stage-pill" style="margin-bottom:18px">👋 Welcome back</div>
+  <h1 style="font-size:28px;font-weight:600;letter-spacing:-.02em">Log in to <span class="serif" style="color:var(--signal)">HQ</span></h1>
+  <p style="color:var(--t2);font-size:14px;margin-top:6px">See your tasks and your team.</p>
+  <form onsubmit="doLogin(event)" style="margin-top:20px">
+    <label>Email</label><input name="email" type="email" required autofocus placeholder="you@email.com">
+    <label>Password</label><input name="password" type="password" required placeholder="••••••">
+    <button class="btn" style="width:100%;justify-content:center;margin-top:20px">Log in →</button>
+  </form>
+  <p style="color:var(--t3);font-size:13px;margin-top:16px;text-align:center">New here? <a href="#/signup" style="color:var(--signal)">Create an account</a></p>
+</section>`;
+
+V.signup = () => `
+<section class="view" style="max-width:400px;margin:80px auto 0">
+  <div class="stage-pill" style="margin-bottom:18px">✦ Join SilentHelp HQ</div>
+  <h1 style="font-size:28px;font-weight:600;letter-spacing:-.02em">Create your <span class="serif" style="color:var(--signal)">account</span></h1>
+  <p style="color:var(--t2);font-size:14px;margin-top:6px">Use the email the founder added you with, and your tasks link up automatically.</p>
+  <form onsubmit="doSignup(event)" style="margin-top:20px">
+    <label>Full name</label><input name="name" required autofocus placeholder="Your name">
+    <label>Email</label><input name="email" type="email" required placeholder="you@email.com">
+    <label>Password</label><input name="password" type="password" required placeholder="4+ characters">
+    <button class="btn" style="width:100%;justify-content:center;margin-top:20px">Create account →</button>
+  </form>
+  <p style="color:var(--t3);font-size:13px;margin-top:16px;text-align:center">Already have one? <a href="#/login" style="color:var(--signal)">Log in</a></p>
+</section>`;
+
+/* ---------- My Tasks (logged-in teammate) ---------- */
+V.tasks = () => {
+  if(!ME) return `<section class="view" style="max-width:420px;margin:90px auto 0;text-align:center">
+    <h1 style="font-size:24px;font-weight:600">Log in to see your tasks</h1>
+    <p style="color:var(--t2);margin:10px 0 20px">Your assigned work shows up here.</p>
+    <a class="btn" href="#/login">Log in</a> <a class="btn ghost" href="#/signup">Sign up</a></section>`;
+  if(!ME.memberId) return `<section class="view" style="max-width:460px;margin:90px auto 0;text-align:center">
+    <div class="stage-pill" style="margin-bottom:16px">⏳ Not linked yet</div>
+    <h1 style="font-size:24px;font-weight:600">You're signed in, ${esc(ME.name.split(' ')[0])}</h1>
+    <p style="color:var(--t2);margin:10px 0 0;text-wrap:pretty">You're not on the team roster yet. Once the founder adds you (with <b style="color:var(--t1)">${esc(ME.email)}</b>), your tasks will appear here automatically.</p></section>`;
+  const tasks = (S.tasks[ME.memberId]||[]).slice().sort((a,b)=>(a.done-b.done)||(a.ts||0)-(b.ts||0));
+  const open = tasks.filter(t=>!t.done), done = tasks.filter(t=>t.done);
+  const row = t => `<div class="rowitem" style="gap:12px">
+      <button class="checkbtn ${t.done?'on':''}" onclick="toggleMyTask('${t.id}')" title="Toggle done"></button>
+      <div class="grow" style="${t.done?'color:var(--t3);text-decoration:line-through':''}">${esc(t.t)}<small>${t.due?('due '+esc(t.due)):'no deadline'} · ${ago(t.ts||Date.now())}</small></div>
+    </div>`;
+  return `
+<section class="view">
+  <div class="shead" style="margin-top:56px"><div class="row">
+    <div><h2>My <span class="serif">tasks</span></h2>
+    <p>${esc(ME.member?ME.member.role:'')} · ${open.length} open · updates live</p></div>
+    ${meterHTML(done.length, tasks.length||1)}
+  </div></div>
+  <div class="card">
+    ${tasks.length ? (open.map(row).join("") + (done.length?`<div style="margin-top:10px;color:var(--t3);font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;padding:8px 0 4px">Done</div>`:"") + done.map(row).join("")) : '<div class="empty">No tasks yet. When the founder assigns you something, it appears here — instantly.</div>'}
+  </div>
+</section>`;
+};
+
 /* =========================================================
    ACTIONS
    ========================================================= */
+async function doLogin(e){
+  e.preventDefault(); const f=new FormData(e.target);
+  const r=await fetch("/api/hq/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:f.get("email"),password:f.get("password")})});
+  const j=await r.json();
+  if(j.error){ toast(j.error); return; }
+  ME=j.account; if(ME.isFounder) isAdmin=true;
+  location.hash = ME.memberId ? "#/tasks" : "#/"; render(); toast(`Welcome back, ${ME.name.split(' ')[0]} ✓`);
+}
+async function doSignup(e){
+  e.preventDefault(); const f=new FormData(e.target);
+  const r=await fetch("/api/hq/signup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:f.get("name"),email:f.get("email"),password:f.get("password")})});
+  const j=await r.json();
+  if(j.error){ toast(j.error); return; }
+  ME=j.account; if(ME.isFounder) isAdmin=true;
+  await pull();
+  location.hash = ME.memberId ? "#/tasks" : "#/"; render();
+  toast(ME.memberId ? "Account created — you're on the team ✓" : "Account created ✓");
+}
+async function hqLogout(){ await fetch("/api/hq/logout",{method:"POST"}); ME=null; if(localStorage.getItem("shq_admin")!=="silenthelp") isAdmin=false; location.hash="#/"; render(); toast("Logged out"); }
+async function toggleMyTask(taskId){ await post("/api/hq/task/toggle", {id:ME.memberId, taskId}); render(); }
 async function submitApp(e){
   e.preventDefault();
   const f = new FormData(e.target);
@@ -842,21 +1040,47 @@ async function toggleTask(id, i){ await post("/api/hq/task/toggle", {id, idx:i})
 /* =========================================================
    ROUTER
    ========================================================= */
+function renderNav(){
+  // My Tasks link only for a logged-in teammate linked to a member.
+  const nt = $("#nav-tasks"); if(nt) nt.style.display = (ME && ME.memberId) ? "" : "none";
+  const auth = $("#nav-auth");
+  if(!auth) return;
+  const live = (_es || _poll) ? "" : "off";
+  if(ME){
+    auth.innerHTML = `<span class="who">
+      <span class="livedot ${live}" title="Live updates ${live?'reconnecting':'on'}"></span>
+      <a href="#/tasks" class="who" style="text-decoration:none">${avat({name:ME.name,photo:(ME.member&&ME.member.photo)||''})}
+        <span class="name">${esc(ME.name.split(' ')[0])}${ME.isFounder?' <span style="color:var(--signal)">· Founder</span>':''}<small>${ME.memberId?esc(ME.member?ME.member.role:'Teammate'):'Not on team yet'}</small></span></a>
+      <button class="btn sm ghost" onclick="hqLogout()">Log out</button></span>`;
+  } else {
+    auth.innerHTML = `<a class="nl" href="#/login">Log in</a> <a class="btn sm" href="#/signup">Sign up</a>`;
+  }
+}
+
 function render(){
   const h = location.hash.replace(/^#\/?/, "") || "";
   const [r, arg] = h.split("/");
   const map = { "":["home"], careers:["careers"], job:["job",arg], apply:["apply",arg],
-                team:["team"], member:["member",arg], admin:["admin"] };
+                team:["team"], member:["member",arg], admin:["admin"],
+                login:["login"], signup:["signup"], tasks:["tasks"] };
   const [fn, a] = map[r] || ["home"];
   if(!loaded){ $("#view").innerHTML = '<div class="empty view" style="padding:120px 0">Loading SilentHelp HQ…</div>'; return; }
   $("#view").innerHTML = V[fn](a);
+  renderNav();
   document.querySelectorAll("nav a.nl[data-nav]").forEach(el=>el.classList.toggle("on", el.dataset.nav===r || (r==="job"||r==="apply")&&el.dataset.nav==="careers" || r==="member"&&el.dataset.nav==="team"));
   if(!location.hash.includes("keep-scroll")) window.scrollTo({top:0});
 }
 window.addEventListener("hashchange", render);
 
-/* boot: load shared state, then render */
-(async () => { await pull(); render(); })();
+/* boot: load account + shared state, render, then go live.
+   ?static=1 skips the live stream (used by crawlers / screenshots so the page
+   reaches network-idle instead of holding an open SSE connection). */
+const LIVE = !new URLSearchParams(location.search).has("static");
+(async () => {
+  await Promise.all([pull(), pullMe()]); render();
+  if(LIVE) startLive();
+})();
+if(LIVE) document.addEventListener("visibilitychange", () => { if(!document.hidden){ startLive(); onRemoteChange(-1); } else { stopLive(); } });
 </script>
 </body>
 </html>

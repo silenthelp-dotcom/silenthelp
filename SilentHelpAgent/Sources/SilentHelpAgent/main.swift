@@ -276,7 +276,10 @@ final class Popup {
     }
 
     @objc private func openChat() {
-        if let url = URL(string: Config.backend + "/chat") { NSWorkspace.shared.open(url) }
+        // Always open the HOSTED app for the human-facing chat — a localhost
+        // page means nothing to whoever is sitting at the popup. Detection
+        // still talks to Config.backend (local when available, private).
+        if let url = URL(string: Config.hostedBackend + "/chat") { NSWorkspace.shared.open(url) }
         close()
     }
     @objc private func ignore1h() { Snooze.set(hours: 1); close() }

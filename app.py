@@ -41,7 +41,7 @@ import ssl
 from concurrent.futures import ThreadPoolExecutor
 from email.message import EmailMessage
 
-from flask import Flask, jsonify, make_response, redirect, render_template, request, send_file, session
+from flask import Flask, Response, jsonify, make_response, redirect, render_template, request, send_file, session, stream_with_context
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 
@@ -321,6 +321,76 @@ def hq_state():
     return jsonify(hq_store.state())
 
 
+# ---- HQ teammate accounts (separate session key from product login) ----
+
+def _hq_account():
+    acc_id = session.get("hq_uid")
+    return hq_store.account(acc_id) if acc_id else None
+
+
+@app.route("/api/hq/me")
+def hq_me():
+    return jsonify({"account": _hq_account()})
+
+
+@app.route("/api/hq/signup", methods=["POST"])
+def hq_signup():
+    d = request.get_json(silent=True) or {}
+    res = hq_store.signup(d.get("name", ""), d.get("email", ""), d.get("password", ""))
+    if not res:
+        return jsonify({"error": "Enter a name, a valid email, and a 4+ character password."}), 400
+    if res.get("error"):
+        return jsonify({"error": res["error"]}), 409
+    session["hq_uid"] = res["account"]["id"]
+    return jsonify({"account": res["account"]})
+
+
+@app.route("/api/hq/login", methods=["POST"])
+def hq_login():
+    d = request.get_json(silent=True) or {}
+    res = hq_store.login(d.get("email", ""), d.get("password", ""))
+    if not res:
+        return jsonify({"error": "Wrong email or password."}), 401
+    session["hq_uid"] = res["account"]["id"]
+    return jsonify({"account": res["account"]})
+
+
+@app.route("/api/hq/logout", methods=["POST"])
+def hq_logout():
+    session.pop("hq_uid", None)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/hq/stream")
+def hq_stream():
+    """Server-Sent Events: push a small 'rev bumped' ping whenever HQ changes.
+    The client refetches /api/hq on each ping. Falls back to polling if the
+    stream drops (handled client-side)."""
+    @stream_with_context
+    def gen():
+        last = -1
+        # Prime with the current rev so a just-connected client syncs immediately.
+        yield "retry: 3000\n\n"
+        idle = 0
+        while True:
+            cur = hq_store.rev()
+            if cur != last:
+                last = cur
+                idle = 0
+                yield f"data: {cur}\n\n"
+            else:
+                # Wait for a write signal, but wake periodically to send a
+                # keep-alive comment (stops proxies/Render from killing the conn).
+                hq_store._rev_event.wait(timeout=15)
+                hq_store._rev_event.clear()
+                idle += 1
+                if idle >= 1:
+                    idle = 0
+                    yield ": keepalive\n\n"
+    return Response(gen(), mimetype="text/event-stream",
+                    headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
 @app.route("/api/hq/apply", methods=["POST"])
 def hq_apply():
     d = request.get_json(silent=True) or {}
@@ -392,12 +462,27 @@ def hq_task():
 @app.route("/api/hq/task/toggle", methods=["POST"])
 def hq_task_toggle():
     d = request.get_json(silent=True) or {}
+    # Prefer stable task id (from My Tasks); fall back to index (founder view).
+    if d.get("taskId"):
+        return jsonify(hq_store.toggle_task_by_id(d.get("id", ""), d.get("taskId")))
     return jsonify(hq_store.toggle_task(d.get("id", ""), int(d.get("idx", 0))))
+
+
+@app.route("/api/hq/task/delete", methods=["POST"])
+def hq_task_delete():
+    d = request.get_json(silent=True) or {}
+    return jsonify(hq_store.delete_task(d.get("id", ""), d.get("taskId", "")))
 
 
 @app.route("/api/hq/notes/read", methods=["POST"])
 def hq_notes_read():
     return jsonify(hq_store.mark_notes_read())
+
+
+@app.route("/api/hq/plan", methods=["POST"])
+def hq_plan():
+    d = request.get_json(silent=True) or {}
+    return jsonify(hq_store.set_plan(d.get("dept", ""), d.get("target", 0)))
 
 
 @app.route("/app")
@@ -703,4 +788,6 @@ if __name__ == "__main__":
     # Local prototype only — bind to localhost.
     # 0.0.0.0 so a phone on the same Wi-Fi can reach it at http://<mac-ip>:5055.
     # (Prototype / home network only — this exposes the app to your LAN.)
-    app.run(host="0.0.0.0", port=5055, debug=False)
+    # threaded: SSE streams (/api/hq/stream) hold a connection open — without
+    # threads the single dev worker would block all other requests.
+    app.run(host="0.0.0.0", port=5055, debug=False, threaded=True)

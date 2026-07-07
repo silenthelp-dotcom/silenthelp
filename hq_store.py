@@ -21,6 +21,7 @@ rest of the module (seed + mutation helpers) is backend-agnostic.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import threading
@@ -31,6 +32,12 @@ from typing import Any, Dict, List
 
 HQ_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "silenthelp_hq.json")
 _LOCK = threading.RLock()
+# Set on every write; SSE listeners wait on it to push live updates.
+_rev_event = threading.Event()
+
+
+def _hash_pw(pw: str) -> str:
+    return hashlib.sha256(("shq::" + pw).encode("utf-8")).hexdigest()
 
 # ---------------------------------------------------------------------------
 # Storage backend selection
@@ -150,6 +157,77 @@ def _seed() -> Dict[str, Any]:
              "skills": ["Copywriting", "Social strategy", "Basic design"],
              "pref": ["Portfolio of real campaigns, any size"],
              "tech": ["—"], "projects": ["Beta launch campaign"], "team": "Marketing · works with design"},
+            # ---- expanded scale ----
+            {"id": "coo", "title": "Chief Operating Officer", "dept": "Executive", "status": "open",
+             "type": "Founding team · Equity", "loc": "Remote / Hybrid",
+             "desc": "Run the company day-to-day so the founder can build. Own operations, hiring, and the path to a real organization.",
+             "resp": ["Own hiring and onboarding across every team", "Build the operating cadence (sprints, standups, reviews)", "Manage budget, tooling, and vendor relationships", "Turn the vision into an executable plan"],
+             "skills": ["Operations", "People management", "Planning", "Systems thinking"],
+             "pref": ["Has scaled a small team before"],
+             "tech": ["Notion / Linear", "Spreadsheets"], "projects": ["Operating system", "Hiring pipeline"], "team": "Partners with the CEO"},
+            {"id": "ios-eng", "title": "iOS / macOS Engineer", "dept": "Engineering", "status": "open",
+             "type": "Core team · Equity", "loc": "Remote",
+             "desc": "Own the native macOS agent — the piece that quietly watches for the signals a browser never can.",
+             "resp": ["Own the SwiftUI menu-bar agent", "Work with ScreenCaptureKit + Vision OCR", "Keep every capture on-device", "Ship signed, notarized builds"],
+             "skills": ["Swift / SwiftUI", "macOS APIs", "Accessibility API", "Codesigning"],
+             "pref": ["Has shipped a Mac app"],
+             "tech": ["Swift", "ScreenCaptureKit", "Vision"], "projects": ["macOS agent v2"], "team": "Engineering · with CTO"},
+            {"id": "backend-eng", "title": "Backend Engineer", "dept": "Engineering", "status": "open",
+             "type": "Core team · Equity", "loc": "Remote",
+             "desc": "Own the server, the data model, and the APIs — on a backend designed to never see user text.",
+             "resp": ["Own the Flask backend and its API contract", "Design the on-device-first data model", "Own deployments and reliability", "Keep the privacy boundary airtight"],
+             "skills": ["Python", "Flask / FastAPI", "Postgres", "API design"],
+             "pref": ["Cares about privacy engineering"],
+             "tech": ["Flask", "Postgres", "Render"], "projects": ["HQ platform", "API v2"], "team": "Engineering"},
+            {"id": "ml-research", "title": "ML Research Engineer", "dept": "Research", "status": "open",
+             "type": "Core team · Equity", "loc": "Remote",
+             "desc": "Push the science of catching crisis signals earlier — behavioral models, trend detection, honest evaluation.",
+             "resp": ["Research behavioral (Layer 3) signals", "Design the trend-gate (Layer 4) methodology", "Build honest, bias-aware evaluation sets", "Publish what's safe to publish"],
+             "skills": ["ML research", "Statistics", "Python", "Careful evaluation"],
+             "pref": ["Research or strong self-study background"],
+             "tech": ["PyTorch", "NumPy"], "projects": ["Behavioral model", "Trend gate"], "team": "Research · with AI lead"},
+            {"id": "data-analyst", "title": "Data Analyst", "dept": "Research", "status": "open",
+             "type": "Part-time · Equity", "loc": "Remote",
+             "desc": "Turn on-device, privacy-safe aggregates into the insights that guide the product — without ever touching raw text.",
+             "resp": ["Define privacy-safe metrics", "Build the analytics that inform the roadmap", "Validate detection precision/recall", "Report honestly, including bad news"],
+             "skills": ["SQL", "Statistics", "Data viz", "Skepticism"],
+             "pref": ["Interest in health / behavioral data"],
+             "tech": ["SQL", "Python", "Charts"], "projects": ["Metrics layer"], "team": "Research"},
+            {"id": "clinical-advisor", "title": "Clinical Advisor (Counselor)", "dept": "Privacy & Compliance", "status": "open",
+             "type": "Advisory", "loc": "Remote",
+             "desc": "Keep us clinically honest. Every escalation, every message, every threshold gets a counselor's eyes before students see it.",
+             "resp": ["Review detection thresholds and copy", "Advise on escalation and safety flows", "Guardrail against harm", "Bridge to the school-counseling world"],
+             "skills": ["School counseling / clinical background", "Crisis response", "Judgment"],
+             "pref": ["Licensed counselor or social worker"],
+             "tech": ["—"], "projects": ["Safety review"], "team": "Advises founder + product"},
+            {"id": "content-writer", "title": "Content & UX Writer", "dept": "Marketing", "status": "open",
+             "type": "Part-time", "loc": "Remote",
+             "desc": "Write the words that appear at someone's hardest moment — and the words that get schools to say yes.",
+             "resp": ["Write in-product microcopy with care", "Own the blog and school-facing content", "Keep the voice calm and honest", "Never exploit the pain we exist to catch"],
+             "skills": ["UX writing", "Content strategy", "Empathy"],
+             "pref": ["Portfolio of writing, any kind"],
+             "tech": ["Docs"], "projects": ["Voice guide", "School content"], "team": "Marketing · with design"},
+            {"id": "growth", "title": "Growth & Partnerships Associate", "dept": "Community Outreach", "status": "open",
+             "type": "Part-time", "loc": "Hybrid",
+             "desc": "Open doors — to schools, districts, and community orgs — and keep the pilot pipeline full.",
+             "resp": ["Source and qualify school pilots", "Support partnership conversations", "Run outreach experiments", "Track what actually converts"],
+             "skills": ["Outreach", "Organization", "Communication"],
+             "pref": ["Connected to a school community"],
+             "tech": ["CRM / sheets"], "projects": ["Pilot pipeline"], "team": "Outreach"},
+            {"id": "qa", "title": "QA / Test Engineer", "dept": "Engineering", "status": "open",
+             "type": "Part-time · Equity", "loc": "Remote",
+             "desc": "Make sure the thing that's supposed to catch a crisis never silently breaks.",
+             "resp": ["Own the test suite across layers", "Build detection regression tests", "Catch failures before students do", "Guard the fail-safe-upward behavior"],
+             "skills": ["Testing", "Python", "Attention to detail"],
+             "pref": ["Cares about reliability of safety-critical code"],
+             "tech": ["pytest", "CI"], "projects": ["Detection test harness"], "team": "Engineering"},
+            {"id": "brand-designer", "title": "Brand / Visual Designer", "dept": "Design", "status": "open",
+             "type": "Part-time", "loc": "Remote",
+             "desc": "Give SilentHelp a face that feels trustworthy to a scared 15-year-old and credible to a school board.",
+             "resp": ["Own brand identity and visual system", "Design the marketing site and decks", "Create calm, non-clinical imagery", "Keep it consistent everywhere"],
+             "skills": ["Visual design", "Brand", "Illustration"],
+             "pref": ["Strong portfolio"],
+             "tech": ["Figma", "Illustrator"], "projects": ["Brand system"], "team": "Design"},
         ],
         "team": [
             {"id": "sree", "name": "Sree Lakkaraju", "role": "Founder & CEO", "dept": "Executive",
@@ -163,6 +241,18 @@ def _seed() -> Dict[str, Any]:
             {"id": _uid(), "t": "SilentHelp HQ is live — shared across everyone who opens it.", "ts": int(time.time() * 1000), "read": False},
         ],
         "tasks": {},
+        # HQ accounts (separate from product login): teammates sign up here and,
+        # if their email matches a team member the founder added, they're linked
+        # to that member and see their own assigned tasks.
+        "accounts": {},   # accId -> {id, name, email, pw (sha256), memberId, ts}
+        # Target headcount per department — powers the "filled vs open slots" view
+        # and lets the team scale visibly beyond the current roster.
+        "department_plan": {
+            "Executive": 3, "Engineering": 6, "Artificial Intelligence": 3,
+            "Product": 2, "Design": 3, "Privacy & Compliance": 2,
+            "Community Outreach": 2, "Marketing": 3, "Research": 3,
+        },
+        "rev": 1,   # bumped on every write — clients poll/stream this for live updates
     }
 
 
@@ -193,16 +283,20 @@ def _load() -> Dict[str, Any]:
 
 
 def _write(data: Dict[str, Any]) -> None:
-    global _db_error
+    global _db_error, _rev_event
+    # Bump the revision counter so live clients (poll / SSE) detect the change.
+    data["rev"] = int(data.get("rev", 0)) + 1
     if _use_db():
         try:
             _db_write(data)
             _db_error = None
+            _rev_event.set()  # wake any SSE listeners
             return
         except Exception as e:  # noqa: BLE001
             _db_error = f"{type(e).__name__}: {e}"
             print(f"[hq_store] DB write failed, using file fallback — {_db_error}", flush=True)
     _file_write(data)
+    _rev_event.set()
 
 
 def _use_db() -> bool:
@@ -393,7 +487,9 @@ def set_stats(stats: Dict[str, Any]) -> Dict[str, Any]:
 def add_task(mid: str, t: str, due: str) -> Dict[str, Any]:
     with _LOCK:
         d = _load()
-        d["tasks"].setdefault(mid, []).append({"t": t, "due": due, "done": False})
+        d["tasks"].setdefault(mid, []).append(
+            {"id": _uid(), "t": t, "due": due, "done": False, "ts": _now()}
+        )
         m = next((x for x in d["team"] if x["id"] == mid), None)
         if m:
             d["notes"].insert(0, {"id": _uid(), "t": f"Task assigned to {m.get('name','?')}: {t}", "ts": _now(), "read": False})
@@ -412,6 +508,26 @@ def toggle_task(mid: str, idx: int) -> Dict[str, Any]:
         return d
 
 
+def toggle_task_by_id(mid: str, task_id: str) -> Dict[str, Any]:
+    """Toggle a task by its stable id (used by the teammate 'My Tasks' view)."""
+    with _LOCK:
+        d = _load()
+        for task in d["tasks"].get(mid, []):
+            if task.get("id") == task_id:
+                task["done"] = not task.get("done", False)
+                break
+        _write(d)
+        return d
+
+
+def delete_task(mid: str, task_id: str) -> Dict[str, Any]:
+    with _LOCK:
+        d = _load()
+        d["tasks"][mid] = [x for x in d["tasks"].get(mid, []) if x.get("id") != task_id]
+        _write(d)
+        return d
+
+
 def mark_notes_read() -> Dict[str, Any]:
     with _LOCK:
         d = _load()
@@ -419,3 +535,92 @@ def mark_notes_read() -> Dict[str, Any]:
             n["read"] = True
         _write(d)
         return d
+
+
+# ---------------------------------------------------------------------------
+# HQ accounts (teammate signup / login) — separate from product login.
+# ---------------------------------------------------------------------------
+
+def _member_for_email(d: Dict[str, Any], email: str) -> "str | None":
+    email = (email or "").strip().lower()
+    for m in d["team"]:
+        if (m.get("contact") or "").strip().lower() == email:
+            return m["id"]
+    return None
+
+
+def _account_public(acc: Dict[str, Any], d: Dict[str, Any]) -> Dict[str, Any]:
+    """Account view safe to send to the client (no password), with linked member."""
+    member = next((m for m in d["team"] if m["id"] == acc.get("memberId")), None)
+    return {
+        "id": acc["id"], "name": acc["name"], "email": acc["email"],
+        "memberId": acc.get("memberId"),
+        "member": member,
+        "isFounder": bool(member and member.get("role", "").lower().startswith("founder")),
+    }
+
+
+def signup(name: str, email: str, pw: str) -> "Dict[str, Any] | None":
+    name, email = (name or "").strip(), (email or "").strip().lower()
+    if not name or not email or not pw or len(pw) < 4:
+        return None
+    with _LOCK:
+        d = _load()
+        if any(a["email"] == email for a in d["accounts"].values()):
+            return {"error": "That email already has an account — log in instead."}
+        acc_id = _uid()
+        acc = {
+            "id": acc_id, "name": name, "email": email, "pw": _hash_pw(pw),
+            "memberId": _member_for_email(d, email), "ts": _now(),
+        }
+        d["accounts"][acc_id] = acc
+        # Auto-claim: if the founder already added a member with this email, link
+        # the account to it and adopt the account's real name.
+        if acc["memberId"]:
+            for m in d["team"]:
+                if m["id"] == acc["memberId"] and not m.get("name"):
+                    m["name"] = name
+            d["notes"].insert(0, {"id": _uid(), "t": f"{name} claimed their teammate account", "ts": _now(), "read": False})
+        else:
+            d["notes"].insert(0, {"id": _uid(), "t": f"{name} signed up for HQ ({email})", "ts": _now(), "read": False})
+        _write(d)
+        return {"account": _account_public(acc, d)}
+
+
+def login(email: str, pw: str) -> "Dict[str, Any] | None":
+    email = (email or "").strip().lower()
+    with _LOCK:
+        d = _load()
+        acc = next((a for a in d["accounts"].values() if a["email"] == email), None)
+        if not acc or acc["pw"] != _hash_pw(pw):
+            return None
+        # Re-link on every login in case the founder added the member afterwards.
+        if not acc.get("memberId"):
+            acc["memberId"] = _member_for_email(d, email)
+            if acc["memberId"]:
+                _write(d)
+        return {"account": _account_public(acc, d)}
+
+
+def account(acc_id: str) -> "Dict[str, Any] | None":
+    with _LOCK:
+        d = _load()
+        acc = d["accounts"].get(acc_id)
+        if not acc:
+            return None
+        if not acc.get("memberId"):
+            acc["memberId"] = _member_for_email(d, acc["email"])
+        return _account_public(acc, d)
+
+
+def set_plan(dept: str, target: int) -> Dict[str, Any]:
+    with _LOCK:
+        d = _load()
+        d.setdefault("department_plan", {})[dept] = max(0, min(50, int(target)))
+        _write(d)
+        return d
+
+
+def rev() -> int:
+    with _LOCK:
+        return int(_load().get("rev", 0))
