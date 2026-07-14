@@ -198,6 +198,24 @@ def api_account_delete():
     return jsonify({"ok": True})
 
 
+@app.route("/robots.txt")
+def robots():
+    resp = make_response("User-agent: *\nAllow: /\nSitemap: https://silenthelp.org/sitemap.xml\n")
+    resp.headers["Content-Type"] = "text/plain"
+    return resp
+
+
+@app.route("/sitemap.xml")
+def sitemap():
+    pages = ["", "app", "privacy", "terms"]
+    urls = "".join(f"<url><loc>https://silenthelp.org/{p}</loc></url>" for p in pages)
+    resp = make_response(
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>')
+    resp.headers["Content-Type"] = "application/xml"
+    return resp
+
+
 @app.route("/privacy")
 def privacy_page():
     return render_template("privacy.html")

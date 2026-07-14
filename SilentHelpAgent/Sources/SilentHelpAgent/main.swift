@@ -30,7 +30,11 @@ import Vision
 // MARK: - Config
 enum Config {
     static let localBackend = "http://127.0.0.1:5055"
-    static let hostedBackend = "https://silenthelp.onrender.com"   // the deployed app
+    // Preference order for the hosted app: the real domain first, Render's
+    // fallback second (still works while DNS propagates or if the domain lapses).
+    static let hostedCandidates = ["https://silenthelp.org", "https://silenthelp.onrender.com"]
+    /// The hosted app URL that actually answered at launch (for "Talk it through").
+    static var hostedBackend = "https://silenthelp.org"
     /// Resolved at launch: local backend if one is running (the developer's
     /// fully-on-device setup), else the hosted app (a friend's install).
     /// Manual override: put a URL in ~/Library/Application Support/SilentHelp/backend.txt
@@ -46,9 +50,29 @@ enum Config {
                                                   // big enough for OCR to read
 }
 
-// MARK: - Backend resolution (local first, hosted fallback)
+// MARK: - Backend resolution (local first, then hosted candidates in order)
+private func probe(_ base: String, timeout: TimeInterval) -> Bool {
+    guard let url = URL(string: base + "/api/me") else { return false }
+    var req = URLRequest(url: url)
+    req.timeoutInterval = timeout
+    let sem = DispatchSemaphore(value: 0)
+    var up = false
+    URLSession.shared.dataTask(with: req) { _, resp, _ in
+        up = (resp as? HTTPURLResponse)?.statusCode == 200
+        sem.signal()
+    }.resume()
+    _ = sem.wait(timeout: .now() + timeout + 0.5)
+    return up
+}
+
 func resolveBackend() {
-    // 1. Explicit override file wins.
+    // Pick the hosted app first (silenthelp.org, else the Render fallback) so
+    // "Talk it through" always opens something real.
+    for candidate in Config.hostedCandidates where probe(candidate, timeout: 4) {
+        Config.hostedBackend = candidate
+        break
+    }
+    // 1. Explicit override file wins for DETECTION traffic.
     let cfgPath = (NSString(string: "~/Library/Application Support/SilentHelp/backend.txt")).expandingTildeInPath
     if let s = try? String(contentsOfFile: cfgPath, encoding: .utf8)
         .trimmingCharacters(in: .whitespacesAndNewlines), s.hasPrefix("http") {
@@ -56,19 +80,10 @@ func resolveBackend() {
         shLog("backend from config file: \(s)")
         return
     }
-    // 2. Probe localhost quickly; if a local backend answers, use it (private).
-    guard let url = URL(string: Config.localBackend + "/api/me") else { return }
-    var req = URLRequest(url: url)
-    req.timeoutInterval = 1.5
-    let sem = DispatchSemaphore(value: 0)
-    var localUp = false
-    URLSession.shared.dataTask(with: req) { _, resp, _ in
-        localUp = (resp as? HTTPURLResponse)?.statusCode == 200
-        sem.signal()
-    }.resume()
-    _ = sem.wait(timeout: .now() + 2)
+    // 2. Local backend if one is running (the developer's private setup).
+    let localUp = probe(Config.localBackend, timeout: 1.5)
     Config.backend = localUp ? Config.localBackend : Config.hostedBackend
-    shLog("backend resolved: \(Config.backend) (local up: \(localUp))")
+    shLog("backend resolved: \(Config.backend) (local up: \(localUp), hosted: \(Config.hostedBackend))")
 }
 
 // MARK: - Diagnostic log (/tmp/silenthelp-agent.log)
