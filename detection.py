@@ -28,7 +28,7 @@ IMPORTANT — prototype only:
 
 ARCHITECTURE (two clearly separated parts)
   1. classify_message(text) -> dict
-        Calls the AI classifier (NVIDIA NIM, OpenAI-compatible) and returns a
+        Calls the AI classifier (Groq, OpenAI-compatible) and returns a
         structured risk judgment. This is the only place the model is involved.
   2. decide_response(judgment) -> dict
         Pure, hard-coded override logic. Maps a risk level to a concrete action.
@@ -51,7 +51,9 @@ from openai import OpenAI
 
 # Provider: Groq (OpenAI-compatible). Fast + strong. Swap provider by changing
 # BASE_URL, the API key env var, and the MODEL string only.
-NIM_BASE_URL = "https://api.groq.com/openai/v1"
+# Groq's OpenAI-compatible endpoint. (Kept the BASE_URL name generic; the
+# NVIDIA_API_KEY env fallback below is retained only for back-compat.)
+GROQ_BASE_URL = "https://api.groq.com/openai/v1"
 # openai/gpt-oss-120b — OpenAI's open-weight 120B, served on Groq. Strong
 # reasoning, ~0.5s latency, reliably available on the current key.
 MODEL = "openai/gpt-oss-120b"
@@ -74,7 +76,7 @@ def _make_client() -> OpenAI:
         )
     # Hard timeout so a slow/throttled endpoint can never hang the app for
     # minutes; we handle our own bounded retry, so disable the SDK's.
-    return OpenAI(base_url=NIM_BASE_URL, api_key=api_key, timeout=8.0, max_retries=0)
+    return OpenAI(base_url=GROQ_BASE_URL, api_key=api_key, timeout=8.0, max_retries=0)
 
 
 # ---------------------------------------------------------------------------

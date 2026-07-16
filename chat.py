@@ -11,7 +11,7 @@ user's message in parallel, so crisis resources surface from the same hard-coded
 authority the rest of the app uses. The chat is a support layer, never a therapy
 replacement, and always defers to human help when things get serious.
 
-Prototype note: uses the same NVIDIA NIM client/model as detection. In production
+Prototype note: uses the same Groq client/model as detection. In production
 the coping chat would use a purpose-fit conversational model (e.g. Sonnet 4.6),
 not the classifier model — see project notes.
 """

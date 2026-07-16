@@ -21,9 +21,10 @@ PROTOTYPE — for the developer's own test messages only. Not for real students.
 Classifier behavior must be reviewed by a licensed school counselor before any
 real student use. No detection data leaves the device.
 
-The NVIDIA NIM key is read from the environment as NVIDIA_API_KEY. For local
-dev, put it in an untracked .env file next to this script (see .gitignore) and
-it loads automatically — keep real keys out of tracked source.
+The Groq API key is read from the environment as GROQ_API_KEY (NVIDIA_API_KEY
+still works as a legacy fallback). For local dev, put it in an untracked .env
+file next to this script (see .gitignore) and it loads automatically — keep
+real keys out of tracked source.
 
 Run:
     cd ~/silenthelp-detection
@@ -59,7 +60,7 @@ def _load_local_env(filename: str = ".env") -> None:
             os.environ.setdefault(key.strip(), value.strip().strip("'\""))
 
 
-_load_local_env()  # must run before detection builds its NIM client
+_load_local_env()  # must run before detection builds its Groq client
 
 import auth
 import behavioral
@@ -236,9 +237,13 @@ def _common():
 _ORDER = {"none": 0, "low": 1, "moderate": 2, "high": 3, "crisis": 4}
 
 
-def _pipeline(message: str, record: bool = False):
+def _pipeline(message: str, record: bool = False, toggles: dict | None = None):
     """
     Graded layered detection. Honors the Settings toggles.
+
+    `toggles` lets a caller pass explicit layer settings. When omitted we read
+    the bound user's store — but anonymous callers (a friend's agent) must NOT
+    inherit the Mac owner's toggles, so they pass all-on defaults instead.
 
     Layer 1 (your keyword database, layer1_blocks.json) produces a graded signal:
       - a standalone tier-3 crisis phrase  -> "crisis"
@@ -255,7 +260,7 @@ def _pipeline(message: str, record: bool = False):
 
     `record` persists category/level only (never raw text) for Layer-4 gating.
     """
-    tog = store.get_settings()["toggles"]
+    tog = toggles if toggles is not None else store.get_settings()["toggles"]
     keyword_on = tog.get("keyword", True)
     semantic_on = tog.get("semantic", True)
 
@@ -310,7 +315,17 @@ def _pipeline(message: str, record: bool = False):
     action = detection.decide_response({"risk_level": final})
 
     if record and final != "none":
-        layer = 1 if (l1["matched"] and _ORDER[l1_level] >= _ORDER[l2_level]) else 2
+        # Attribute the event to the layer that ACTUALLY produced the final
+        # verdict. The semantic model now decides `final`, so:
+        #   - semantic off / failed  -> L1 drove it (final == l1_level)
+        #   - L1 independently reached the same level -> credit the keyword layer
+        #   - otherwise the semantic layer is what caught it
+        if not semantic_on or l2_failed:
+            layer = 1
+        elif l1["matched"] and _ORDER.get(l1_level, 0) >= _ORDER.get(final, 0):
+            layer = 1
+        else:
+            layer = 2
         cat = (categories or ["signal"])[0]
         store.record_event(layer, final, cat)
 
@@ -670,7 +685,14 @@ def api_escalation_send():
 
     to_addr = _extract_email(contact)
     sent = _smtp_send(to_addr, subject, body)
-    store.record_event(4, "crisis", "escalation_sent")
+    # Only a REAL send is a crisis-level event. A mailto fallback (or a failed
+    # send) just means the note was prepared — logging it as crisis would keep
+    # re-tripping the Layer-4 urgent gate and re-pop the escalation screen for
+    # an email that never left.
+    if sent:
+        store.record_event(4, "crisis", "escalation_sent")
+    else:
+        store.record_event(2, "moderate", "escalation_prepared")
     return jsonify({"sent": sent, "method": "smtp" if sent else "mailto",
                     "contact": contact, "to": to_addr})
 
@@ -738,7 +760,11 @@ def api_monitor():
     # popup decision comes from judgment.surface alone.
     uid = session.get("uid")
     authed = bool(uid and auth.get_user(uid)) or (_is_local_request() and _owner_uid())
-    l1, judgment, action = _pipeline(text, record=bool(authed))
+    # Anonymous callers (a friend's agent) must not inherit the owner's toggles —
+    # give them the default all-layers-on config, and record nothing.
+    default_toggles = {"keyword": True, "semantic": True, "behavioral": True, "trend": True}
+    l1, judgment, action = _pipeline(text, record=bool(authed),
+                                     toggles=None if authed else default_toggles)
     gating = store.gating() if authed else {"gentle": False, "urgent": False,
                                             "streak": 0, "layers": []}
     return jsonify({"l1": l1, "judgment": judgment, "action": action,

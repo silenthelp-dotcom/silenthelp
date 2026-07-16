@@ -99,6 +99,7 @@ _BENIGN_RE = re.compile(
     | \b(?:suspense|curiosity|wait(?:ing)?)\s+is\s+killing\s+me\b
     | \bcould\s+kill\s+for\s+a\b
     | \bdying\s+(?:my|your|her|his|their)\s+hair\b
+    | \b(?:so\s+|im\s+so\s+|i'?m\s+so\s+)?done\s+with\s+(?:this|the|that)\s+(?:show|season|episode|series|book|game|movie|level|semester|assignment|project|essay|homework)\b
     """,
     re.IGNORECASE | re.VERBOSE,
 )
