@@ -433,7 +433,8 @@
 
     <!-- ════ GENTLE POPUP ════ -->
     <div id="popup-gentle" style="display:none; position:absolute; inset:0; z-index:40; background:rgba(20,40,70,.34); backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px); align-items:center; justify-content:center; animation:fadeBg .3s ease;">
-      <div style="width:430px; background:#fff; border:1px solid #eef2f6; border-radius:20px; padding:32px; box-shadow:0 40px 100px rgba(20,40,80,.35); animation:screenIn .5s cubic-bezier(.16,1,.3,1);">
+      <div style="position:relative; width:430px; background:#fff; border:1px solid #eef2f6; border-radius:20px; padding:32px; box-shadow:0 40px 100px rgba(20,40,80,.35); animation:screenIn .5s cubic-bezier(.16,1,.3,1);">
+        <button onclick="App.closePopup()" aria-label="Close" title="Close" class="hov" style="position:absolute; top:16px; right:16px; width:30px; height:30px; border-radius:50%; border:none; background:#f2f5f9; color:#6b7885; font-size:16px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
         <div style="width:54px; height:54px; border-radius:50%; margin-bottom:22px; background:radial-gradient(circle at 50% 38%, #7cc4ff, #007aff 56%, #0049c4); box-shadow:0 12px 30px rgba(0,122,255,.4);"></div>
         <div class="pf" style="font-size:26px; color:#0e1822; line-height:1.1;">A quiet check-in</div>
         <div id="gentleDesc" style="font-size:14px; color:#5e6f7e; line-height:1.65; margin-top:14px; font-weight:300;">Your last few days look a little more scattered than your usual — later nights, more restless switching. No alarm. Just wanted to gently ask: how are you doing?</div>
@@ -451,6 +452,7 @@
 
     <!-- ════ URGENT — FULL-SCREEN ════ -->
     <div id="popup-urgent" style="display:none; position:absolute; inset:0; z-index:45; background:radial-gradient(120% 90% at 50% 30%, #ffffff, #eef4fb 60%, #e2ecf7); flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:0 60px; animation:fadeBg .5s ease; overflow:hidden;">
+      <button onclick="App.closePopup()" aria-label="Close" title="Close" class="hov" style="position:absolute; top:22px; right:22px; z-index:2; width:38px; height:38px; border-radius:50%; border:1px solid #d3e0ee; background:rgba(255,255,255,.8); color:#5e6f7e; font-size:18px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
       <div style="position:absolute; inset:0; pointer-events:none;">
         <div style="position:absolute; top:50%; left:0; width:100%; height:1px; background:linear-gradient(90deg, transparent, rgba(0,122,255,.4), transparent); transform-origin:center; animation:ripple 1.2s cubic-bezier(.16,1,.3,1) .2s both;"></div>
         <div style="position:absolute; top:34%; left:0; width:100%; height:1px; background:linear-gradient(90deg, transparent, rgba(0,122,255,.25), transparent); transform-origin:left; animation:ripple 1.4s cubic-bezier(.16,1,.3,1) .5s both;"></div>
@@ -498,7 +500,7 @@ const App = {
   toggles: { keyword: true, semantic: true, behavioral: true, trend: true, notify: true },
   history: [],
   _t: null, _sending: false, _contactT: null,
-  gentleShown: false, urgentShown: false, lastTrigger: null,
+  gentleShown: false, urgentShown: false, lastTrigger: null, _dismissedSig: null,
 
   esc(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); },
   api(path, body){ return fetch(path, body ? { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) } : {})
@@ -720,12 +722,21 @@ const App = {
     }
   },
   closePopup(){ clearTimeout(this._t);
-    // Dismissed stays dismissed: the background gating poll may NOT re-open the
-    // same moment (gentleShown/urgentShown stay true). Only a NEW detection
-    // (chat/scan resets the flags explicitly) or a page reload surfaces again.
+    // Dismissed stays dismissed for THIS message. We remember the exact snippet
+    // that triggered it — the same message will not re-pop, but a different one
+    // will. (The background gating poll also stays quiet on the dismissed one.)
+    const tr = this.lastTrigger || {};
+    this._dismissedSig = (tr.snippet || '') + '|' + (tr.phrase || '');
     this._suppressUntil = Date.now() + 25000;
+    this.gentleShown = true; this.urgentShown = true;
     document.getElementById('popup-gentle').style.display = 'none';
     document.getElementById('popup-urgent').style.display = 'none'; },
+
+  // A moment for `text` should show only if it's a DIFFERENT message than the
+  // one the user just dismissed. Same message → stay quiet until a new trigger.
+  _isDismissed(text, phrase){
+    return this._dismissedSig === ((text || '') + '|' + (phrase || ''));
+  },
   goChatFromPopup(){
     this.closePopup();
     if (this.lastTrigger) {
@@ -844,8 +855,8 @@ const App = {
     this.api('/api/scan', { text }).then(r => {
       if (!r) return;
       const phrase = (r.hits && r.hits[0] && r.hits[0].phrase) || null;
-      const cat = (r.categories && r.categories[0]) || 'distress';
-      if (r.tier3) {
+      if (r.tier3 && !this._isDismissed(text, phrase)) {
+        const cat = (r.categories && r.categories[0]) || 'distress';
         this.lastTrigger = { level:'crisis', cat:cat, snippet:text, phrase:phrase };
         this.urgentShown = false; this._suppressUntil = 0; this.openUrgent();
       }
@@ -864,19 +875,24 @@ const App = {
         this.history.push({ role: 'assistant', content: 'You deserve real support right now:\n' + lines });
         this.renderChat(false);
       }
-      // ALWAYS reset so a new message re-surfaces — dismissing never permanently silences it.
-      this._suppressUntil = 0; this.urgentShown = false; this.gentleShown = false;
-      if (lvl === 'crisis' || lvl === 'high' || act.route_to_human) this.openUrgent();
-      else if (lvl === 'moderate' || lvl === 'low') this.openGentle();
+      // Only surface if this is a DIFFERENT message than the one just dismissed.
+      // A new triggering message clears the dismissed signature and re-surfaces.
+      if (!this._isDismissed(text, phrase)) {
+        this._dismissedSig = null;
+        this._suppressUntil = 0; this.urgentShown = false; this.gentleShown = false;
+        if (lvl === 'crisis' || lvl === 'high' || act.route_to_human) this.openUrgent();
+        else if (lvl === 'moderate' || lvl === 'low') this.openGentle();
+      }
     } catch (e) {
       this.history.push({ role: 'assistant', content: "I'm here with you. (Connection hiccup — try again in a moment.)" });
       this.renderChat(false);
       // Even if the chat reply failed, still surface crisis from the local keyword DB.
       try {
         const r = await this.api('/api/scan', { text });
-        if (r && r.tier3) {
-          this.lastTrigger = { level: 'crisis', cat: (r.categories && r.categories[0]) || 'crisis', snippet: text, phrase: (r.hits && r.hits[0] && r.hits[0].phrase) || null };
-          this.urgentShown = false; this._suppressUntil = 0; this.openUrgent();
+        const ph = (r && r.hits && r.hits[0] && r.hits[0].phrase) || null;
+        if (r && r.tier3 && !this._isDismissed(text, ph)) {
+          this.lastTrigger = { level: 'crisis', cat: (r.categories && r.categories[0]) || 'crisis', snippet: text, phrase: ph };
+          this._dismissedSig = null; this.urgentShown = false; this._suppressUntil = 0; this.openUrgent();
         }
       } catch (_) {}
     } finally { this._sending = false; }
