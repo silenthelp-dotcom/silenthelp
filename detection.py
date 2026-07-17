@@ -98,20 +98,49 @@ Return ONLY a valid JSON object — no preamble, no markdown — in exactly this
   "rationale": "one short plain-language sentence, no quotes from the message"
 }
 
-Levels:
-- "crisis": explicit intent, plan, or active desire to die or seriously harm \
-  self/others (a stated method, timeframe, goodbye, or direct wish to not be \
-  alive — not exhaustive). A SINGLE MESSAGE IS ENOUGH. Never wait for a pattern.
-- "high": strong self-harm or suicidal ideation without a clear stated plan.
-- "moderate": persistent hopelessness, worthlessness, or being a burden, without \
-  self-harm language.
-- "low": elevated stress, burnout, sadness, overwhelm — a normal hard day.
-- "none": neutral, positive, logistical, or off-topic.
+SCOPE — what counts as a concern (flag ANY of these, not just suicide):
+  • Suicidal thoughts or intent, wanting to die, not wanting to exist
+  • Self-harm of any kind (cutting, burning, hurting oneself) — past or present
+  • Harm to others / violent intent toward people
+  • Abuse or unsafe situations (being hit, hurt, threatened, assaulted, exploited,
+    or unsafe at home / in a relationship)
+  • Disordered eating (starving, purging, bingeing, not eating on purpose,
+    hating one's body in a harmful way, eating-disorder thoughts)
+  • Substance use as a coping mechanism, relapse, using/drinking to numb pain
+  • Panic attacks, severe anxiety, trauma, flashbacks, dissociation
+  • Psychosis-type experiences (hearing voices, paranoia, losing touch with reality)
+  • Depression, hopelessness, worthlessness, emptiness, numbness, feeling like a burden
+  • Severe stress, burnout, overwhelm, exhaustion
+If a message expresses genuine distress in ANY of these areas, it is NOT "none".
+
+Levels (apply to EVERY concern area above, not only suicide):
+- "crisis": explicit intent/plan/active desire to die or to seriously harm self or
+  others RIGHT NOW (a stated method, timeframe, goodbye, active self-harm tonight,
+  a specific plan to hurt someone). Also: disclosure of active, ongoing abuse or
+  assault, or being in immediate danger. A SINGLE MESSAGE IS ENOUGH — never wait
+  for a pattern.
+- "high": strong self-harm/suicidal ideation without a stated plan; active
+  self-harm; serious disordered eating (starving oneself, purging); disclosed
+  abuse; psychosis-type experiences; a relapse into dangerous substance use;
+  wanting to hurt someone without a concrete plan.
+- "moderate": persistent depression, hopelessness, worthlessness, being a burden,
+  numbness/emptiness; recurring panic attacks or severe anxiety; problematic
+  coping (drinking/using to numb) without immediate danger; body-image distress
+  or worry about an eating disorder.
+- "low": elevated stress, burnout, sadness, overwhelm, exhaustion — a hard day,
+  or a first mention of feeling down/anxious.
+- "none": neutral, positive, logistical, off-topic, or clearly non-serious
+  (jokes, idioms, hyperbole aimed at something external).
+
+When unsure whether something is a real concern, treat it as a concern (at least
+"low"). Missing a struggling student is the failure we must avoid; a gentle
+check-in on a false alarm is acceptable.
 
 Rules:
 - READ INTENT, NOT WORDS. Your whole job is deciding what the student MEANS.
   Literal/playful/idiomatic use of scary-sounding words is "none". Genuine
-  self-directed distress is flagged even when phrased mildly or hedged with humor.
+  distress in ANY concern area above is flagged even when phrased mildly or
+  hedged with humor.
 - Everyday hyperbole aimed at something external or funny is "none": "dying \
   laughing", "this is killing me" about a joke/video/test, "im dead 💀" at a meme, \
   "that killed me", "to die for".
@@ -141,6 +170,23 @@ Calibration examples (input → risk_level):
 - "the game glitched and killed me again" → none  (gaming)
 - "i hate my life" → moderate
 - "i hate my life, whats the point of anything anymore" → high
+- "i think im depressed" → moderate  (genuine mental-health concern)
+- "i cant stop self harming" → high  (active self-harm)
+- "i cut myself last night" → high
+- "my dad hits me" → crisis  (active abuse / immediate safety)
+- "im being abused at home" → crisis
+- "i havent eaten in three days on purpose" → high  (disordered eating)
+- "i think i have an eating disorder" → moderate
+- "i keep making myself throw up" → high  (purging)
+- "i drank to numb the pain again" → moderate  (harmful coping)
+- "i relapsed and im using again" → high
+- "i keep having panic attacks" → moderate
+- "i keep having flashbacks and cant sleep" → moderate  (trauma)
+- "i hear voices telling me to do things" → high  (psychosis-type, safety)
+- "i feel like hurting someone" → high  (harm to others)
+- "im gonna hurt him tomorrow" → crisis  (planned harm to others)
+- "i feel numb and empty all the time" → moderate
+- "whats the homework for chem" → none  (logistical)
 """
 
 

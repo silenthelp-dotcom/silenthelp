@@ -321,8 +321,16 @@ def _pipeline(message: str, record: bool = False, toggles: dict | None = None):
     # THE SEMANTIC MODEL DECIDES. It reads intent — joke vs genuine — which the
     # keyword layer can't. Keywords only (a) fast-path explicit tier-3 crisis
     # above, and (b) act as the safety net when the model is off/unreachable.
-    if not semantic_on or l2_failed:
+    if not semantic_on:
+        # Semantic layer turned off by the user → keyword result stands.
         final = l1_level
+    elif l2_failed:
+        # Model unreachable/errored. classify_message() already failed SAFE to
+        # "high" — honor that. Take the HIGHER of the keyword level and the
+        # fail-safe so a genuine concern the keywords can't see (abuse, ED,
+        # psychosis…) still routes to a human instead of silently becoming none.
+        fs_level = judgment.get("risk_level", "high")
+        final = l1_level if _ORDER.get(l1_level, 0) >= _ORDER.get(fs_level, 0) else fs_level
     else:
         final = l2_level
 
