@@ -40,6 +40,7 @@ import re
 import smtplib
 import ssl
 from concurrent.futures import ThreadPoolExecutor
+from datetime import timedelta
 from email.message import EmailMessage
 
 from flask import Flask, Response, jsonify, make_response, redirect, render_template, request, send_file, session, stream_with_context
@@ -71,7 +72,30 @@ import layer1
 import store
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "silenthelp-dev-secret-change-me")
+# Session-signing key. NEVER ship the old hardcoded default — a key that's
+# public in the repo lets anyone forge a session cookie and impersonate any
+# account. In production (Render sets PORT / RENDER) a missing SECRET_KEY is a
+# hard error; in local dev we generate a random ephemeral key per process.
+_secret = os.environ.get("SECRET_KEY")
+if not _secret:
+    _in_prod = bool(os.environ.get("RENDER") or os.environ.get("DATABASE_URL"))
+    if _in_prod:
+        raise RuntimeError(
+            "SECRET_KEY is not set. Set it in the environment (Render dashboard) "
+            "before starting — refusing to run with a guessable session key.")
+    import secrets as _secrets
+    _secret = _secrets.token_hex(32)  # ephemeral: dev sessions reset on restart
+app.secret_key = _secret
+
+# Session cookie hardening: not readable by JS, sent cross-site only as needed,
+# HTTPS-only in production, and expiring rather than living forever.
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=bool(os.environ.get("RENDER") or os.environ.get("DATABASE_URL")),
+    PERMANENT_SESSION_LIFETIME=timedelta(days=30),
+)
+
 # Behind Cloudflare Tunnel: trust the X-Forwarded-* headers so Flask builds
 # redirects/url_for with the real public host + https (not 127.0.0.1/http).
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
@@ -159,7 +183,7 @@ def api_signup():
     d = request.get_json(silent=True) or {}
     uid = auth.signup(d.get("email", ""), d.get("password", ""), d.get("name", ""))
     if not uid:
-        return jsonify({"error": "That email is taken, or the details are invalid (password 4+ chars)."}), 409
+        return jsonify({"error": "That email is taken, or the details are invalid (password 6+ chars)."}), 409
     session["uid"] = uid
     # Seed the new account's profile with their real name (never a placeholder).
     user = auth.get_user(uid)
@@ -645,7 +669,10 @@ def _smtp_send(to_addr: str, subject: str, body: str) -> bool:
     """Actually send an email via SMTP if credentials are configured in .env.
     Returns True on success. Reads SMTP_HOST/PORT/USER/PASS/FROM from the env."""
     host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
-    port = int(os.environ.get("SMTP_PORT", "587"))
+    try:
+        port = int(os.environ.get("SMTP_PORT", "587"))
+    except (TypeError, ValueError):
+        port = 587  # a malformed SMTP_PORT must not crash the send path
     user = os.environ.get("SMTP_USER")
     password = os.environ.get("SMTP_PASS")
     sender = os.environ.get("SMTP_FROM", user or "")

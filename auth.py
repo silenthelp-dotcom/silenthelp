@@ -47,10 +47,16 @@ def _hash(password: str, salt_hex: str) -> str:
     return hashlib.pbkdf2_hmac("sha256", password.encode(), bytes.fromhex(salt_hex), _ITERATIONS).hex()
 
 
+# A fixed dummy salt used to burn the same PBKDF2 time when the email is unknown,
+# so login can't be used as a timing oracle to enumerate which emails exist.
+_DUMMY_SALT = "00" * 8
+
+
 def signup(email: str, password: str, name: str = "") -> Optional[str]:
-    """Create an account. Returns the new uid, or None if the email is taken."""
+    """Create an account. Returns the new uid, or None if the email is taken
+    or the details are invalid. Password minimum is 6 (matches the UI + policy)."""
     email = (email or "").strip().lower()
-    if not email or "@" not in email or len(password or "") < 4:
+    if not email or "@" not in email or len(password or "") < 6:
         return None
     with _LOCK:
         data = _load()
@@ -70,12 +76,18 @@ def signup(email: str, password: str, name: str = "") -> Optional[str]:
 
 
 def login(email: str, password: str) -> Optional[str]:
-    """Return uid on correct credentials, else None."""
+    """Return uid on correct credentials, else None.
+
+    Constant-work: even when the email is unknown we still run one PBKDF2 hash
+    against a dummy salt, so response time doesn't reveal which emails have
+    accounts (no user-enumeration timing oracle)."""
     email = (email or "").strip().lower()
     with _LOCK:
         data = _load()
         uid = data["by_email"].get(email)
         if not uid:
+            # Burn equivalent time, then fail — same cost as a wrong password.
+            _hash(password or "", _DUMMY_SALT)
             return None
         u = data["users"][uid]
         if secrets.compare_digest(_hash(password, u["salt"]), u["hash"]):
