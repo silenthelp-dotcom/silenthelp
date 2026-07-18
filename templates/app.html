@@ -852,17 +852,23 @@ const App = {
     this._sending = true;
     this.history.push({ role: 'user', content: text });
     input.value = ''; this.renderChat(true);
-    // INSTANT surface ONLY for explicit tier-3 crisis (~30ms, no model wait).
-    // Softer signals wait for the semantic verdict below — it reads context,
-    // so "this is killing me 😂" never pops but "i am so stressed" does.
+    // INSTANT surface from the local keyword scan (~1ms, no model wait), for
+    // ANY level — so "i am so stressed" pops immediately, not just crisis.
+    // Skips only if the keyword layer saw a joke context (r.joking_context);
+    // the semantic verdict below can still upgrade/refine. Respects dismissal.
+    this._instantShown = false;
     this.api('/api/scan', { text }).then(r => {
-      if (!r) return;
+      if (!r || r.level < 1 || r.joking_context) return;
       const phrase = (r.hits && r.hits[0] && r.hits[0].phrase) || null;
-      if (r.tier3 && !this._isDismissed(text, phrase)) {
-        const cat = (r.categories && r.categories[0]) || 'distress';
-        this.lastTrigger = { level:'crisis', cat:cat, snippet:text, phrase:phrase };
-        this.urgentShown = false; this._suppressUntil = 0; this.openUrgent();
-      }
+      if (this._isDismissed(text, phrase)) return;
+      const cat = (r.categories && r.categories[0]) || 'distress';
+      const lvlName = ['none','low','moderate','high','crisis'][r.level] || 'moderate';
+      this.lastTrigger = { level: lvlName, cat: cat, snippet: text, phrase: phrase };
+      this._dismissedSig = null; this._suppressUntil = 0;
+      this._instantShown = true;
+      // crisis / high / received-threat → urgent; softer → gentle
+      if (r.tier3 || r.level >= 4 || r.level === 3 || r.received_threat) { this.urgentShown = false; this.openUrgent(); }
+      else { this.gentleShown = false; this.openGentle(); }
     }).catch(()=>{});
     try {
       const data = await this.api('/api/chat', { message: text, messages: this.history.slice(0, -1) });
@@ -878,13 +884,18 @@ const App = {
         this.history.push({ role: 'assistant', content: 'You deserve real support right now:\n' + lines });
         this.renderChat(false);
       }
-      // Only surface if this is a DIFFERENT message than the one just dismissed.
-      // A new triggering message clears the dismissed signature and re-surfaces.
-      if (!this._isDismissed(text, phrase)) {
-        this._dismissedSig = null;
-        this._suppressUntil = 0; this.urgentShown = false; this.gentleShown = false;
-        if (lvl === 'crisis' || lvl === 'high' || act.route_to_human) this.openUrgent();
-        else if (lvl === 'moderate' || lvl === 'low') this.openGentle();
+      // The instant keyword scan may have already surfaced. The AI verdict now
+      // REFINES: if the model says this is actually benign (none) and it was a
+      // joke/idiom, close the false alarm. Otherwise surface (if not already,
+      // and not a dismissed message).
+      const jokeContext = l1.joking_context;
+      if (lvl === 'none' && this._instantShown && jokeContext) {
+        this.closePopup();               // model corrected a keyword false alarm
+        this._dismissedSig = null;       // (don't remember this as user-dismissed)
+      } else if (!this._isDismissed(text, phrase) && lvl !== 'none') {
+        this._dismissedSig = null; this._suppressUntil = 0;
+        if (lvl === 'crisis' || lvl === 'high' || act.route_to_human) { this.urgentShown = false; this.openUrgent(); }
+        else if (lvl === 'moderate' || lvl === 'low') { this.gentleShown = false; this.openGentle(); }
       }
     } catch (e) {
       this.history.push({ role: 'assistant', content: "I'm here with you. (Connection hiccup — try again in a moment.)" });

@@ -66,6 +66,102 @@ _ROOT_ONLY_RE: Dict[str, re.Pattern] = {
 _TIER3_RE = re.compile(rf"\b(?:{_alt(_DATA['standalone_tier_3_crisis'])})\b", re.IGNORECASE)
 
 # ---------------------------------------------------------------------------
+# Spelling-tolerant core emotion words. Students misspell ("depresed"),
+# double letters ("depresssed"), or drop letters ("alon"). Exact regex can't
+# catch those, so for a small, high-value set of core mental-health words we
+# fuzzy-match: collapse repeated letters, then allow up to 1 edit (Levenshtein)
+# against each canonical word. Fast — it's a fixed ~40-word list, checked once.
+#   category level: 1 burnout · 2 stress · 3 isolation/hopelessness
+_FUZZY_WORDS = {
+    # isolation / hopelessness (level 3)
+    "depressed": 3, "depression": 3, "alone": 3, "lonely": 3, "hopeless": 3,
+    "worthless": 3, "empty": 3, "numb": 3, "isolated": 3, "unwanted": 3,
+    "unloved": 3, "abandoned": 3, "invisible": 3, "helpless": 3, "miserable": 3,
+    "lost": 3, "broken": 3, "pointless": 3, "useless": 3,
+    # stress / overwhelm (level 2)
+    "stressed": 2, "anxious": 2, "anxiety": 2, "overwhelmed": 2, "panicking": 2,
+    "panic": 2, "scared": 2, "afraid": 2, "terrified": 2, "drowning": 2,
+    # burnout / fatigue (level 1)
+    "exhausted": 1, "burntout": 1, "burnout": 1, "drained": 1, "tired": 1,
+    "sad": 3, "crying": 2, "struggling": 2,
+}
+# words too short to fuzzy-match safely (1 edit would swallow common words)
+_FUZZY_MIN_LEN = 4
+
+
+def _collapse_repeats(w: str) -> str:
+    """depresssed -> depresed  (squash 3+ repeats to 1, so double letters stay)."""
+    return re.sub(r"(.)\1{1,}", r"\1", w)
+
+
+def _lev1(a: str, b: str) -> bool:
+    """True if `a` is within edit distance 1 of `b` (Damerau: also allows one
+    adjacent transposition, e.g. 'exhuasted' vs 'exhausted'). Cheap early-outs."""
+    if a == b:
+        return True
+    la, lb = len(a), len(b)
+    if abs(la - lb) > 1:
+        return False
+    # find first differing char
+    i = 0
+    while i < min(la, lb) and a[i] == b[i]:
+        i += 1
+    if la == lb:
+        # substitution: rest matches...
+        if a[i + 1:] == b[i + 1:]:
+            return True
+        # ...or an adjacent transposition (swap a[i], a[i+1])
+        return (i + 1 < la and a[i] == b[i + 1] and a[i + 1] == b[i]
+                and a[i + 2:] == b[i + 2:])
+    if la < lb:   # insertion into a
+        return a[i:] == b[i + 1:]
+    return a[i + 1:] == b[i:]  # deletion from a
+
+
+def _lev2(a: str, b: str) -> bool:
+    """Within edit distance 2 — used only for longer words (>=7 chars) where two
+    typos are common and false positives are unlikely ('lonley' vs 'lonely')."""
+    la, lb = len(a), len(b)
+    if abs(la - lb) > 2:
+        return False
+    # simple DP, tiny strings
+    prev = list(range(lb + 1))
+    for i in range(1, la + 1):
+        cur = [i] + [0] * lb
+        for j in range(1, lb + 1):
+            cost = 0 if a[i - 1] == b[j - 1] else 1
+            cur[j] = min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost)
+        prev = cur
+    return prev[lb] <= 2
+
+
+_WORD_RE = re.compile(r"[a-z']+")
+
+
+def _fuzzy_scan(text: str) -> Dict[str, int]:
+    """Return {canonical_word: level} for any token that (after collapsing
+    repeats) is within 1 edit of a core emotion word. Misspelling-tolerant."""
+    found: Dict[str, int] = {}
+    for tok in _WORD_RE.findall(text.lower()):
+        if len(tok) < 3:
+            continue
+        c = _collapse_repeats(tok)
+        for word, lvl in _FUZZY_WORDS.items():
+            cw = _collapse_repeats(word)
+            # Short words (<4) must match closely (collapsed-equal only) to avoid
+            # swallowing common words. Longer words allow 1 edit; 7+ allow 2.
+            if len(word) < 4:
+                match = (c == cw)
+            elif len(word) >= 7:
+                match = _lev1(c, cw) or _lev1(tok, word) or _lev2(tok, word)
+            else:
+                match = _lev1(c, cw) or _lev1(tok, word)
+            if match:
+                found[word] = lvl
+                break
+    return found
+
+# ---------------------------------------------------------------------------
 # Context guard — jokes, idioms, and hyperbole must NOT trigger.
 # "damn bro im dying laughing" / "this meme killed me" / "my phone is dead"
 # are everyday speech, not signals. Two mechanisms:
@@ -127,6 +223,27 @@ _HYPERBOLE = {
     "this is torture", "end me",
 }
 
+# Threats DIRECTED AT the user (someone said this TO them) — bullying, threats,
+# intimidation. This is a safety concern even though the user isn't the one in
+# distress. "i want to kill you", "im going to hurt you", "you should die",
+# "kill yourself" (told to them), "i'll beat you up".
+_RECEIVED_THREAT_RE = re.compile(
+    r"(?:"
+    r"\b(?:i(?:'?m| am| will|'?ll| wanna| want to| gonna|'?d)?\s+"
+    r"(?:kill|hurt|beat|hit|end|destroy|find|get|stab|shoot|jump)\s+(?:you|u|ya|yall|y'all)\b)"
+    r"|\byou(?:'?re| are)?\s+(?:gonna|going to|finna)\s+(?:die|regret|pay|suffer)\b"
+    r"|\b(?:you should|u should|go)\s+(?:die|kill\s+(?:yourself|urself|urslf))\b"
+    r"|\bkill\s+(?:yourself|urself|urslf|yrself)\b"
+    r"|\b(?:im|i am|imma|i'?ma)\s+(?:gonna|going to|finna)\s+(?:kill|hurt|beat|end)\s+(?:you|u|ya)\b"
+    r"|\bwatch\s+your\s+back\b"
+    r"|\byou(?:'?re| are)\s+(?:dead|done|finished)\b(?!\s*(?:lol|lmao|😂|🤣|inside|to me))"
+    r"|\bi'?ll\s+make\s+you\s+(?:pay|suffer|regret)\b"
+    r"|\bnobody\s+(?:likes|wants)\s+you\b"
+    r"|\byou(?:'?re| are)\s+(?:worthless|nothing|pathetic|a\s+loser|ugly|stupid|a\s+freak)\b"
+    r")",
+    re.IGNORECASE,
+)
+
 # Never suppress these, joke markers or not — self-directed, explicit.
 _ALWAYS_SERIOUS_RE = re.compile(
     r"(?:suicid|kill\s+myself|killing\s+myself|unalive\s+myself|end\s+my\s+life"
@@ -173,6 +290,15 @@ def scan(text: str, *, root_only: bool = True) -> Dict[str, Any]:
     benign = _benign_spans(text)
     laugh_spans = [m.span() for m in _LAUGH_RE.finditer(text)]
     always_serious = bool(_ALWAYS_SERIOUS_RE.search(text))
+    # A threat aimed AT the user (bullying / intimidation they received). A joke
+    # marker right next to it ("i'll kill you lol") reads as banter; an explicit
+    # threat with no laughter stays serious.
+    threat_m = _RECEIVED_THREAT_RE.search(text)
+    received_threat = False
+    if threat_m:
+        near_joke = any(s <= threat_m.end() + _JOKE_RADIUS and e >= threat_m.start() - _JOKE_RADIUS
+                        for s, e in laugh_spans)
+        received_threat = not near_joke
 
     def _near_laugh(span: tuple) -> bool:
         return any(s <= span[1] + _JOKE_RADIUS and e >= span[0] - _JOKE_RADIUS
@@ -205,8 +331,25 @@ def scan(text: str, *, root_only: bool = True) -> Dict[str, Any]:
             for phrase in sorted(found):
                 hits.append({"phrase": phrase, "category": category, "tier": "1"})
 
-    # Highest level wins. Tier-3 is always level 4.
-    level = 4 if tier3_phrases else max((CATEGORY_LEVEL.get(c, 0) for c in categories), default=0)
+    # Spelling-tolerant core-word pass: catches "depresed", "im so alon", etc.
+    # Suppressed when the message is clearly joking (unless always-serious).
+    fuzzy_level = 0
+    if not (joking and not always_serious):
+        fuzzy = _fuzzy_scan(text)
+        for word, lvl in fuzzy.items():
+            fuzzy_level = max(fuzzy_level, lvl)
+            hits.append({"phrase": word, "category": "fuzzy", "tier": "1"})
+
+    # A received threat is a safety concern → at least level 3 (high).
+    if received_threat:
+        hits.append({"phrase": threat_m.group(0).lower().strip(),
+                     "category": "received_threat", "tier": "3"})
+        if "received_threat" not in categories:
+            categories.append("received_threat")
+
+    # Highest level wins. Tier-3 (self crisis) = 4. Received threat = 3.
+    cat_level = max((CATEGORY_LEVEL.get(c, 0) for c in categories), default=0)
+    level = 4 if tier3_phrases else max(cat_level, fuzzy_level, 3 if received_threat else 0)
 
     return {
         "tier3": bool(tier3_phrases),
@@ -216,6 +359,7 @@ def scan(text: str, *, root_only: bool = True) -> Dict[str, Any]:
         "level": level,
         "level_name": LEVEL_NAME[level],
         "joking_context": joking and not always_serious,
+        "received_threat": received_threat,
     }
 
 

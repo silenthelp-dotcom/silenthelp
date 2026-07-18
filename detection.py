@@ -98,10 +98,18 @@ Return ONLY a valid JSON object — no preamble, no markdown — in exactly this
   "rationale": "one short plain-language sentence, no quotes from the message"
 }
 
+The message may be something the student WROTE, or a message they RECEIVED (a
+screenshot, a text someone sent them). Both matter: a student writing distress,
+AND a student being threatened or bullied BY someone else, are both concerns.
+
 SCOPE — what counts as a concern (flag ANY of these, not just suicide):
   • Suicidal thoughts or intent, wanting to die, not wanting to exist
   • Self-harm of any kind (cutting, burning, hurting oneself) — past or present
   • Harm to others / violent intent toward people
+  • THREATS or BULLYING the student RECEIVED — someone telling them "i'll kill
+    you", "you should die", "kill yourself", "i'm going to hurt you", "nobody
+    likes you", "you're worthless", intimidation, harassment. The student is the
+    VICTIM here — this is a safety concern for them, category "abuse_or_safety".
   • Abuse or unsafe situations (being hit, hurt, threatened, assaulted, exploited,
     or unsafe at home / in a relationship)
   • Disordered eating (starving, purging, bingeing, not eating on purpose,
@@ -187,6 +195,11 @@ Calibration examples (input → risk_level):
 - "im gonna hurt him tomorrow" → crisis  (planned harm to others)
 - "i feel numb and empty all the time" → moderate
 - "whats the homework for chem" → none  (logistical)
+- "i want to kill you" → crisis  (a threat the student RECEIVED — their safety)
+- "you should kill yourself" → crisis  (someone told them this — bullying/threat)
+- "im gonna beat you up after school" → high  (threat received)
+- "nobody likes you, you're worthless" → high  (bullying received)
+- "i'll kill you lol jk" → none  (playful banter between friends)
 """
 
 

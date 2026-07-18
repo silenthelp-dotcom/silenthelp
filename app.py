@@ -334,6 +334,16 @@ def _pipeline(message: str, record: bool = False, toggles: dict | None = None):
     else:
         final = l2_level
 
+    # A keyword-detected RECEIVED THREAT (someone threatening the user) is a
+    # safety concern even if the model read it lower — floor it at "high" unless
+    # the model actively judged it benign/joke (none). This keeps "i want to
+    # kill you" surfacing while "i'll kill you lol" (model → none) stays quiet.
+    received_threat = bool(l1.get("received_threat"))
+    if received_threat and final != "none" and _ORDER.get(final, 0) < _ORDER["high"]:
+        final = "high"
+    if received_threat and not semantic_on:
+        final = "high"
+
     categories = l1["categories"] or judgment.get("categories") or []
     # Popup policy for BACKGROUND monitoring (agent/OCR): interrupt only when it
     # matters. crisis/high → urgent · moderate → gentle · low → logged silently
@@ -342,7 +352,7 @@ def _pipeline(message: str, record: bool = False, toggles: dict | None = None):
                else "gentle" if final == "moderate" else "none")
     judgment = {**judgment, "risk_level": final, "_l1_level": l1_level,
                 "_l2_level": l2_level, "_l1_tier3": bool(l1["tier3"]),
-                "surface": surface,
+                "surface": surface, "received_threat": received_threat,
                 "categories": categories or judgment.get("categories", [])}
     action = detection.decide_response({"risk_level": final})
 

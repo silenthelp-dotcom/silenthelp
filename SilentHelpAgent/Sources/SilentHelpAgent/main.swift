@@ -310,6 +310,13 @@ final class Monitor {
     private var crisisQuietUntil = Date.distantPast   // crisis re-pop limiter
     private(set) var lastApp = ""
 
+    // "Wait till the user sends" — don't react mid-typing. We only scan text
+    // once it has STOPPED changing (the user paused or sent), not on every
+    // keystroke. `pending` holds the last-seen text and when it first appeared.
+    private var pending = ""
+    private var pendingSince = Date.distantPast
+    private let settleSeconds: TimeInterval = 1.1   // pause that counts as "done"
+
     func start() {
         timer = Timer.scheduledTimer(withTimeInterval: Config.pollSeconds, repeats: true) { [weak self] _ in
             self?.tick()
@@ -320,7 +327,18 @@ final class Monitor {
         guard !Snooze.isActive else { return }
         guard let text = AXReader.focusedText() else { return }
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.count >= Config.minChars, trimmed != lastScanned else { return }
+        guard trimmed.count >= Config.minChars else { pending = ""; return }
+
+        // Still typing? Text changed since last tick → reset the settle timer.
+        if trimmed != pending {
+            pending = trimmed
+            pendingSince = Date()
+            return
+        }
+        // Text unchanged but hasn't settled long enough yet → keep waiting.
+        guard Date().timeIntervalSince(pendingSince) >= settleSeconds else { return }
+        // Settled, and not already scanned → this is a completed message.
+        guard trimmed != lastScanned else { return }
         lastScanned = trimmed
         lastApp = NSWorkspace.shared.frontmostApplication?.localizedName ?? "an app"
 
