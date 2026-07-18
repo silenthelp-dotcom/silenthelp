@@ -127,6 +127,7 @@
           <div class="navitem" data-screen="reports" onclick="App.go('reports')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Findings</div>
           <div class="navitem" data-screen="moments" onclick="App.go('moments')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Moments</div>
           <div class="navitem" data-screen="chat" onclick="App.go('chat')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Coping Chat</div>
+          <div class="navitem" data-screen="helper" onclick="App.go('helper')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Help a Friend</div>
           <div class="navitem" data-screen="connection" onclick="App.go('connection')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Connection</div>
           <div class="navitem" data-screen="settings" onclick="App.go('settings')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Settings</div>
           <div class="navitem" data-screen="account" onclick="App.go('account')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Account</div>
@@ -283,6 +284,24 @@
               <div style="padding:16px 40px 24px; flex-shrink:0; display:flex; gap:12px;">
                 <input id="chatInput" placeholder="Say what's on your mind…" style="flex:1; height:48px; border:1px solid #dde6ef; border-radius:13px; padding:0 18px; font-size:14px; outline:none; color:#16202b; background:#fff;" />
                 <button class="glass" onclick="App.send()" style="height:48px; padding:0 24px; border-radius:13px; font-size:14px; font-weight:600;">Send</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- HELP A FRIEND -->
+          <div class="appscreen" id="scr-helper" style="display:none; height:100%;">
+            <div style="height:100%; display:flex; flex-direction:column;">
+              <div style="padding:28px 40px 14px; flex-shrink:0;">
+                <div class="pf" style="font-size:30px; color:#0e1822; line-height:1;">Help a Friend</div>
+                <div style="font-size:12.5px; color:#8b99a6; margin-top:8px; font-weight:300;">A friend going through something? Paste what they said and SilentHelp will coach you on how to reply — turn by turn.</div>
+              </div>
+              <div id="helperThread" style="flex:1; overflow:auto; padding:8px 40px 12px; display:flex; flex-direction:column; gap:14px;"></div>
+              <div style="padding:12px 40px 22px; flex-shrink:0;">
+                <div style="display:flex; gap:12px;">
+                  <input id="helperInput" placeholder="Paste what your friend just said…" style="flex:1; height:48px; border:1px solid #dde6ef; border-radius:13px; padding:0 18px; font-size:14px; outline:none; color:#16202b; background:#fff;" />
+                  <button class="glass" onclick="App.helperSend()" style="height:48px; padding:0 24px; border-radius:13px; font-size:14px; font-weight:600;">Get help</button>
+                </div>
+                <div style="font-size:11px; color:#9aa7b3; margin-top:9px; font-weight:300;">You paste what your <b>friend</b> says. SilentHelp suggests what <b>you</b> reply. Nothing is sent for you.</div>
               </div>
             </div>
           </div>
@@ -502,6 +521,7 @@ const App = {
   name: 'Alex',
   toggles: { keyword: true, semantic: true, behavioral: true, trend: true, notify: true },
   history: [],
+  helperConvo: [], _helperBusy: false,
   _t: null, _sending: false, _contactT: null,
   gentleShown: false, urgentShown: false, lastTrigger: null, _dismissedSig: null,
 
@@ -526,6 +546,7 @@ const App = {
     if (screen === 'reports') this.loadFindings();
     if (screen === 'moments') this.loadMoments();
     if (screen === 'chat') this.renderChat(false);
+    if (screen === 'helper') this.renderHelper();
     if (screen === 'connection') this.loadConnection();
     if (screen === 'account') this.loadAccount();
   },
@@ -912,6 +933,59 @@ const App = {
     } finally { this._sending = false; }
   },
 
+  // ---- Help a Friend (coach mode) ----
+  renderHelper(){
+    const wrap = document.getElementById('helperThread'); if (!wrap) return;
+    if (!this.helperConvo.length){
+      wrap.innerHTML = `<div style="text-align:center; padding:48px 20px; max-width:440px; margin:0 auto;">
+        <img src="/static/img/badge-128.png" style="width:56px; height:56px; border-radius:50%; opacity:.9;" />
+        <div class="pf" style="font-size:22px; color:#3c4a57; margin-top:16px;">Someone you care about is struggling?</div>
+        <div style="font-size:13px; color:#8b99a6; margin-top:10px; line-height:1.6; font-weight:300;">Paste the message your friend sent you below. SilentHelp will suggest a caring reply and coach you through the conversation — so you know what to say, and when it's time to bring in a trusted adult.</div>
+      </div>`;
+      return;
+    }
+    wrap.innerHTML = this.helperConvo.map(m => {
+      if (m.role === 'friend')
+        return `<div style="display:flex; justify-content:flex-start;"><div style="max-width:74%;"><div style="font-size:10.5px; letter-spacing:.12em; color:#9aa7b3; margin:0 0 5px 4px;">YOUR FRIEND</div><div style="font-size:14px; line-height:1.6; color:#3c4a57; background:#eef2f6; padding:12px 15px; border-radius:14px; white-space:pre-wrap;">${this.esc(m.content)}</div></div></div>`;
+      // coach card
+      const dangerColors = { none:'#1f9d55', watch:'#e8862a', escalate:'#d2381f' };
+      const dc = dangerColors[m.danger] || '#007aff';
+      let esc = '';
+      if (m.danger === 'escalate' && m.escalation_reason){
+        esc = `<div style="margin-top:12px; padding:12px 14px; border-radius:11px; background:#fff3f0; border:1px solid #f3d6d0;">
+          <div style="font-size:12px; font-weight:700; color:#c2381f; letter-spacing:.04em;">⚠ TIME TO BRING IN A TRUSTED ADULT</div>
+          <div style="font-size:12.5px; color:#8a4535; margin-top:6px; line-height:1.6; font-weight:300;">${this.esc(m.escalation_reason)}</div>
+          <div style="font-size:12.5px; color:#8a4535; margin-top:8px; line-height:1.6; font-weight:300;">Telling an adult isn't betraying your friend — a friend in real danger needs more help than one person can give, and reaching out is the kindest, bravest thing you can do. If it's urgent, call or text <b>988</b> together, or text <b>HOME to 741741</b>.</div>
+        </div>`;
+      }
+      return `<div style="display:flex; justify-content:flex-end;"><div style="max-width:82%; background:#fff; border:1px solid #e6ecf2; border-radius:16px; padding:16px 18px; box-shadow:0 4px 16px rgba(20,40,80,.05);">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:9px;"><img src="/static/img/badge-64.png" style="width:18px; height:18px; border-radius:50%;" /><span style="font-size:11px; font-weight:700; letter-spacing:.1em; color:#3d8bdb;">SUGGESTED REPLY</span><span style="margin-left:auto; width:7px; height:7px; border-radius:50%; background:${dc};"></span></div>
+        <div style="font-size:14px; line-height:1.62; color:#16202b; white-space:pre-wrap;">${this.esc(m.reply)}</div>
+        <button class="hov" onclick="App.helperCopy(this, ${JSON.stringify(m.reply).replace(/"/g,'&quot;')})" style="margin-top:11px; font-size:12px; font-weight:600; color:#0a6dff; background:#eef5ff; border:1px solid #d3e4fb; border-radius:9px; padding:7px 14px; cursor:pointer;">Copy this reply</button>
+        ${m.guidance ? `<div style="margin-top:12px; padding-top:11px; border-top:1px solid #eef2f6; font-size:12.5px; color:#7a8b99; line-height:1.6; font-weight:300;"><b style="color:#5e6f7e; font-weight:600;">Why:</b> ${this.esc(m.guidance)}</div>` : ''}
+        ${esc}
+      </div></div>`;
+    }).join('') + (this._helperBusy ? `<div style="display:flex; justify-content:flex-end;"><div style="display:flex; gap:5px; padding:8px 4px;"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div></div>` : '');
+    wrap.scrollTop = wrap.scrollHeight;
+  },
+  async helperSend(){
+    const input = document.getElementById('helperInput');
+    const text = (input.value || '').trim();
+    if (!text || this._helperBusy) return;
+    this.helperConvo.push({ role: 'friend', content: text });
+    input.value = ''; this._helperBusy = true; this.renderHelper();
+    try {
+      const d = await this.api('/api/helper', { messages: this.helperConvo });
+      this.helperConvo.push({ role: 'coach', reply: d.reply || '', guidance: d.guidance || '',
+        danger: d.danger || 'watch', escalation_reason: d.escalation_reason || '' });
+    } catch(e){
+      this.helperConvo.push({ role: 'coach', reply: "I'm here — start by telling your friend you're really glad they told you, and ask if they're safe right now.", guidance: 'Validate them and check they’re safe. Stay calm.', danger:'watch', escalation_reason:'' });
+    } finally { this._helperBusy = false; this.renderHelper(); }
+  },
+  helperCopy(btn, txt){
+    navigator.clipboard.writeText(txt).then(()=>{ const o=btn.textContent; btn.textContent='✓ Copied'; setTimeout(()=>btn.textContent=o, 1500); }).catch(()=>{});
+  },
+
   // ---- real behavioral logging (Layer 3) ----
   M: { keys:0, back:0, blur:0, activeMs:0, lateMs:0, longest:0 }, _stretch:0, _lastT:Date.now(),
   trackBehavior(){
@@ -970,6 +1044,7 @@ const App = {
     document.getElementById('dashDate').textContent =
       new Date().toLocaleDateString(undefined,{weekday:'long', month:'long', day:'numeric'}) + ' · surface conditions';
     document.getElementById('chatInput').addEventListener('keydown', e => { if (e.key === 'Enter') App.send(); });
+    document.getElementById('helperInput').addEventListener('keydown', e => { if (e.key === 'Enter') App.helperSend(); });
 
     // SIGN-IN GATE: nobody gets in (or sees anyone's data) without an account.
     let me = { signedIn: false };
@@ -1002,7 +1077,7 @@ const App = {
     setInterval(() => this.paintSnooze(), 30000);
 
     // deep-link support: /app#chat etc. opens straight to that screen
-    const valid = ['dashboard','analytics','reports','moments','chat','connection','settings','account'];
+    const valid = ['dashboard','analytics','reports','moments','chat','helper','connection','settings','account'];
     const fromHash = (location.hash || '').replace('#','');
     if (this._onboarded) this.go(valid.includes(fromHash) ? fromHash : 'dashboard');
     else this.go('onboarding');

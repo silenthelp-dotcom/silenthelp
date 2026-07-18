@@ -67,6 +67,7 @@ import auth
 import behavioral
 import chat
 import detection
+import helper
 import hq_store
 import layer1
 import store
@@ -133,7 +134,7 @@ def _owner_uid():
 _PUBLIC_PATHS = {
     "/", "/app", "/chat", "/detection", "/today", "/download/agent",
     "/api/me", "/api/signup", "/api/login", "/api/logout",
-    "/api/scan", "/classify", "/api/behavioral", "/api/monitor",
+    "/api/scan", "/classify", "/api/behavioral", "/api/monitor", "/api/helper",
 }
 
 
@@ -619,6 +620,22 @@ def api_chat():
     store.add_chat("user", message)
     store.add_chat("assistant", reply)
     return jsonify({"reply": reply, "judgment": judgment, "action": action, "l1": l1})
+
+
+@app.route("/api/helper", methods=["POST"])
+def api_helper():
+    """
+    Help-a-Friend coach. The user's FRIEND is struggling; the user forwards what
+    the friend said and SilentHelp coaches the user's next reply.
+
+    Body: {"messages": [{"role":"friend"|"user","content":...}, ...]}
+    Returns: {reply, guidance, danger, escalation_reason}
+    """
+    data = request.get_json(silent=True) or {}
+    messages = data.get("messages") or []
+    if not messages:
+        return jsonify({"error": "no conversation"}), 400
+    return jsonify(helper.coach(messages))
 
 
 @app.route("/classify", methods=["POST"])
