@@ -12,8 +12,15 @@ APP="SilentHelpAgent.app"
 BIN=".build/release/SilentHelpAgent"
 
 rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/SilentHelpAgent"
+
+# Bundle the SilentHelp emblem: the Finder/Dock app icon (.icns) and the
+# menu-bar images (menubar.png / @2x / @3x, loaded at runtime).
+[ -f AppIcon.icns ] && cp AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
+for f in menubar.png menubar@2x.png menubar@3x.png; do
+  [ -f "$f" ] && cp "$f" "$APP/Contents/Resources/$f"
+done
 
 cat > "$APP/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -26,6 +33,7 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
   <key>CFBundleVersion</key><string>0.1</string>
   <key>CFBundleShortVersionString</key><string>0.1</string>
   <key>CFBundleExecutable</key><string>SilentHelpAgent</string>
+  <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>LSUIElement</key><true/>
   <key>LSMinimumSystemVersion</key><string>13.0</string>

@@ -586,6 +586,7 @@ final class Behavioral {
 // MARK: - App
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
+    private var statusMenuItem: NSMenuItem!
     private let monitor = Monitor()
     private let behavioral = Behavioral()
     private let screenReader = ScreenReader()
@@ -594,6 +595,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var gatingBaselined = false   // first poll sets state, never pops
     private var monitoringStarted = false
     private var screenStarted = false
+
+    /// The SilentHelp emblem sized for the menu bar. Loaded from the app
+    /// bundle's Resources (menubar.png / @2x / @3x). isTemplate=false so it
+    /// keeps the logo's colors instead of being tinted to monochrome.
+    static func menubarEmblem() -> NSImage? {
+        let name = "menubar"
+        var img: NSImage?
+        if let path = Bundle.main.path(forResource: name, ofType: "png") {
+            img = NSImage(contentsOfFile: path)
+        }
+        if img == nil { img = NSImage(named: name) }
+        img?.size = NSSize(width: 20, height: 20)   // fits the ~22pt menu bar
+        img?.isTemplate = false
+        return img
+    }
+
+    /// Repaint the small status dot next to the emblem + the menu's status line.
+    func setStatus() {
+        let trusted = AXIsProcessTrusted()
+        let screenOK = CGPreflightScreenCaptureAccess()
+        let dot: String
+        let line: String
+        if Snooze.isActive {
+            dot = " 💤"; line = "SilentHelp — paused"
+        } else if !trusted {
+            dot = " 🔴"; line = "⚠ Grant Accessibility in System Settings"
+        } else if !screenOK {
+            dot = " 🟡"; line = "⚠ Grant Screen Recording in System Settings"
+        } else {
+            dot = " 🟢"; line = "SilentHelp — watching over you"
+        }
+        statusItem?.button?.title = dot
+        statusMenuItem?.title = line
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory) // menu-bar only, no dock icon
@@ -616,9 +651,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        statusItem.button?.title = "🟢 SH"
+        // The SilentHelp emblem in the menu bar, followed by a small colored
+        // status dot (green=watching, yellow=needs Screen Recording, red=needs
+        // Accessibility, 💤=snoozed). The dot keeps the at-a-glance status the
+        // old text icon gave, since the emblem itself can't color-tint.
+        if let btn = statusItem.button {
+            btn.image = Self.menubarEmblem()
+            btn.imagePosition = .imageLeft
+        }
+        setStatus()  // paints the status dot for the first time
         let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "SilentHelp — monitoring", action: nil, keyEquivalent: ""))
+        statusMenuItem = NSMenuItem(title: "SilentHelp — monitoring", action: nil, keyEquivalent: "")
+        menu.addItem(statusMenuItem)
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Send test alert", action: #selector(testAlert), keyEquivalent: "t"))
         menu.addItem(NSMenuItem(title: "Open dashboard", action: #selector(openDash), keyEquivalent: "d"))
@@ -660,14 +704,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func startTrustPoll() {
-        statusItem.button?.title = AXIsProcessTrusted() ? "🟢 SH" : "🔴 SH"
+        setStatus()
         Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
             guard let self else { return }
             let trusted = AXIsProcessTrusted()
-            let screenOK = CGPreflightScreenCaptureAccess()
-            // 🟢 all good · 🟡 screen permission missing · 🔴 accessibility missing
-            self.statusItem.button?.title = Snooze.isActive ? "💤 SH"
-                : (!trusted ? "🔴 SH" : (screenOK ? "🟢 SH" : "🟡 SH"))
+            self.setStatus()  // emblem stays; the status dot + menu line update
             if trusted && !self.monitoringStarted {
                 self.monitoringStarted = true
                 self.monitor.start()
@@ -743,7 +784,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func checkPerm() {
         if requestAccessibility() && !monitoringStarted {
             monitoringStarted = true
-            statusItem.button?.title = "🟢 SH"
+            setStatus()
             monitor.start(); behavioral.start()
         }
         // Screen Recording missing? Take the user straight to the toggle.

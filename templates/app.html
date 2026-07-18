@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SilentHelp</title>
+<link rel="icon" type="image/png" sizes="180x180" href="/static/img/badge-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/static/img/badge-32.png">
+<link rel="apple-touch-icon" href="/static/img/badge-180.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500;1,600&display=swap" rel="stylesheet" />
 <style>
   * { box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
@@ -54,7 +57,7 @@
 
       <!-- step 1 · welcome -->
       <div class="onb-step" id="onb-1">
-        <div style="width:74px; height:74px; border-radius:50%; margin:0 auto 38px; background:radial-gradient(circle at 50% 38%, #7cc4ff, #007aff 56%, #0049c4 100%); box-shadow:0 16px 44px rgba(0,122,255,.4), inset 0 0 18px rgba(180,220,255,.5); animation:emBreath 6s ease-in-out infinite;"></div>
+        <img src="/static/img/badge-256.png" alt="SilentHelp" style="width:96px; height:96px; border-radius:50%; margin:0 auto 34px; display:block; box-shadow:0 16px 44px rgba(20,30,60,.28); animation:emBreath 6s ease-in-out infinite;" />
         <div style="font-size:13px; letter-spacing:.34em; text-transform:uppercase; color:#7a93ad;">SilentHelp</div>
         <div class="pf" style="font-size:clamp(2.6rem,6vw,3.5rem); line-height:1.02; color:#0e1822; margin-top:18px; max-width:760px; letter-spacing:-.01em;">It notices what stays<br/>beneath the surface.</div>
         <div style="font-size:16px; color:#5e6f7e; line-height:1.7; margin:26px auto 0; max-width:500px; font-weight:300;">A quiet companion that learns your rhythm and feels when you're running low — long before you'd think to ask for help. Everything stays on your Mac.</div>
@@ -92,7 +95,7 @@
     <!-- ════ SIGN IN (gate) ════ -->
     <div id="scr-auth" class="screen-anim" style="display:none; position:relative; z-index:6; flex:1; min-height:0; overflow-y:auto; background:radial-gradient(120% 90% at 50% 0%, #f2f8ff, #f6f9fc 60%, #eef3f9);">
       <div style="min-height:100%; width:100%; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:56px 40px;">
-        <div style="width:64px; height:64px; border-radius:50%; margin-bottom:30px; background:radial-gradient(circle at 50% 38%, #7cc4ff, #007aff 56%, #0049c4 100%); box-shadow:0 14px 40px rgba(0,122,255,.38); animation:emBreath 6s ease-in-out infinite;"></div>
+        <img src="/static/img/badge-256.png" alt="SilentHelp" style="width:88px; height:88px; border-radius:50%; margin-bottom:26px; box-shadow:0 14px 40px rgba(20,30,60,.28); animation:emBreath 6s ease-in-out infinite;" />
         <div style="font-size:12px; letter-spacing:.32em; text-transform:uppercase; color:#7a93ad;">SilentHelp</div>
         <div class="pf" style="font-size:clamp(2rem,5vw,2.7rem); color:#0e1822; margin-top:12px; letter-spacing:-.01em; text-align:center;">Your own quiet space.</div>
         <div style="font-size:14px; color:#5e6f7e; margin-top:12px; font-weight:300; text-align:center; max-width:400px; line-height:1.65;">Sign in so everything here — your battery, chat, and history — is yours alone. Nobody else can see it.</div>
@@ -116,7 +119,7 @@
         <!-- SIDEBAR -->
         <div style="width:218px; flex-shrink:0; padding:8px 14px 18px; display:flex; flex-direction:column; background:#f8fafc; border-right:1px solid #eef2f6;">
           <div style="display:flex; align-items:center; gap:11px; padding:6px 10px 22px;">
-            <div style="width:22px; height:22px; border-radius:50%; background:radial-gradient(circle at 50% 38%, #7cc4ff, #007aff 60%, #0049c4); box-shadow:0 3px 10px rgba(0,122,255,.4);"></div>
+            <img src="/static/img/badge-64.png" alt="SilentHelp" style="width:26px; height:26px; border-radius:50%;" />
             <span style="font-size:15px; font-weight:700; color:#1a2632; letter-spacing:.01em;">SilentHelp</span>
           </div>
           <div class="navitem" data-screen="dashboard" onclick="App.go('dashboard')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Dashboard</div>
@@ -435,7 +438,7 @@
     <div id="popup-gentle" style="display:none; position:absolute; inset:0; z-index:40; background:rgba(20,40,70,.34); backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px); align-items:center; justify-content:center; animation:fadeBg .3s ease;">
       <div style="position:relative; width:430px; background:#fff; border:1px solid #eef2f6; border-radius:20px; padding:32px; box-shadow:0 40px 100px rgba(20,40,80,.35); animation:screenIn .5s cubic-bezier(.16,1,.3,1);">
         <button onclick="App.closePopup()" aria-label="Close" title="Close" class="hov" style="position:absolute; top:16px; right:16px; width:30px; height:30px; border-radius:50%; border:none; background:#f2f5f9; color:#6b7885; font-size:16px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
-        <div style="width:54px; height:54px; border-radius:50%; margin-bottom:22px; background:radial-gradient(circle at 50% 38%, #7cc4ff, #007aff 56%, #0049c4); box-shadow:0 12px 30px rgba(0,122,255,.4);"></div>
+        <img src="/static/img/badge-128.png" alt="SilentHelp" style="width:54px; height:54px; border-radius:50%; margin-bottom:22px; box-shadow:0 12px 30px rgba(20,30,60,.28);" />
         <div class="pf" style="font-size:26px; color:#0e1822; line-height:1.1;">A quiet check-in</div>
         <div id="gentleDesc" style="font-size:14px; color:#5e6f7e; line-height:1.65; margin-top:14px; font-weight:300;">Your last few days look a little more scattered than your usual — later nights, more restless switching. No alarm. Just wanted to gently ask: how are you doing?</div>
         <div style="display:flex; align-items:center; gap:8px; font-size:11.5px; color:#8b99a6; margin:18px 0 24px; font-weight:300;"><div style="width:5px; height:5px; border-radius:50%; background:#1f9d55;"></div>Noticed on-device · nothing was sent anywhere</div>
@@ -460,7 +463,7 @@
       </div>
 
       <div style="position:relative; max-width:620px; animation:screenIn .8s cubic-bezier(.16,1,.3,1) .3s both;">
-        <div style="width:64px; height:64px; border-radius:50%; margin:0 auto 32px; background:radial-gradient(circle at 50% 38%, #7cc4ff, #007aff 56%, #0049c4); box-shadow:0 16px 50px rgba(0,122,255,.45); animation:emBreath 5s ease-in-out infinite;"></div>
+        <img src="/static/img/badge-256.png" alt="SilentHelp" style="width:72px; height:72px; border-radius:50%; margin:0 auto 32px; display:block; box-shadow:0 16px 50px rgba(20,30,60,.3); animation:emBreath 5s ease-in-out infinite;" />
         <div style="font-size:12px; letter-spacing:.3em; text-transform:uppercase; color:#3d8bdb;">Over the last four days</div>
         <div class="pf" style="font-size:52px; color:#0e1822; line-height:1.05; margin-top:18px;">Something important<br/>is surfacing.</div>
         <div id="urgentDesc" style="font-size:16px; color:#5e6f7e; line-height:1.7; margin-top:24px; font-weight:300; max-width:480px; margin-left:auto; margin-right:auto;">Your patterns crossed a threshold we don't ignore. With the permission you gave during setup, a short private note is being prepared for someone you trust.</div>
