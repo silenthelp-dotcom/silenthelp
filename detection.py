@@ -101,14 +101,15 @@ def _providers() -> "list[dict]":
     groq_key = os.environ.get("GROQ_API_KEY") or os.environ.get("NVIDIA_API_KEY")
     if groq_key:
         out.append({"name": "groq", "key": groq_key,
-                    "base_url": GROQ_BASE_URL, "model": MODEL})
+                    "base_url": GROQ_BASE_URL, "model": MODEL, "timeout": 8.0})
     fb_key = os.environ.get("FALLBACK_API_KEY")
     if fb_key:
         out.append({
             "name": "fallback",
             "key": fb_key,
             "base_url": os.environ.get("FALLBACK_BASE_URL", "https://openrouter.ai/api/v1"),
-            "model": os.environ.get("FALLBACK_MODEL", "meta-llama/llama-3.3-70b-instruct:free"),
+            "model": os.environ.get("FALLBACK_MODEL", "openai/gpt-oss-20b:free"),
+            "timeout": 20.0,  # free fallback models are slower
         })
     if not out:
         raise RuntimeError(
@@ -119,8 +120,10 @@ def _providers() -> "list[dict]":
 
 def _client_for(p: "dict") -> OpenAI:
     # Hard timeout so a slow/throttled endpoint can never hang the app; we do our
-    # own bounded retry, so disable the SDK's.
-    return OpenAI(base_url=p["base_url"], api_key=p["key"], timeout=8.0, max_retries=0)
+    # own bounded retry, so disable the SDK's. Free fallback models are slower,
+    # so they get a longer per-call budget than the fast primary.
+    return OpenAI(base_url=p["base_url"], api_key=p["key"],
+                  timeout=p.get("timeout", 8.0), max_retries=0)
 
 
 def _make_client() -> OpenAI:
