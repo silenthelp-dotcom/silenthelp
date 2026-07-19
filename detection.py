@@ -82,17 +82,74 @@ def _retry_wait_from(exc: Exception, attempt: int) -> float:
     return min(MAX_RETRY_WAIT, RETRY_BACKOFF_SECONDS * attempt)
 
 
-def _make_client() -> OpenAI:
-    """Build the model client. API key comes from env only — never hardcoded."""
-    api_key = os.environ.get("GROQ_API_KEY") or os.environ.get("NVIDIA_API_KEY")
-    if not api_key:
+# ---------------------------------------------------------------------------
+# Providers: Groq is primary; a FALLBACK provider takes over automatically when
+# Groq is rate-limited/unreachable, so detection is never fully blocked by one
+# plan's cap. All must be OpenAI-compatible. Configure the fallback in .env:
+#   FALLBACK_API_KEY   — the second provider's key
+#   FALLBACK_BASE_URL  — its OpenAI-compatible endpoint
+#   FALLBACK_MODEL     — a model id on that provider
+# Common free/cheap options (any OpenAI-compatible endpoint works):
+#   • OpenRouter : https://openrouter.ai/api/v1        (many free models)
+#   • Cerebras   : https://api.cerebras.ai/v1          (fast, free tier)
+#   • Together   : https://api.together.xyz/v1
+# ---------------------------------------------------------------------------
+
+def _providers() -> "list[dict]":
+    """Ordered list of provider configs to try. Primary first, fallback(s) next."""
+    out = []
+    groq_key = os.environ.get("GROQ_API_KEY") or os.environ.get("NVIDIA_API_KEY")
+    if groq_key:
+        out.append({"name": "groq", "key": groq_key,
+                    "base_url": GROQ_BASE_URL, "model": MODEL})
+    fb_key = os.environ.get("FALLBACK_API_KEY")
+    if fb_key:
+        out.append({
+            "name": "fallback",
+            "key": fb_key,
+            "base_url": os.environ.get("FALLBACK_BASE_URL", "https://openrouter.ai/api/v1"),
+            "model": os.environ.get("FALLBACK_MODEL", "meta-llama/llama-3.3-70b-instruct:free"),
+        })
+    if not out:
         raise RuntimeError(
-            "GROQ_API_KEY is not set. Put it in the untracked .env next to the "
-            "app; never hardcode the key."
-        )
-    # Hard timeout so a slow/throttled endpoint can never hang the app for
-    # minutes; we handle our own bounded retry, so disable the SDK's.
-    return OpenAI(base_url=GROQ_BASE_URL, api_key=api_key, timeout=8.0, max_retries=0)
+            "No AI provider configured. Set GROQ_API_KEY (and optionally "
+            "FALLBACK_API_KEY/FALLBACK_BASE_URL/FALLBACK_MODEL) in .env.")
+    return out
+
+
+def _client_for(p: "dict") -> OpenAI:
+    # Hard timeout so a slow/throttled endpoint can never hang the app; we do our
+    # own bounded retry, so disable the SDK's.
+    return OpenAI(base_url=p["base_url"], api_key=p["key"], timeout=8.0, max_retries=0)
+
+
+def _make_client() -> OpenAI:
+    """The PRIMARY client (Groq). Kept for chat.py / helper.py which use one
+    provider. Detection itself uses _complete() so it can fail over."""
+    return _client_for(_providers()[0])
+
+
+def _complete(messages: "list[dict]", *, temperature: float, max_tokens: "int | None" = None) -> str:
+    """Run a chat completion, trying each provider in order and, within a
+    provider, retrying transient errors. Returns the raw text, or raises the
+    last error if every provider fails (caller then fails SAFE)."""
+    last_error: Exception = RuntimeError("no providers")
+    for p in _providers():
+        client = _client_for(p)
+        for attempt in range(1, MAX_RETRIES + 1):
+            try:
+                kw = {"model": p["model"], "temperature": temperature, "messages": messages}
+                if max_tokens:
+                    kw["max_tokens"] = max_tokens
+                resp = client.chat.completions.create(**kw)
+                return resp.choices[0].message.content or ""
+            except Exception as exc:  # noqa: BLE001
+                last_error = exc
+                if _is_transient(exc) and attempt < MAX_RETRIES:
+                    time.sleep(_retry_wait_from(exc, attempt))
+                    continue
+                break  # non-transient or out of retries → try the next provider
+    raise last_error
 
 
 # ---------------------------------------------------------------------------
@@ -204,35 +261,17 @@ def classify_message(text: str) -> Dict[str, Any]:
         "_source": "fail_safe",
     }
 
-    raw = None
-    last_error = None
-    for attempt in range(1, MAX_RETRIES + 1):
-        try:
-            client = _make_client()
-            response = client.chat.completions.create(
-                model=MODEL,
-                temperature=TEMPERATURE,
-                messages=[
-                    {"role": "system", "content": CLASSIFIER_SYSTEM_PROMPT},
-                    {"role": "user", "content": text},
-                ],
-            )
-            raw = response.choices[0].message.content
-            break
-        except Exception as exc:  # network, auth, SDK, rate limit — anything
-            last_error = exc
-            # Retry only transient throttling/connection issues; auth/404 won't fix.
-            # On a 429, wait the amount the provider tells us to (short, capped)
-            # so a brief per-minute rate limit becomes a real answer, not a
-            # fail-safe "high".
-            if _is_transient(exc) and attempt < MAX_RETRIES:
-                time.sleep(_retry_wait_from(exc, attempt))
-                continue
-            fail_safe["rationale"] = (
-                "Classifier call failed; failing safe to human review."
-            )
-            fail_safe["_error"] = repr(exc)
-            return fail_safe
+    # _complete() tries Groq, then the fallback provider, with transient retries.
+    try:
+        raw = _complete(
+            [{"role": "system", "content": CLASSIFIER_SYSTEM_PROMPT},
+             {"role": "user", "content": text}],
+            temperature=TEMPERATURE,
+        )
+    except Exception as exc:  # every provider failed → fail SAFE
+        fail_safe["rationale"] = "Classifier call failed; failing safe to human review."
+        fail_safe["_error"] = repr(exc)
+        return fail_safe
 
     judgment = _parse_judgment(raw)
     if judgment is None:
