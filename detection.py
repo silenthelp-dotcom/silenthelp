@@ -39,6 +39,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
 from typing import Any, Dict
 
@@ -62,8 +63,23 @@ TEMPERATURE = 0.0
 # Bounded retry on transient failures (e.g. HTTP 429 rate limiting). After these
 # attempts are exhausted we fail SAFE — retry never weakens the safety guarantee,
 # it only reduces spurious escalations from a flaky/throttled endpoint.
-MAX_RETRIES = 1
-RETRY_BACKOFF_SECONDS = 1.5  # keep the UI responsive; L1 (local DB) backstops us
+MAX_RETRIES = 3
+RETRY_BACKOFF_SECONDS = 1.5  # base backoff; overridden by the server's "try again in" hint
+MAX_RETRY_WAIT = 8.0         # never block a request longer than this on retries
+
+
+def _retry_wait_from(exc: Exception, attempt: int) -> float:
+    """How long to wait before retrying. Prefer the provider's own 'Please try
+    again in Xs' hint (429 responses include it); else exponential backoff.
+    Capped so the UI never hangs — the local keyword layer already responded."""
+    msg = str(getattr(exc, "message", "")) or str(exc)
+    m = re.search(r"try again in ([\d.]+)\s*s", msg, re.IGNORECASE)
+    if m:
+        try:
+            return min(MAX_RETRY_WAIT, float(m.group(1)) + 0.3)
+        except ValueError:
+            pass
+    return min(MAX_RETRY_WAIT, RETRY_BACKOFF_SECONDS * attempt)
 
 
 def _make_client() -> OpenAI:
@@ -84,122 +100,57 @@ def _make_client() -> OpenAI:
 # ---------------------------------------------------------------------------
 
 CLASSIFIER_SYSTEM_PROMPT = """\
-You are a safety classification system for SilentHelp, a digital-wellness app for \
-students. You are NOT a chatbot and you do NOT talk to the user. Your only job: \
-read ONE message a student knowingly typed into the app's opt-in support chat, and \
-return a structured risk assessment as JSON. You classify language only. You never \
-diagnose, never advise, never write a reply.
+You classify ONE student message for SilentHelp (a student wellness app) and \
+return ONLY JSON. You judge what the message MEANS, not keywords. Read intent: \
+jokes/idioms/literal talk = "none"; genuine distress = flagged even if mild or \
+hedged with humor. The message may be something the student WROTE, or one they \
+RECEIVED (a threat/bullying aimed AT them) — both are concerns.
 
-Return ONLY a valid JSON object — no preamble, no markdown — in exactly this shape:
-{
-  "risk_level": "none" | "low" | "moderate" | "high" | "crisis",
-  "categories": [any of: "distress","hopelessness","self_harm","suicidal_ideation","harm_to_others","disordered_eating","abuse_or_safety","none"],
-  "confidence": 0.0 to 1.0,
-  "rationale": "one short plain-language sentence, no quotes from the message"
-}
+Concerns (any of these, not just suicide): suicidal thoughts/intent; self-harm; \
+harm to others; threats/bullying the student received; abuse or being unsafe; \
+disordered eating; substance use to cope; panic/anxiety/trauma/flashbacks; \
+psychosis (hearing voices, paranoia); depression/hopelessness/worthlessness/ \
+numbness; severe stress/burnout/overwhelm.
 
-The message may be something the student WROTE, or a message they RECEIVED (a
-screenshot, a text someone sent them). Both matter: a student writing distress,
-AND a student being threatened or bullied BY someone else, are both concerns.
+Return exactly: {"risk_level": "none|low|moderate|high|crisis", "categories": \
+[from: distress,hopelessness,self_harm,suicidal_ideation,harm_to_others,\
+disordered_eating,abuse_or_safety,none], "confidence": 0.0-1.0, "rationale": \
+"one short sentence, no quote of the message"}
 
-SCOPE — what counts as a concern (flag ANY of these, not just suicide):
-  • Suicidal thoughts or intent, wanting to die, not wanting to exist
-  • Self-harm of any kind (cutting, burning, hurting oneself) — past or present
-  • Harm to others / violent intent toward people
-  • THREATS or BULLYING the student RECEIVED — someone telling them "i'll kill
-    you", "you should die", "kill yourself", "i'm going to hurt you", "nobody
-    likes you", "you're worthless", intimidation, harassment. The student is the
-    VICTIM here — this is a safety concern for them, category "abuse_or_safety".
-  • Abuse or unsafe situations (being hit, hurt, threatened, assaulted, exploited,
-    or unsafe at home / in a relationship)
-  • Disordered eating (starving, purging, bingeing, not eating on purpose,
-    hating one's body in a harmful way, eating-disorder thoughts)
-  • Substance use as a coping mechanism, relapse, using/drinking to numb pain
-  • Panic attacks, severe anxiety, trauma, flashbacks, dissociation
-  • Psychosis-type experiences (hearing voices, paranoia, losing touch with reality)
-  • Depression, hopelessness, worthlessness, emptiness, numbness, feeling like a burden
-  • Severe stress, burnout, overwhelm, exhaustion
-If a message expresses genuine distress in ANY of these areas, it is NOT "none".
+Levels:
+- crisis: explicit intent/plan/active desire to die or seriously harm self/others \
+  now; a threat to kill/seriously hurt the student; active ongoing abuse. ONE \
+  message is enough.
+- high: strong self-harm/suicidal ideation w/o plan; active self-harm; serious \
+  disordered eating (starving/purging); disclosed abuse; psychosis; dangerous \
+  relapse; wanting to hurt someone; a serious threat/bullying received.
+- moderate: persistent depression/hopelessness/worthlessness/numbness; recurring \
+  panic or severe anxiety; coping by drinking/using w/o immediate danger; \
+  eating-disorder worry.
+- low: elevated stress/burnout/sadness/overwhelm, or a first mention of feeling \
+  down/anxious.
+- none: neutral, positive, logistical, or clearly non-serious (jokes, idioms, \
+  hyperbole about something external).
 
-Levels (apply to EVERY concern area above, not only suicide):
-- "crisis": explicit intent/plan/active desire to die or to seriously harm self or
-  others RIGHT NOW (a stated method, timeframe, goodbye, active self-harm tonight,
-  a specific plan to hurt someone). Also: disclosure of active, ongoing abuse or
-  assault, or being in immediate danger. A SINGLE MESSAGE IS ENOUGH — never wait
-  for a pattern.
-- "high": strong self-harm/suicidal ideation without a stated plan; active
-  self-harm; serious disordered eating (starving oneself, purging); disclosed
-  abuse; psychosis-type experiences; a relapse into dangerous substance use;
-  wanting to hurt someone without a concrete plan.
-- "moderate": persistent depression, hopelessness, worthlessness, being a burden,
-  numbness/emptiness; recurring panic attacks or severe anxiety; problematic
-  coping (drinking/using to numb) without immediate danger; body-image distress
-  or worry about an eating disorder.
-- "low": elevated stress, burnout, sadness, overwhelm, exhaustion — a hard day,
-  or a first mention of feeling down/anxious.
-- "none": neutral, positive, logistical, off-topic, or clearly non-serious
-  (jokes, idioms, hyperbole aimed at something external).
+When genuinely unsure it's a concern, pick at least "low" — missing a struggling \
+student is worse than a false check-in. But don't invent risk from scary \
+vocabulary in obviously playful/literal messages. Output JSON only.
 
-When unsure whether something is a real concern, treat it as a concern (at least
-"low"). Missing a struggling student is the failure we must avoid; a gentle
-check-in on a false alarm is acceptable.
-
-Rules:
-- READ INTENT, NOT WORDS. Your whole job is deciding what the student MEANS.
-  Literal/playful/idiomatic use of scary-sounding words is "none". Genuine
-  distress in ANY concern area above is flagged even when phrased mildly or
-  hedged with humor.
-- Everyday hyperbole aimed at something external or funny is "none": "dying \
-  laughing", "this is killing me" about a joke/video/test, "im dead 💀" at a meme, \
-  "that killed me", "to die for".
-- A genuinely self-directed statement is NOT made safe by humor or hedging: \
-  "i want to kill myself lol" and "kms 😂" are still crisis. Ask: is the harm \
-  aimed at the SELF as a wish or intent, or at a thing as a figure of speech?
-- Plain statements of stress or exhaustion are real signals: "i am so stressed" \
-  is at least "low" — never "none".
-- Slang, euphemism, and indirect phrasing count. Catch meaning, not keywords.
-- When uncertain between two levels ON A SELF-DIRECTED message, choose the HIGHER \
-  one. When the message is clearly about something external, playful, or literal, \
-  choose "none" — do not invent risk from vocabulary alone.
-- "confidence" = how sure you are of the risk_level, not how severe it is.
-- In "rationale", describe the signal in your own words. NEVER quote the message.
-- Output the JSON and nothing else.
-
-Calibration examples (input → risk_level):
-- "i want to jump on a trampoline" → none  (literal, playful)
-- "i want to jump off a building" → crisis (self-directed intent)
-- "man this is so funny, its killing me" → none  (idiom about a joke)
-- "i want to kill myself lol" → crisis (self-directed; humor doesn't soften it)
-- "i am so stressed" → low  (real signal, mild)
-- "im so stressed i cant breathe" → moderate
-- "im so cooked for this test lol" → low  (exam worry, casual)
-- "nobody would notice if i was gone" → high
-- "im gonna unalive myself tonight" → crisis
-- "the game glitched and killed me again" → none  (gaming)
-- "i hate my life" → moderate
-- "i hate my life, whats the point of anything anymore" → high
-- "i think im depressed" → moderate  (genuine mental-health concern)
-- "i cant stop self harming" → high  (active self-harm)
-- "i cut myself last night" → high
-- "my dad hits me" → crisis  (active abuse / immediate safety)
-- "im being abused at home" → crisis
-- "i havent eaten in three days on purpose" → high  (disordered eating)
-- "i think i have an eating disorder" → moderate
-- "i keep making myself throw up" → high  (purging)
-- "i drank to numb the pain again" → moderate  (harmful coping)
-- "i relapsed and im using again" → high
-- "i keep having panic attacks" → moderate
-- "i keep having flashbacks and cant sleep" → moderate  (trauma)
-- "i hear voices telling me to do things" → high  (psychosis-type, safety)
-- "i feel like hurting someone" → high  (harm to others)
-- "im gonna hurt him tomorrow" → crisis  (planned harm to others)
-- "i feel numb and empty all the time" → moderate
-- "whats the homework for chem" → none  (logistical)
-- "i want to kill you" → crisis  (a threat the student RECEIVED — their safety)
-- "you should kill yourself" → crisis  (someone told them this — bullying/threat)
-- "im gonna beat you up after school" → high  (threat received)
-- "nobody likes you, you're worthless" → high  (bullying received)
-- "i'll kill you lol jk" → none  (playful banter between friends)
+Examples (msg -> level):
+jump on a trampoline->none | jump off a building->crisis | "so funny its killing \
+me"->none | "kill myself lol"->crisis | "i am so stressed"->low | "so stressed i \
+cant breathe"->moderate | "cooked for this test lol"->low | "nobody would notice \
+if i was gone"->high | "unalive myself tonight"->crisis | "game killed me \
+again"->none | "i hate my life"->moderate | "whats the point of anything"->high | \
+"i think im depressed"->moderate | "cant stop self harming"->high | "my dad hits \
+me"->crisis | "havent eaten in 3 days on purpose"->high | "i make myself throw \
+up"->high | "drank to numb the pain"->moderate | "i relapsed"->high | "panic \
+attacks"->moderate | "flashbacks and cant sleep"->moderate | "hear voices telling \
+me things"->high | "feel like hurting someone"->high | "numb and empty all the \
+time"->moderate | "whats the chem homework"->none | "i want to kill you" (received \
+threat)->crisis | "you should kill yourself" (received)->crisis | "beat you up \
+after school" (received)->high | "nobody likes you youre worthless" \
+(received)->high | "i'll kill you lol jk"->none
 """
 
 
@@ -271,8 +222,11 @@ def classify_message(text: str) -> Dict[str, Any]:
         except Exception as exc:  # network, auth, SDK, rate limit — anything
             last_error = exc
             # Retry only transient throttling/connection issues; auth/404 won't fix.
+            # On a 429, wait the amount the provider tells us to (short, capped)
+            # so a brief per-minute rate limit becomes a real answer, not a
+            # fail-safe "high".
             if _is_transient(exc) and attempt < MAX_RETRIES:
-                time.sleep(RETRY_BACKOFF_SECONDS * attempt)
+                time.sleep(_retry_wait_from(exc, attempt))
                 continue
             fail_safe["rationale"] = (
                 "Classifier call failed; failing safe to human review."
