@@ -499,8 +499,17 @@ final class ScreenReader {
             guard level >= 1 else { return }
 
             // Pull the exact phrase that matched, to show in the popup.
+            //
+            // Whole-screen OCR routinely matches several phrases at once (a
+            // crisis line in one window, everyday stress in another). `hits` is
+            // ordered by database, not severity, so hits.first can be a level-1
+            // phrase even when tier-3 fired — which would tell someone we
+            // detected a crisis and then quote unrelated text at them. When
+            // tier-3 is what triggered this popup, quote the tier-3 hit.
             let hits = res["hits"] as? [[String: Any]] ?? []
-            let phrase = (hits.first?["phrase"] as? String) ?? ""
+            let tier3Phrase = hits.first { ($0["tier"] as? String) == "3" }?["phrase"] as? String
+            let phrase = (tier3 ? (tier3Phrase ?? hits.first?["phrase"] as? String)
+                                : hits.first?["phrase"] as? String) ?? ""
 
             // Same phrase still on screen? One popup, not one per OCR pass.
             if phrase == self.lastPopPhrase && Date() < self.lastPopAt.addingTimeInterval(40) { return }
