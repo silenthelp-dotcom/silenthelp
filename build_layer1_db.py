@@ -16,14 +16,69 @@ OUT.mkdir(parents=True, exist_ok=True)
 def alt(words):
     return "|".join(re.escape(w) for w in sorted(set(words), key=len, reverse=True))
 
+# Slots that carry the actual signal and must be present for a match. Everything
+# else is optional decoration.
+#
+# Requiring all five slots made the database nearly useless in practice: it only
+# fired on "im really stressed out because of work today" and returned 0 for
+# "im stressed out", "im really stressed out", or "im really stressed out
+# because of work". People don't type the full form. The state (and for level 3,
+# the action + target) is what means something; the modifier, the reason clause,
+# and the trailing time reference are all garnish.
+REQUIRED_SLOTS = {
+    "self_starters", "other_speakers", "intent_starters", "third_party_reporters",
+    "threat_subjects",
+    "states", "self_harm_actions", "violent_actions", "reported_crisis_actions",
+    "threat_actions", "person_targets",
+}
+
+
 def build(slots, comps):
-    body = r"\s+".join(f"(?:{alt(comps[s])})" for s in slots)
+    """Compile one slot machine.
+
+    Optional slots carry their separator INSIDE the optional group, on the side
+    that keeps the phrase well-formed when the slot is absent:
+      * a leading optional slot takes its space after  -> (?:GROUP\\s+)?
+      * a trailing optional slot takes its space before -> (?:\\s+GROUP)?
+    Splitting on the last required slot is what makes both ends work; emitting
+    `(?:GROUP\\s+)?` at the tail would demand trailing whitespace before (?!\\w)
+    and the pattern could never match.
+    """
+    last_required = max(
+        (i for i, s in enumerate(slots) if s in REQUIRED_SLOTS), default=-1
+    )
+    body = ""
+    # True when the previous part already emitted the separator that follows it
+    # (a leading-optional group ends in \s+). Anything else must supply its own.
+    separated = True
+    for i, s in enumerate(slots):
+        group = f"(?:{alt(comps[s])})"
+        if s in REQUIRED_SLOTS:
+            if body and not separated:
+                body += r"\s+"
+            body += group
+            separated = False
+        elif i < last_required:
+            # Leading optional: "(?:mod\s+)?" — needs a space before it when the
+            # previous part didn't leave one, or "im" and "really" would fuse.
+            if body and not separated:
+                body += r"\s+"
+            body += f"(?:{group}\\s+)?"
+            separated = True
+        else:
+            # Trailing optional: the space lives inside the group.
+            body += f"(?:\\s+{group})?"
+            separated = False
     return r"(?<!\w)" + body + r"(?!\w)"
 
+
 def combos(slots, comps):
+    """Phrase combinations. Optional slots contribute (n+1) — the +1 being the
+    slot's absence — so the count reflects what actually matches."""
     n = 1
     for s in slots:
-        n *= len(set(comps[s]))
+        k = len(set(comps[s]))
+        n *= k if s in REQUIRED_SLOTS else k + 1
     return n
 
 MATCHING = {
@@ -96,21 +151,82 @@ def template(tid, slots, comps, note):
     return {"id": tid, "slots": slots, "join_with": "one_or_more_whitespace",
             "combination_count": combos(slots, comps), "regex": build(slots, comps), "note": note}
 
+# Short idiomatic distress the slot grammar cannot express. There is no "state"
+# word in "i give up" or "nobody cares about me" — no <starter><modifier><state>
+# decomposition exists — so they have to be listed literally. These are the
+# phrases people actually type, and every one of them returned 0 before.
+L1_EXACT = [
+    "screw this test", "fuck this exam", "this class is stressing me out",
+    "bro im so fried for the finals", "i'm so done for the final",
+    "im so done for the final",
+]
+
+L2_EXACT = [
+    "i swear to god imma crashout", "i'm having a meltdown", "im having a meltdown",
+    "i can't take this pressure anymore", "i cant take this pressure anymore",
+    "come suck my dick bitch", "leave me the fuck alone",
+    "this person keeps stalking me",
+    # --- short forms, previously missed entirely ---
+    "i can't do this anymore", "i cant do this anymore",
+    "i can't do this any more", "i cant do this any more",
+    "i give up", "i wanna give up", "i want to give up",
+    "everything is falling apart", "everything's falling apart",
+    "nobody cares about me", "no one cares about me",
+    "nobody cares", "no one cares",
+    "i can't take it anymore", "i cant take it anymore",
+    "i can't handle this anymore", "i cant handle this anymore",
+    "i'm falling apart", "im falling apart",
+    "i can't keep going", "i cant keep going",
+    "i have nobody", "i have no one", "i've got nobody", "ive got nobody",
+    "nobody would notice", "no one would notice",
+    "i'm all alone", "im all alone",
+    # Self-hatred is real distress, but it is not stated suicidal intent — it
+    # belongs here at level 2 (gentle check-in) rather than level 3, which
+    # bypasses the trend gate and drafts the escalation email.
+    "i hate myself", "i fucking hate myself", "i hate my life",
+]
+
+L3_EXACT = [
+    "imma kill this nigga today", "i want to fucking kill this teacher",
+    "i want to fucking kill this guy", "i'm going to kms", "im going to kms",
+    "i want to kms", "i wanna kms", "i don't want to be alive anymore",
+    "i dont want to be alive anymore", "i wish i was dead", "i wish i were dead",
+    "everyone would be better off without me", "cya in heaven", "see you in heaven",
+    "it's ggs for me bro cya in heaven", "its ggs for me bro cya in heaven",
+    "he says he wants to die", "she says she wants to die",
+    "they say they want to die", "he's going to kill me", "hes going to kill me",
+    "she's going to kill me", "shes going to kill me", "go kill yourself",
+    "go kys", "you should kill yourself",
+    # --- short forms, previously missed entirely ---
+    "i don't want to be here", "i dont want to be here",
+    "i don't want to be here anymore", "i dont want to be here anymore",
+    "i don't want to live", "i dont want to live",
+    "i don't want to live anymore", "i dont want to live anymore",
+    "i want to disappear", "i wanna disappear",
+    "i don't want to wake up", "i dont want to wake up",
+    "i want it to end", "i want it all to end",
+    "i'd be better off dead", "id be better off dead",
+    "everyone would be happier without me",
+    "there's no point anymore", "theres no point anymore",
+    "no reason to live", "nothing to live for",
+    "i can't go on", "i cant go on",
+]
+
 FILES = [
     ("level1_everyday_stress.json", 1, "Everyday stress", False, L1, [
         ("l1_self_contextual", ["self_starters","modifiers","states","contexts","time"], "Everyday stress expressed by the user or current speaker."),
         ("l1_other_contextual", ["other_speakers","modifiers","states","contexts","time"], "Everyday stress reported about the other participant or a third person."),
-    ], ["screw this test","fuck this exam","this class is stressing me out","bro im so fried for the finals","i'm so done for the final","im so done for the final"]),
+    ], L1_EXACT),
     ("level2_major_stress.json", 2, "Major stress", False, L2, [
         ("l2_self_contextual", ["self_starters","modifiers","states","contexts","time"], "Major stress expressed by the user or current speaker."),
         ("l2_other_contextual", ["other_speakers","modifiers","states","contexts","time"], "Major stress expressed by or reported about someone else."),
-    ], ["i swear to god imma crashout","i'm having a meltdown","im having a meltdown","i can't take this pressure anymore","i cant take this pressure anymore","come suck my dick bitch","leave me the fuck alone","this person keeps stalking me"]),
+    ], L2_EXACT),
     ("level3_crisis.json", 3, "Crisis: self-harm, harm to others, or lethal threats", True, L3, [
         ("l3_self_harm", ["intent_starters","intensifiers","self_harm_actions","time_or_immediacy","reason_context"], "Direct first-person self-harm or suicide intent."),
         ("l3_harm_others", ["intent_starters","intensifiers","violent_actions","person_targets","time_or_immediacy","reason_context"], "Direct intent to seriously harm another person."),
         ("l3_reported_crisis", ["third_party_reporters","intensifiers","reported_crisis_actions","time_or_immediacy","reason_context_third"], "Crisis language from the other participant or reported about a third person."),
         ("l3_threat_to_user", ["threat_subjects","intensifiers","threat_actions","time_or_immediacy","reason_context_third"], "Lethal or severe threat directed toward the user or another person."),
-    ], ["imma kill this nigga today","i want to fucking kill this teacher","i want to fucking kill this guy","i'm going to kms","im going to kms","i want to kms","i wanna kms","i don't want to be alive anymore","i dont want to be alive anymore","i wish i was dead","i wish i were dead","everyone would be better off without me","cya in heaven","see you in heaven","it's ggs for me bro cya in heaven","its ggs for me bro cya in heaven","he says he wants to die","she says she wants to die","they say they want to die","he's going to kill me","hes going to kill me","she's going to kill me","shes going to kill me","go kill yourself","go kys","you should kill yourself"]),
+    ], L3_EXACT),
 ]
 
 for fname, level, name, bypass, comps, tmpls, exacts in FILES:

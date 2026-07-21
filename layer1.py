@@ -209,6 +209,22 @@ def _is_real_word(tok: str) -> bool:
     return tok in _FUZZY_STOPWORDS or tok in _SYSTEM_WORDS
 
 
+# The fuzzy pass matches a bare word with no notion of WHOSE feeling it is, so
+# "my dog looks sad" and "sad news about the team" scored the same level 3 as
+# "i am depressed". Require first-person attribution shortly before the word.
+# "i'm", "i feel", "im so", "i've been", "feeling", "me" — anything that ties
+# the emotion to the speaker.
+_SELF_ATTRIB_RE = re.compile(
+    # Deliberately no "my" — it usually introduces someone else ("my dog looks
+    # sad", "my friend is stressed"), which is not the user's own distress.
+    r"(?:\bi\b|\bi'?m\b|\bim\b|\bme\b|\bmyself\b|\bive\b|\bi'?ve\b"
+    r"|\bfeel\w*\b|\bbeen\b|\bam\b|\bi'?d\b)",
+    re.IGNORECASE,
+)
+# How far back to look for that attribution. One short clause.
+_ATTRIB_WINDOW = 40
+
+
 def _fuzzy_scan(text: str, benign: List[tuple] | None = None) -> Dict[str, int]:
     """Return {canonical_word: level} for any token that (after collapsing
     repeats) is within 1 edit of a core emotion word. Misspelling-tolerant.
@@ -216,12 +232,18 @@ def _fuzzy_scan(text: str, benign: List[tuple] | None = None) -> Dict[str, int]:
     Tokens sitting inside a benign idiom span ("hopeless romantic", "dying
     laughing") are skipped — otherwise the fuzzy pass re-fires the very hits the
     context guard just discarded.
+
+    A hit also needs first-person attribution nearby, so describing a sad movie
+    or a stressed friend doesn't read as the user's own distress.
     """
     found: Dict[str, int] = {}
     benign = benign or []
     for m in _WORD_RE.finditer(text.lower()):
         tok = m.group(0)
         if len(tok) < 3 or _is_real_word(tok):
+            continue
+        # Whose feeling is this? Look back one clause for a first-person marker.
+        if not _SELF_ATTRIB_RE.search(text, max(0, m.start() - _ATTRIB_WINDOW), m.start()):
             continue
         if _in_benign(m.span(), benign):
             continue

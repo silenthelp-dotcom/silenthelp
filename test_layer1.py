@@ -130,6 +130,54 @@ CASES = [
     ("she's envious of his grades", 0, 0),
     ("the box was empty-handed nonsense", 0, 3),
     ("i hired a tutor and fired off the email", 0, 0),
+
+    # ------------------------------------------- partial slot forms (recall)
+    # The v4 templates originally required ALL five slots, so these all scored 0
+    # and the database was effectively dead for real typing. Optional slots fixed
+    # it: the state alone, with a starter, is enough.
+    ("im stressed out", 1, 2),
+    ("im really stressed out", 1, 2),
+    ("im really stressed out because of work", 1, 2),
+    ("im fried for the finals", 1, 2),
+    ("i feel worn out today", 1, 2),
+    ("i'm completely overwhelmed by everything", 2, 3),
+    ("i am at my breaking point", 2, 3),
+    ("i want to kill myself", 4, 4),
+    ("i wanna hurt myself", 4, 4),
+    ("imma kill him", 4, 4),
+    ("he threatened to kill me", 4, 4),
+    ("my friend said they want to kill themselves", 4, 4),
+
+    # -------------------------- short idiomatic distress (exact phrase lists)
+    # No <starter><modifier><state> decomposition exists for these, so the slot
+    # grammar can never match them; they must be listed literally.
+    ("i hate myself", 2, 3),
+    ("i hate my life", 2, 3),
+    ("i give up", 2, 3),
+    ("nobody cares about me", 2, 3),
+    ("i can't do this anymore", 2, 3),
+    ("everything is falling apart", 2, 3),
+    ("i'm all alone", 2, 3),
+    ("i don't want to be here", 4, 4),
+    ("i want to disappear", 4, 4),
+    ("i can't go on", 4, 4),
+    ("no reason to live", 4, 4),
+    ("i'd be better off dead", 4, 4),
+
+    # --------------------------------- emotion words about someone/something else
+    # The fuzzy pass had no notion of WHOSE feeling it was, so these scored the
+    # same level 3 as "i am depressed".
+    ("the movie was so sad", 0, 0),
+    ("the ending was sad", 0, 0),
+    ("my dog looks sad", 0, 0),
+    ("sad news about the team", 0, 0),
+    ("that story is depressing", 0, 0),
+    ("she seems tired", 0, 0),
+    ("my friend is stressed", 0, 1),
+    # ...but first-person still fires
+    ("im so sad", 3, 3),
+    ("i feel sad", 3, 3),
+    ("i have been feeling worthless", 3, 3),
 ]
 
 
