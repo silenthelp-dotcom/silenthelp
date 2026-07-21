@@ -9,7 +9,7 @@ Run: `python3 app.py` (uses the framework Python; key auto-loads from `.env`).
 ---
 
 ## Layers
-- **L1 — keyword** (`layer1.py`, local, instant): regex from `layer1_blocks.json`.
+- **L1 — keyword** (`layer1.py`, local, instant): regex from `layer1_db/level{1,2,3}*.json`.
 - **L2 — semantic** (`detection.py`, NIM cloud): classifier, fails safe to HIGH.
 - **L3 — behavioral** (`behavioral.py`, local): rule-based scores vs baseline.
 - **L4 — trend gate**: front-end accumulates strained checks; gate at streak ≥ 4.

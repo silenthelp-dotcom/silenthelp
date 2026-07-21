@@ -2,22 +2,38 @@
 SilentHelp — Layer 1 Keyword Engine
 ===================================
 
-The cheap, fully-local pre-filter. NO AI. It loads layer1_blocks.json and
-compiles, ONCE at import, the same regex the macOS app builds at runtime:
+The cheap, fully-local pre-filter. NO AI. It loads the three level databases in
+layer1_db/ (schema 4.0.0-regex) and compiles their regex templates ONCE at
+import:
 
-    <starter> <modifier>? <root>       (per category)  -> contextual match
-    <standalone tier-3 crisis phrase>                  -> tier-3, bypasses gating
+    layer1_db/level1_everyday_stress.json   -> level 1  (everyday stress)
+    layer1_db/level2_major_stress.json      -> level 2  (major stress)
+    layer1_db/level3_crisis.json            -> level 4  (crisis, bypasses gating)
+
+Each level ships:
+  * regex_templates — slot machines (<starter> <modifier> <state> <context>
+    <time>) already compiled into a single alternation-per-slot pattern. A hit
+    means a full, contextual sentence matched, so precision is high.
+  * exact_high_precision_phrases — short standalone phrases that are signal on
+    their own ("i wish i was dead", "screw this test").
 
 Layer 1's only job: catch obvious signals fast and pass them to Layer 2. It is
-deliberately dumb — string/regex matching, no understanding. Tier-3 standalone
-hits are high-precision crisis vocabulary and are flagged to BYPASS Layer 4's
-trend gate (a single hit is enough).
+deliberately dumb — string/regex matching, no understanding. Level-3 (crisis)
+hits are flagged to BYPASS Layer 4's trend gate: a single hit is enough.
+
+Alongside the database, three safety nets stay local to this file because they
+are behaviour, not vocabulary:
+  * a benign-idiom / joke guard so "dying laughing" never fires,
+  * a spelling-tolerant pass over core emotion words ("depresed", "alon"),
+  * a received-threat pattern (bullying aimed AT the user).
 
 scan(text) -> {
-    "tier3": bool,                 # standalone crisis vocabulary present
-    "matched": bool,               # any L1 hit at all (tier3 or contextual)
-    "categories": [str, ...],      # which root categories fired
+    "tier3": bool,                 # crisis vocabulary present (level 3 db)
+    "matched": bool,               # any L1 hit at all
+    "categories": [str, ...],      # which level categories fired
     "hits": [{"phrase","category","tier"}, ...],
+    "level": int,                  # 0-4 severity
+    ...
 }
 """
 
@@ -28,7 +44,16 @@ import re
 from pathlib import Path
 from typing import Any, Dict, List
 
-_BLOCKS_PATH = Path(__file__).resolve().parent / "layer1_blocks.json"
+_DB_DIR = Path(__file__).resolve().parent / "layer1_db"
+
+# Each database file, and the 1-4 severity it maps onto. The db's own `level`
+# is 1/2/3; the app's scale reserves 4 for "send the email" crisis, so the
+# crisis database maps to 4.
+_DB_FILES = [
+    ("level1_everyday_stress.json", 1, "everyday_stress"),
+    ("level2_major_stress.json", 2, "major_stress"),
+    ("level3_crisis.json", 4, "crisis"),
+]
 
 
 def _alt(words: List[str]) -> str:
@@ -36,34 +61,41 @@ def _alt(words: List[str]) -> str:
     return "|".join(re.escape(w) for w in sorted(set(words), key=len, reverse=True))
 
 
-def _load() -> Dict[str, Any]:
-    with _BLOCKS_PATH.open(encoding="utf-8") as f:
-        return json.load(f)
+def _load_db() -> List[Dict[str, Any]]:
+    levels = []
+    for fname, severity, category in _DB_FILES:
+        with (_DB_DIR / fname).open(encoding="utf-8") as f:
+            doc = json.load(f)
+        patterns = [
+            (t["id"], re.compile(t["regex"], re.IGNORECASE | re.UNICODE))
+            for t in doc["regex_templates"]
+        ]
+        exact = doc.get("exact_high_precision_phrases", [])
+        exact_re = (
+            re.compile(rf"(?<!\w)(?:{_alt(exact)})(?!\w)", re.IGNORECASE | re.UNICODE)
+            if exact
+            else None
+        )
+        levels.append(
+            {
+                "file": fname,
+                "severity": severity,
+                "category": category,
+                "name": doc.get("name", category),
+                "bypasses_gate": bool(doc.get("bypasses_four_day_trend_gate")),
+                "patterns": patterns,
+                "exact_re": exact_re,
+                "exact_count": len(exact),
+                "template_count": len(patterns),
+                "combinations": doc.get("statistics", {}).get(
+                    "theoretical_phrase_combinations", 0
+                ),
+            }
+        )
+    return levels
 
 
-_DATA = _load()
-
-# Contextual pattern per category: starter (+ optional modifier) + root.
-_STARTERS = _alt(_DATA["starters"])
-_MODIFIERS = _alt(_DATA["modifiers"])
-_CATEGORY_RE: Dict[str, re.Pattern] = {
-    category: re.compile(
-        rf"\b(?:{_STARTERS})\s+(?:(?:{_MODIFIERS})\s+)?(?:{_alt(roots)})\b",
-        re.IGNORECASE,
-    )
-    for category, roots in _DATA["roots"].items()
-}
-
-# Bare-root pattern: roots strong enough to count on their own (e.g. "i'm cooked"
-# where "cooked" is also a starter). Catches root-only phrasings the contextual
-# regex would miss. Kept separate so we can label it lower-confidence if needed.
-_ROOT_ONLY_RE: Dict[str, re.Pattern] = {
-    category: re.compile(rf"\b(?:{_alt(roots)})\b", re.IGNORECASE)
-    for category, roots in _DATA["roots"].items()
-}
-
-# Standalone tier-3 crisis vocabulary — bypasses trend gating.
-_TIER3_RE = re.compile(rf"\b(?:{_alt(_DATA['standalone_tier_3_crisis'])})\b", re.IGNORECASE)
+_LEVELS = _load_db()
 
 # ---------------------------------------------------------------------------
 # Spelling-tolerant core emotion words. Students misspell ("depresed"),
@@ -85,8 +117,6 @@ _FUZZY_WORDS = {
     "exhausted": 1, "burntout": 1, "burnout": 1, "drained": 1, "tired": 1,
     "sad": 3, "crying": 2, "struggling": 2,
 }
-# words too short to fuzzy-match safely (1 edit would swallow common words)
-_FUZZY_MIN_LEN = 4
 
 
 def _collapse_repeats(w: str) -> str:
@@ -118,42 +148,91 @@ def _lev1(a: str, b: str) -> bool:
     return a[i + 1:] == b[i:]  # deletion from a
 
 
-def _lev2(a: str, b: str) -> bool:
-    """Within edit distance 2 — used only for longer words (>=7 chars) where two
-    typos are common and false positives are unlikely ('lonley' vs 'lonely')."""
-    la, lb = len(a), len(b)
-    if abs(la - lb) > 2:
-        return False
-    # simple DP, tiny strings
-    prev = list(range(lb + 1))
-    for i in range(1, la + 1):
-        cur = [i] + [0] * lb
-        for j in range(1, lb + 1):
-            cost = 0 if a[i - 1] == b[j - 1] else 1
-            cur[j] = min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost)
-        prev = cur
-    return prev[lb] <= 2
-
-
 _WORD_RE = re.compile(r"[a-z']+")
 
+# The fuzzy pass exists for MISSPELLINGS ("depresed", "alon"), not for words that
+# merely look similar. Without a guard, edit-distance matching drags in ordinary
+# English — "sacred"→scared, "drawing"→drowning, "beloved"→unloved,
+# "painless"→pointless, "along"→alone, "tied"→tired — and every other sentence
+# scores level 3. Two rules keep it honest:
+#   1. A token that is ITSELF a real English word is never a misspelling of
+#      something else. Checked against the system dictionary when present, plus
+#      an always-on core list so behaviour never depends on the host OS.
+#   2. Edit distance 1 only. Distance 2 caused ~73% of all false matches in a
+#      198k-word dictionary audit and bought almost no real recall.
+_FUZZY_STOPWORDS = frozenset("""
+sacred scarred scored scaled drawing dawning downing drawling dropping
+damned darned defined drained-out chained braided
+painless countless jointless paintless
+headless heedless helmless heatless endless useless-looking
+beloved boneless hapless ageless baseless careless
+envious noxious anxious-looking
+along aloe alone-time aloft above
+tied timed tired-eyes hired fired tiered tilted tinned tipped
+empty-handed emptied temp tempt exempt
+lost-and-found last list lust cost cast most post host
+sand send said sat set sit bad had mad pad
+band bend bond bind find fond fund hand land mind
+lose loose close chose those whose house horse worse nurse
+love dove cove cave gave gate late gaze maze live
+score store stare share shore chore scare
+number numb-ish lumber slumber
+broke brook brown crown drown drawn brake break bread cream dream
+""".split())
 
-def _fuzzy_scan(text: str) -> Dict[str, int]:
+
+def _load_system_words() -> frozenset:
+    """Real English words, used to reject 'this token is already a word' fuzzy
+    matches. Optional — absent on some hosts, so the core list above still
+    carries the common collisions on its own."""
+    for p in ("/usr/share/dict/words", "/usr/dict/words"):
+        try:
+            with open(p, encoding="utf-8", errors="ignore") as f:
+                return frozenset(
+                    w for w in (line.strip().lower() for line in f)
+                    if w.isalpha() and len(w) >= 3
+                )
+        except OSError:
+            continue
+    return frozenset()
+
+
+_SYSTEM_WORDS = _load_system_words()
+
+
+def _is_real_word(tok: str) -> bool:
+    """True if `tok` is itself ordinary English (so not a misspelling of an
+    emotion word). Emotion words themselves are excluded — 'tired' is a real
+    word AND a signal, and must keep matching."""
+    if tok in _FUZZY_WORDS:
+        return False
+    return tok in _FUZZY_STOPWORDS or tok in _SYSTEM_WORDS
+
+
+def _fuzzy_scan(text: str, benign: List[tuple] | None = None) -> Dict[str, int]:
     """Return {canonical_word: level} for any token that (after collapsing
-    repeats) is within 1 edit of a core emotion word. Misspelling-tolerant."""
+    repeats) is within 1 edit of a core emotion word. Misspelling-tolerant.
+
+    Tokens sitting inside a benign idiom span ("hopeless romantic", "dying
+    laughing") are skipped — otherwise the fuzzy pass re-fires the very hits the
+    context guard just discarded.
+    """
     found: Dict[str, int] = {}
-    for tok in _WORD_RE.findall(text.lower()):
-        if len(tok) < 3:
+    benign = benign or []
+    for m in _WORD_RE.finditer(text.lower()):
+        tok = m.group(0)
+        if len(tok) < 3 or _is_real_word(tok):
+            continue
+        if _in_benign(m.span(), benign):
             continue
         c = _collapse_repeats(tok)
         for word, lvl in _FUZZY_WORDS.items():
             cw = _collapse_repeats(word)
-            # Short words (<4) must match closely (collapsed-equal only) to avoid
-            # swallowing common words. Longer words allow 1 edit; 7+ allow 2.
+            # Short words (<4) must match collapsed-equal only — one edit on a
+            # 3-letter word swallows half the language. Everything else allows a
+            # single edit (or one adjacent transposition, via _lev1).
             if len(word) < 4:
                 match = (c == cw)
-            elif len(word) >= 7:
-                match = _lev1(c, cw) or _lev1(tok, word) or _lev2(tok, word)
             else:
                 match = _lev1(c, cw) or _lev1(tok, word)
             if match:
@@ -229,8 +308,13 @@ _HYPERBOLE = {
 # "kill yourself" (told to them), "i'll beat you up".
 _RECEIVED_THREAT_RE = re.compile(
     r"(?:"
-    r"\b(?:i(?:'?m| am| will|'?ll| wanna| want to| gonna|'?d)?\s+"
-    r"(?:kill|hurt|beat|hit|end|destroy|find|get|stab|shoot|jump)\s+(?:you|u|ya|yall|y'all)\b)"
+    # "i'll kill you", "im gonna beat you up", "imma find you", "i want to hurt you".
+    # The subject group must cover every contraction AND the going-to/gonna/finna
+    # futures, or "i'm going to beat you up" slips through.
+    r"\b(?:i(?:'?m| am|'?ma)?|imma)"
+    r"(?:\s+(?:will|'?ll|wanna|want\s+to|gonna|finna|going\s+to|about\s+to|'?d))?\s+"
+    r"(?:kill|hurt|beat|hit|end|destroy|find|get|stab|shoot|jump)\s+"
+    r"(?:the\s+(?:shit|crap|hell)\s+out\s+of\s+)?(?:you|u|ya|yall|y'all)\b"
     r"|\byou(?:'?re| are)?\s+(?:gonna|going to|finna)\s+(?:die|regret|pay|suffer)\b"
     r"|\b(?:you should|u should|go)\s+(?:die|kill\s+(?:yourself|urself|urslf))\b"
     r"|\bkill\s+(?:yourself|urself|urslf|yrself)\b"
@@ -263,14 +347,14 @@ def _in_benign(span: tuple, benign: List[tuple]) -> bool:
 
 
 # Four severity levels (the app's 1–4 scale):
-#   1 = not that critical   (burnout / fatigue)
-#   2 = somewhat            (high stress / overwhelm)
-#   3 = critical            (isolation / hopelessness)
-#   4 = very critical       (standalone crisis vocabulary → send the email)
+#   1 = not that critical   (everyday stress)
+#   2 = somewhat            (major stress)
+#   3 = critical            (received threat / fuzzy isolation+hopelessness)
+#   4 = very critical       (crisis database → send the email)
 CATEGORY_LEVEL = {
-    "burnout_and_fatigue": 1,
-    "high_stress_and_overwhelm": 2,
-    "isolation_and_hopelessness": 3,
+    "everyday_stress": 1,
+    "major_stress": 2,
+    "crisis": 4,
 }
 LEVEL_NAME = {0: "none", 1: "low", 2: "moderate", 3: "high", 4: "crisis"}
 
@@ -282,11 +366,15 @@ def scan(text: str, *, root_only: bool = True) -> Dict[str, Any]:
     are discarded, and when the text carries clear joking/laughter markers,
     hyperbole-prone phrases are dropped too — unless an explicit self-directed
     crisis phrase is present, which always stays serious.
+
+    `root_only` is accepted for call-site compatibility; the 4.0.0 databases are
+    fully contextual, so there are no bare roots to opt into.
     """
     # Normalize typographic quotes (OCR/macOS smart quotes) so "can’t" matches
-    # the database's "can't", and collapse runs of whitespace/newlines.
+    # the database's "can't", lowercase, and collapse runs of whitespace, exactly
+    # as each database's `matching.normalization` requires.
     text = (text or "").replace("’", "'").replace("‘", "'")
-    text = re.sub(r"\s+", " ", text)
+    text = re.sub(r"\s+", " ", text).strip().lower()
     benign = _benign_spans(text)
     laugh_spans = [m.span() for m in _LAUGH_RE.finditer(text)]
     always_serious = bool(_ALWAYS_SERIOUS_RE.search(text))
@@ -315,29 +403,33 @@ def scan(text: str, *, root_only: bool = True) -> Dict[str, Any]:
     joking = bool(laugh_spans)
 
     hits: List[Dict[str, str]] = []
-
-    # Tier-3 first — highest stakes, bypasses gating.
-    tier3_phrases = {m.group(0).lower() for m in _TIER3_RE.finditer(text) if _keep(m)}
-    for phrase in sorted(tier3_phrases):
-        hits.append({"phrase": phrase, "category": "crisis", "tier": "3"})
-
     categories: List[str] = []
-    for category, pattern in _CATEGORY_RE.items():
-        found = {m.group(0).lower() for m in pattern.finditer(text) if _keep(m)}
-        if root_only:
-            found |= {m.group(0).lower() for m in _ROOT_ONLY_RE[category].finditer(text) if _keep(m)}
+    tier3 = False
+
+    # Walk the three databases. Crisis (level 3 db) carries tier "3" and bypasses
+    # the trend gate; the others are contextual signal for Layer 2 to judge.
+    for lvl in _LEVELS:
+        category = lvl["category"]
+        tier = "3" if lvl["bypasses_gate"] else "1"
+        found = set()
+        for _tid, pattern in lvl["patterns"]:
+            found |= {m.group(0) for m in pattern.finditer(text) if _keep(m)}
+        if lvl["exact_re"] is not None:
+            found |= {m.group(0) for m in lvl["exact_re"].finditer(text) if _keep(m)}
         if found:
             categories.append(category)
+            if lvl["bypasses_gate"]:
+                tier3 = True
             for phrase in sorted(found):
-                hits.append({"phrase": phrase, "category": category, "tier": "1"})
+                hits.append({"phrase": phrase, "category": category, "tier": tier})
 
     # Spelling-tolerant core-word pass: catches "depresed", "im so alon", etc.
     # Suppressed when the message is clearly joking (unless always-serious).
     fuzzy_level = 0
     if not (joking and not always_serious):
-        fuzzy = _fuzzy_scan(text)
-        for word, lvl in fuzzy.items():
-            fuzzy_level = max(fuzzy_level, lvl)
+        fuzzy = _fuzzy_scan(text, benign)
+        for word, lvl_num in fuzzy.items():
+            fuzzy_level = max(fuzzy_level, lvl_num)
             hits.append({"phrase": word, "category": "fuzzy", "tier": "1"})
 
     # A received threat is a safety concern → at least level 3 (high).
@@ -347,12 +439,12 @@ def scan(text: str, *, root_only: bool = True) -> Dict[str, Any]:
         if "received_threat" not in categories:
             categories.append("received_threat")
 
-    # Highest level wins. Tier-3 (self crisis) = 4. Received threat = 3.
+    # Highest level wins. Crisis database = 4. Received threat = 3.
     cat_level = max((CATEGORY_LEVEL.get(c, 0) for c in categories), default=0)
-    level = 4 if tier3_phrases else max(cat_level, fuzzy_level, 3 if received_threat else 0)
+    level = 4 if tier3 else max(cat_level, fuzzy_level, 3 if received_threat else 0)
 
     return {
-        "tier3": bool(tier3_phrases),
+        "tier3": tier3,
         "matched": bool(hits),
         "categories": categories,
         "hits": hits,
@@ -365,19 +457,34 @@ def scan(text: str, *, root_only: bool = True) -> Dict[str, Any]:
 
 # Quick counts for diagnostics / startup logging.
 STATS = {
-    "starters": len(_DATA["starters"]),
-    "modifiers": len(_DATA["modifiers"]),
-    "tier3": len(_DATA["standalone_tier_3_crisis"]),
-    "roots": {c: len(r) for c, r in _DATA["roots"].items()},
+    "schema": "4.0.0-regex",
+    "levels": {
+        lvl["category"]: {
+            "file": lvl["file"],
+            "name": lvl["name"],
+            "severity": lvl["severity"],
+            "templates": lvl["template_count"],
+            "exact_phrases": lvl["exact_count"],
+            "combinations": lvl["combinations"],
+            "bypasses_gate": lvl["bypasses_gate"],
+        }
+        for lvl in _LEVELS
+    },
+    "total_combinations": sum(lvl["combinations"] for lvl in _LEVELS),
 }
 
 
 if __name__ == "__main__":
     for t in [
         "what time does the library close",
-        "i'm so burnt out and everything is pointless",
-        "ngl i wanna unalive myself tonight",
-        "lowkey cooked and running on empty for weeks",
+        "im really stressed out because of work today",
+        "i'm completely overwhelmed by everything because of school lately",
+        "i want to fucking kill myself tonight because i cannot take this anymore",
+        "i wish i was dead",
+        "bro im dying laughing lmao",
+        "kill yourself loser",
+        "im so depresed and alon",
     ]:
         r = scan(t)
-        print(f"tier3={r['tier3']} cats={r['categories']!r:50} :: {t}")
+        print(f"L{r['level']} {r['level_name']:9} tier3={r['tier3']!s:5} "
+              f"cats={r['categories']!r:40} :: {t}")

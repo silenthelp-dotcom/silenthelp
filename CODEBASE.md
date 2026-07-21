@@ -55,23 +55,33 @@ cookies; anonymous remote visitors get 401s on personal APIs and a sign-up gate.
     `/download/agent` (serves `dist/SilentHelpAgent.zip`), `/chat` → 302 `/app#chat`
     (RELATIVE redirect — absolute would send visitors to 127.0.0.1).
 
-- **`layer1.py`** — Layer 1 keyword engine. No AI. Compiles once at import from
-  `layer1_blocks.json`: per-category regex `<starter> <modifier>? <root>`, bare-root
-  regex, and standalone tier-3 crisis regex. **Context guard**: `_BENIGN_RE` (idioms —
+- **`layer1.py`** — Layer 1 keyword engine. No AI. Compiles once at import from the
+  three `layer1_db/level*.json` databases: each ships pre-built `regex_templates`
+  (full contextual sentences — `<starter> <modifier> <state> <context> <time>`) plus
+  `exact_high_precision_phrases`. **Context guard**: `_BENIGN_RE` (idioms —
   "dying laughing", "phone is dead", "suicide squad", "cut myself a slice"…) discards
   overlapping hits; `_LAUGH_RE` markers (lol/lmao/😂/💀/jk…) suppress `_HYPERBOLE`
   phrases ("im dead", "i want to die"…) only within `_JOKE_RADIUS` (60 chars) of the
   hit; `_ALWAYS_SERIOUS_RE` (kill myself, kms, unalive, self harm…) can never be
-  suppressed. Normalizes curly quotes (OCR produces `can’t`). `scan(text)` returns
-  `{tier3, matched, categories, hits[{phrase,category,tier}], level 0-4, level_name,
-  joking_context}`. Severity: burnout=1, stress=2, isolation=3, tier-3 crisis=4.
+  suppressed. Also keeps two nets the database does not cover: a spelling-tolerant
+  fuzzy pass over ~40 core emotion words ("depresed", "alon") and `_RECEIVED_THREAT_RE`
+  (bullying aimed AT the user). Normalizes curly quotes (OCR produces `can’t`),
+  lowercases, and collapses whitespace, per each database's `matching.normalization`.
+  `scan(text)` returns `{tier3, matched, categories, hits[{phrase,category,tier}],
+  level 0-4, level_name, joking_context, received_threat}`. Severity: everyday_stress=1,
+  major_stress=2, received_threat=3, crisis=4. Highest wins.
 
-- **`layer1_blocks.json`** — The keyword database: ~450 starters, 71 modifiers,
-  ~1,990 roots in 3 categories (burnout_and_fatigue, high_stress_and_overwhelm,
-  isolation_and_hopelessness), ~570 standalone tier-3 crisis phrases. Single bare
-  words that fire on everyday speech (jump, bridge, knife, hanging…) were deliberately
-  removed — crisis entries must be self-directed PHRASES. Contractions exist in both
-  spellings (cant / can't).
+- **`layer1_db/level1_everyday_stress.json`**, **`level2_major_stress.json`**,
+  **`level3_crisis.json`** — The keyword database (schema `4.0.0-regex`). Each file
+  carries its `components` (the raw slot word-lists), the compiled `regex_templates`,
+  and `exact_high_precision_phrases`. Together ~855M theoretical phrase combinations
+  across 8 templates. Only level 3 sets `bypasses_four_day_trend_gate` — a single
+  crisis hit skips Layer 4. Because every template requires a full contextual
+  sentence, bare words that fire on everyday speech can never match on their own.
+
+- **`build_layer1_db.py`** — Generator for `layer1_db/`. Edit the component lists at
+  the top and re-run (`python3 build_layer1_db.py`); `layer1.py` picks up the new
+  vocabulary on its next import.
 
 - **`detection.py`** — Layer 2, the decider. `classify_message(text)` calls Groq
   (`https://api.groq.com/openai/v1`, model `openai/gpt-oss-120b`, temp 0, timeout 8s,
@@ -111,7 +121,8 @@ cookies; anonymous remote visitors get 401s on personal APIs and a sign-up gate.
   company site data (careers/team/founder admin) — intentionally NOT per-user;
   `/api/hq*` is public. Uses Postgres if DATABASE_URL is set, else the JSON file.
 
-- **`build_layer1_blocks.py`** — Generator that produced `layer1_blocks.json`.
+- **`_legacy/`** — Retired v2 keyword database (`layer1_blocks.json`) and its
+  generator, superseded by `layer1_db/`. Kept for reference only; nothing imports it.
 
 ### Native macOS agent (Swift)
 

@@ -270,10 +270,11 @@ def _pipeline(message: str, record: bool = False, toggles: dict | None = None):
     the bound user's store — but anonymous callers (a friend's agent) must NOT
     inherit the Mac owner's toggles, so they pass all-on defaults instead.
 
-    Layer 1 (your keyword database, layer1_blocks.json) produces a graded signal:
-      - a standalone tier-3 crisis phrase  -> "crisis"
-      - a burnout/stress/isolation root    -> "moderate"
-      - nothing                            -> "none"
+    Layer 1 (your keyword database, layer1_db/level{1,2,3}*.json) produces a
+    graded signal:
+      - a level-3 crisis phrase             -> "crisis"
+      - an everyday/major stress sentence   -> "moderate"
+      - nothing                             -> "none"
     Layer 2 (semantic model) reads meaning and returns its own level.
 
     Combine (so we get the FULL range of levels, not just crisis):
@@ -334,6 +335,21 @@ def _pipeline(message: str, record: bool = False, toggles: dict | None = None):
         final = l1_level if _ORDER.get(l1_level, 0) >= _ORDER.get(fs_level, 0) else fs_level
     else:
         final = l2_level
+
+    # KEYWORD FLOOR. The v4 database only matches a full contextual sentence
+    # ("i'm completely overwhelmed by everything because of school lately") or a
+    # curated high-precision phrase, so a hit is strong evidence — far stronger
+    # than the loose bare-word matching this layer used to do. Letting the model
+    # freely downgrade it meant real distress went silent: "i'm barely holding it
+    # together and i need help today" scored L1=moderate, L2=low -> surface=none,
+    # i.e. no popup for an explicit request for help.
+    #
+    # So the model may still VETO a hit outright (level "none" — it read a joke,
+    # a quote, fiction, or negation, which is exactly its job), but it may not
+    # quietly shave a genuine hit down to a level that never surfaces.
+    if semantic_on and not l2_failed and l2_level != "none":
+        if _ORDER.get(l1_level, 0) > _ORDER.get(final, 0):
+            final = l1_level
 
     # A keyword-detected RECEIVED THREAT (someone threatening the user) is a
     # safety concern even if the model read it lower — floor it at "high" unless
