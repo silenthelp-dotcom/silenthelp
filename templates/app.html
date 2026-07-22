@@ -141,18 +141,35 @@ body > *:not([data-backdrop]) { position:relative; z-index:2; }
 /* The design's sidebar is a plain <div> — no glass, no blur, no shadow. */
 
 /* Page and panel grounds ------------------------------------------------ */
-[style*="background:#fff"], [style*="background: #fff"],
-[style*="background:#ffffff"], [style*="background:#f6f9fc"],
-[style*="background:#f8fafc"], [style*="background:#f2f8ff"],
-[style*="background:#eef4fb"], [style*="background:#f4f7fb"],
-[style*="background:#fafcfe"], [style*="background:#f6f8fb"] {
+/* PANELS become translucent glass. Buttons and chat bubbles must NOT: the
+   design paints those solid white with black text, and dissolving them is what
+   made the user's own chat messages nearly invisible over the video. */
+[style*="background:#fff"]:not(button):not([style*="color:#000"]),
+[style*="background: #fff"]:not(button):not([style*="color:#000"]),
+[style*="background:#ffffff"]:not(button):not([style*="color:#000"]),
+[style*="background:#f6f9fc"], [style*="background:#f8fafc"],
+[style*="background:#f2f8ff"], [style*="background:#eef4fb"],
+[style*="background:#f4f7fb"], [style*="background:#fafcfe"],
+[style*="background:#f6f8fb"] {
   background:rgba(255,255,255,0.022) !important;
   backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+}
+/* Solid white, per the design: primary buttons and the user's chat bubbles. */
+button[style*="background:#fff"], [style*="background:#fff"][style*="color:#000"] {
+  background:#fff !important; color:#000 !important; backdrop-filter:none !important;
 }
 /* Tinted chips/bars: pale blue fills (#eef5ff, #bcd9ff, #9cc7ff) and the warm
    amber note (#fff6ec) all vanish on black. Keep their MEANING — cool = data,
    warm = caution — at dark-appropriate weights. */
+/* Pale-blue chips: as flat panels they stay a cool tint, but as BUTTONS the
+   design makes them white pills with black text — no blue anywhere. */
 [style*="background:#eef5ff"] { background:rgba(90,150,255,.14) !important; }
+button[style*="background:#eef5ff"] {
+  background:#fff !important; color:#000 !important;
+  border-color:transparent !important; border-radius:9999px !important;
+}
+button[style*="background:#eef5ff"] * { color:#000 !important; }
+button[style*="color:#0a6dff"] { color:#000 !important; }
 /* Pale gradient panels (the insight card) — flat-color selectors miss these. */
 [style*="linear-gradient(100deg, #eaf3ff"], [style*="linear-gradient(#eaf3ff"],
 [style*="linear-gradient(180deg, #f6f9fc"], [style*="linear-gradient(#f4f9ff"] {
@@ -238,10 +255,18 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
   box-shadow:0 30px 90px rgba(0,0,0,.7) !important;
 }
 
-/* Keep the blue accent, but lift it so it reads on black. #007aff is a
-   light-background blue and goes muddy against #000. */
+/* The design contains NO blue at all — every primary action is a white pill
+   with black text (background:#fff; color:#000; border-radius:9999px). The
+   remaining #007aff buttons are light-theme leftovers on the onboarding and
+   sign-in screens, so they are converted rather than merely lightened. */
+[style*="background:#007aff"] {
+  background:#fff !important; color:#000 !important;
+  border-radius:9999px !important; box-shadow:none !important;
+}
+[style*="background:#007aff"] * { color:#000 !important; }
+/* Small blue text accents (labels, links) lift instead — #007aff goes muddy
+   on black but these are not buttons. */
 [style*="color:#007aff"] { color:#6fb0ff !important; }
-[style*="background:#007aff"] { background:#2f6fd0 !important; }
 </style>
 </head>
 <body>
@@ -307,7 +332,7 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
           <input id="gateEmail" type="email" placeholder="you@email.com" style="width:100%; height:46px; border:1px solid #dde6ef; border-radius:11px; padding:0 15px; font-size:13.5px; outline:none; color:#16202b; background:#fff; margin-bottom:10px;" />
           <input id="gatePass" type="password" placeholder="Password (6+ characters)" style="width:100%; height:46px; border:1px solid #dde6ef; border-radius:11px; padding:0 15px; font-size:13.5px; outline:none; color:#16202b; background:#fff;" />
           <div id="gateErr" style="font-size:12.5px; color:#d2381f; margin-top:10px; display:none;"></div>
-          <button class="glass" onclick="App.gateAuth('signup')" style="width:100%; margin-top:16px; border-radius:12px; padding:14px; font-size:14.5px; font-weight:600; background:#007aff !important; color:#fff !important;">Create my space</button>
+          <button class="glass" onclick="App.gateAuth('signup')" style="width:100%; margin-top:16px; border-radius:12px; padding:14px; font-size:14.5px; font-weight:600; background:#fff !important; color:#000 !important;">Create my space</button>
           <button class="glass ghost" onclick="App.gateAuth('login')" style="width:100%; margin-top:10px; border-radius:12px; padding:13px; font-size:14px; font-weight:600;">I already have an account — sign in</button>
           <div style="font-size:11.5px; color:#9aa7b3; margin-top:14px; text-align:center; font-weight:300; line-height:1.6;">By creating an account you agree to the<br/><a href="/terms" target="_blank" style="color:#0a6dff; text-decoration:none;">Terms of Use</a> &nbsp;·&nbsp; <a href="/privacy" target="_blank" style="color:#0a6dff; text-decoration:none;">Privacy Policy</a></div>
         </div>
@@ -736,11 +761,16 @@ window.SH_HERO_VIDEO = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJO
     v.src = window.SH_HERO_VIDEO;
     v.autoplay = true; v.muted = true; v.playsInline = true; v.preload = 'auto';
     v.setAttribute('aria-hidden','true'); v.setAttribute('data-backdrop','');
-    // The updated design DROPPED the framed window — no glass card, no rounded
-    // corners, no dark fill. Content sits straight on the footage, and the
-    // scrim is off by request, so the video reads at full brightness.
     v.style.cssText = 'position:fixed; inset:0; width:100%; height:100%; object-fit:cover;' +
                       'object-position:top; z-index:0; opacity:0; pointer-events:none;';
+    // The design DOES specify a scrim — rgba(0,0,0,.35) over the video — and
+    // removing it is what made the orb overwhelm the content and cut through
+    // text in Coping Chat. Restored to the design's own value.
+    var scrim = document.createElement('div');
+    scrim.setAttribute('data-backdrop','');
+    scrim.style.cssText = 'position:fixed; inset:0; z-index:1; pointer-events:none;' +
+      'background:rgba(0,0,0,.35);';
+    document.body.insertBefore(scrim, document.body.firstChild);
     document.body.insertBefore(v, document.body.firstChild);
 
     var FADE = 500, LEAD = 0.55, raf = null, fadingOut = false;
@@ -1132,8 +1162,8 @@ const App = {
   renderChat(typing){
     const wrap = document.getElementById('chatThread');
     let html = this.history.map(m => m.role === 'user'
-      ? `<div style="display:flex; justify-content:flex-end;"><div style="max-width:76%; font-size:14px; line-height:1.62; color:#fff; background:#007aff; padding:13px 17px; border-radius:16px; animation:surface .6s cubic-bezier(.16,1,.3,1); white-space:pre-wrap;">${this.esc(m.content)}</div></div>`
-      : `<div style="display:flex; justify-content:flex-start;"><div style="max-width:76%; font-size:14px; line-height:1.62; color:#3c4a57; font-weight:300; animation:surface .6s cubic-bezier(.16,1,.3,1); white-space:pre-wrap;">${this.esc(m.content)}</div></div>`).join('');
+      ? `<div style="display:flex; justify-content:flex-end;"><div style="max-width:76%; font-size:14px; line-height:1.62; color:#000; background:#fff; padding:13px 18px; border-radius:18px; animation:surface .6s cubic-bezier(.16,1,.3,1); white-space:pre-wrap;">${this.esc(m.content)}</div></div>`
+      : `<div style="display:flex; justify-content:flex-start;"><div style="max-width:76%; font-size:14px; line-height:1.62; color:rgba(255,255,255,.85); font-weight:300; animation:surface .6s cubic-bezier(.16,1,.3,1); white-space:pre-wrap;">${this.esc(m.content)}</div></div>`).join('');
     if (typing) html += `<div style="display:flex; justify-content:flex-start;"><div style="display:flex; gap:5px; align-items:center; padding:4px 0;"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div></div>`;
     wrap.innerHTML = html; wrap.scrollTop = wrap.scrollHeight;
   },
