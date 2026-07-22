@@ -737,18 +737,10 @@ window.SH_HERO_VIDEO = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJO
     v.autoplay = true; v.muted = true; v.playsInline = true; v.preload = 'auto';
     v.setAttribute('aria-hidden','true'); v.setAttribute('data-backdrop','');
     // The updated design DROPPED the framed window — no glass card, no rounded
-    // corners, no dark fill. Content sits straight on the footage with only a
-    // scrim between, so the video is meant to read as the actual backdrop
-    // rather than a dim texture. Shown sharp at the design's own .35 scrim,
-    // with a slight extra veil low down where the body copy sits.
+    // corners, no dark fill. Content sits straight on the footage, and the
+    // scrim is off by request, so the video reads at full brightness.
     v.style.cssText = 'position:fixed; inset:0; width:100%; height:100%; object-fit:cover;' +
                       'object-position:top; z-index:0; opacity:0; pointer-events:none;';
-    var scrim = document.createElement('div');
-    scrim.setAttribute('data-backdrop','');
-    // Flat rgba(0,0,0,.35), exactly as the design declares it — not a gradient.
-    scrim.style.cssText = 'position:fixed; inset:0; z-index:1; pointer-events:none;' +
-      'background:rgba(0,0,0,.35);';
-    document.body.insertBefore(scrim, document.body.firstChild);
     document.body.insertBefore(v, document.body.firstChild);
 
     var FADE = 500, LEAD = 0.55, raf = null, fadingOut = false;
