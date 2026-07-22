@@ -61,6 +61,154 @@ def _alt(words: List[str]) -> str:
     return "|".join(re.escape(w) for w in sorted(set(words), key=len, reverse=True))
 
 
+# ---------------------------------------------------------------------------
+# Root vocabulary — the fix for "none of the words in the database work".
+#
+# The 4.0.0 regex_templates are SLOT MACHINES: they only fire when a whole
+# contextual sentence lines up (<starter> <modifier> <state> <context> <time>).
+# That made the databases' own vocabulary inert on its own — "kill myself",
+# "commit suicide", "kms", "at my breaking point" all scored 0 unless the user
+# happened to phrase the entire sentence the template's way. An audit found 789
+# of 829 component phrases unreachable.
+#
+# So every component group is also compiled as a DIRECT matcher. But the groups
+# are not equal: some carry the signal, others are only grammar glue.
+#
+#   SIGNAL  — means something on its own. "kill myself", "having a breakdown",
+#             "kill me". These match bare and set the level.
+#   GLUE    — meaningless alone. "him", "really", "today", "i am". Matching
+#             these bare would fire on every sentence in English, so they are
+#             NEVER standalone hits; they only serve the slot templates.
+#
+# Glue is listed explicitly (allow-list of what may fire), because a new group
+# added to a database later should default to safe-but-silent, not to matching
+# the word "today" at level 4.
+# ---------------------------------------------------------------------------
+_SIGNAL_GROUPS = {
+    # group name -> level override (None = use the database's own severity)
+    "states": None,
+    "self_harm_actions": None,
+    "reported_crisis_actions": None,
+    "threat_actions": None,
+}
+# Groups that must never produce a standalone hit.
+_GLUE_GROUPS = {
+    "self_starters", "intent_starters", "modifiers", "intensifiers",
+    "contexts", "time", "time_or_immediacy", "other_speakers",
+    "person_targets", "violent_actions", "reason_context",
+    "reason_context_third", "third_party_reporters", "threat_subjects",
+}
+
+# "violent_actions" is glue on purpose: "kill" / "hurt" / "end" alone are far
+# too common ("kill the lights", "that hurt", "end of class"). They need a
+# target, which the pairing pass below supplies.
+
+_MIN_ROOT_LEN = 4  # below this a "root" is a fragment, not a phrase
+
+# Short crisis terms that are real signal despite being under the length floor.
+# "kms" is unambiguous; bare "die" is NOT (it needs a subject, so it stays out
+# and is covered by the templates, the exact phrases, and the hyperbole guard).
+_SHORT_ROOT_ALLOW = {"kms"}
+
+
+# The databases store one canonical inflection ("kill myself", "hurt myself"),
+# but people write the gerund just as often — "thinking about hurting myself",
+# "kept cutting myself". Rather than bloat the JSON with every form, derive the
+# -ing form of the leading verb for phrases whose first word is a bare verb.
+_VERB_ING = {
+    "kill": "killing", "hurt": "hurting", "end": "ending", "take": "taking",
+    "cut": "cutting", "harm": "harming", "stab": "stabbing", "shoot": "shooting",
+    "attack": "attacking", "beat": "beating", "destroy": "destroying",
+    "unalive": "unaliving", "delete": "deleting", "make": "making",
+    "commit": "committing", "give": "giving", "leave": "leaving",
+    "say": "saying", "stop": "stopping", "do": "doing", "die": "dying",
+    "jump": "jumping", "threaten": "threatening", "starve": "starving",
+    "burn": "burning", "hang": "hanging", "slit": "slitting",
+    "poison": "poisoning", "bleed": "bleeding", "punish": "punishing",
+    "overdose": "overdosing",
+}
+
+
+# People type "cant"/"can't" where the database says "cannot", "dont" for
+# "do not", and so on. Expanding the TEXT would shift every match offset and
+# desync the benign-idiom spans, so instead each stored phrase gains its
+# contracted variants here, at build time.
+_CONTRACTIONS = [
+    ("cannot", ["can't", "cant"]),
+    ("do not", ["don't", "dont"]),
+    ("does not", ["doesn't", "doesnt"]),
+    ("did not", ["didn't", "didnt"]),
+    ("will not", ["won't", "wont"]),
+    ("i am", ["i'm", "im"]),
+    ("i have", ["i've", "ive"]),
+    ("i will", ["i'll", "ill"]),
+    ("i would", ["i'd", "id"]),
+    ("want to", ["wanna"]),
+    ("going to", ["gonna"]),
+    ("unable to", ["can't", "cant", "cannot"]),
+]
+
+
+def _contraction_variants(phrase: str) -> List[str]:
+    """Every contracted spelling of `phrase` (one substitution per variant)."""
+    out = []
+    for full, shorts in _CONTRACTIONS:
+        if full in phrase:
+            out.extend(phrase.replace(full, s) for s in shorts)
+    return out
+
+
+def _inflect(phrase: str) -> List[str]:
+    """`phrase` plus its gerund and contracted variants."""
+    forms = [phrase]
+    head, _, rest = phrase.partition(" ")
+    ing = _VERB_ING.get(head)
+    if ing and rest:
+        forms.append(f"{ing} {rest}")
+    for f in list(forms):
+        forms.extend(_contraction_variants(f))
+    return forms
+
+
+def _root_phrases(doc: Dict[str, Any]) -> List[str]:
+    """Every component phrase that is signal on its own."""
+    out: List[str] = []
+    for group, values in (doc.get("components") or {}).items():
+        if group in _GLUE_GROUPS or group not in _SIGNAL_GROUPS:
+            continue
+        for v in values:
+            if not isinstance(v, str):
+                continue
+            v = v.lower()
+            if len(v) >= _MIN_ROOT_LEN or v in _SHORT_ROOT_ALLOW:
+                out.extend(_inflect(v))
+    return out
+
+
+def _pair_regex(doc: Dict[str, Any]) -> "re.Pattern | None":
+    """Violent action + person target, as one unit.
+
+    "kill" is glue and "him" is glue, but "kill him" is a crisis phrase. This
+    pairs the two groups directly so the intent doesn't need a matching starter
+    slot — "kill him", "stab that guy", "beat the shit out of my roommate" all
+    fire without "i'm going to" in front.
+    """
+    comp = doc.get("components") or {}
+    actions = [f for a in comp.get("violent_actions", []) if isinstance(a, str)
+               for f in _inflect(a.lower())]
+    # Bare verbs have no " rest" to inflect, so add their gerunds explicitly:
+    # "killing him", "stabbing that guy".
+    actions += [_VERB_ING[a.lower()] for a in comp.get("violent_actions", [])
+                if isinstance(a, str) and a.lower() in _VERB_ING]
+    targets = [t for t in comp.get("person_targets", []) if isinstance(t, str)]
+    if not actions or not targets:
+        return None
+    return re.compile(
+        rf"(?<!\w)(?:{_alt(actions)})\s+(?:{_alt(targets)})(?!\w)",
+        re.IGNORECASE | re.UNICODE,
+    )
+
+
 def _load_db() -> List[Dict[str, Any]]:
     levels = []
     for fname, severity, category in _DB_FILES:
@@ -76,6 +224,12 @@ def _load_db() -> List[Dict[str, Any]]:
             if exact
             else None
         )
+        roots = _root_phrases(doc)
+        roots_re = (
+            re.compile(rf"(?<!\w)(?:{_alt(roots)})(?!\w)", re.IGNORECASE | re.UNICODE)
+            if roots
+            else None
+        )
         levels.append(
             {
                 "file": fname,
@@ -85,6 +239,9 @@ def _load_db() -> List[Dict[str, Any]]:
                 "bypasses_gate": bool(doc.get("bypasses_four_day_trend_gate")),
                 "patterns": patterns,
                 "exact_re": exact_re,
+                "roots_re": roots_re,
+                "pair_re": _pair_regex(doc),
+                "root_count": len(roots),
                 "exact_count": len(exact),
                 "template_count": len(patterns),
                 "combinations": doc.get("statistics", {}).get(
@@ -297,6 +454,8 @@ _BENIGN_RE = re.compile(
     | \bcould\s+kill\s+for\s+a\b
     | \bdying\s+(?:my|your|her|his|their)\s+hair\b
     | \b(?:so\s+|im\s+so\s+|i'?m\s+so\s+)?done\s+with\s+(?:this|the|that)\s+(?:show|season|episode|series|book|game|movie|level|semester|assignment|project|essay|homework)\b
+    | \btired\s+of\s+(?:waiting|hearing|listening|explaining|repeating|arguing|talking\s+about)\b
+    | \b(?:sick\s+and\s+)?tired\s+of\s+(?:this\s+)?(?:weather|traffic|rain|noise|ads|commute)\b
     """,
     re.IGNORECASE | re.VERBOSE,
 )
@@ -438,6 +597,13 @@ def scan(text: str, *, root_only: bool = True) -> Dict[str, Any]:
             found |= {m.group(0) for m in pattern.finditer(text) if _keep(m)}
         if lvl["exact_re"] is not None:
             found |= {m.group(0) for m in lvl["exact_re"].finditer(text) if _keep(m)}
+        # Root vocabulary: the database's own signal phrases, matched directly
+        # rather than only as slots inside a full contextual sentence.
+        if lvl["roots_re"] is not None:
+            found |= {m.group(0) for m in lvl["roots_re"].finditer(text) if _keep(m)}
+        # violent action + person target ("kill him", "stab that guy").
+        if lvl["pair_re"] is not None:
+            found |= {m.group(0) for m in lvl["pair_re"].finditer(text) if _keep(m)}
         if found:
             categories.append(category)
             if lvl["bypasses_gate"]:
@@ -487,6 +653,7 @@ STATS = {
             "severity": lvl["severity"],
             "templates": lvl["template_count"],
             "exact_phrases": lvl["exact_count"],
+            "root_phrases": lvl["root_count"],
             "combinations": lvl["combinations"],
             "bypasses_gate": lvl["bypasses_gate"],
         }

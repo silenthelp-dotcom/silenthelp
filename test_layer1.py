@@ -178,6 +178,76 @@ CASES = [
     ("im so sad", 3, 3),
     ("i feel sad", 3, 3),
     ("i have been feeling worthless", 3, 3),
+
+    # --- Root vocabulary: database phrases must fire BARE, with no starter ---
+    # Before the root pass, every one of these scored 0: the regex templates
+    # only matched a full <starter><modifier><state><context> sentence, so the
+    # databases' own vocabulary was unreachable on its own.
+    ("kill myself", 4, 4),
+    ("commit suicide", 4, 4),
+    ("kms", 4, 4),
+    ("end my life", 4, 4),
+    ("take my own life", 4, 4),
+    ("unalive myself", 4, 4),
+    ("never wake up again", 4, 4),
+    ("i want to die", 4, 4),
+    ("i wanna die", 4, 4),
+    ("better off dead", 4, 4),
+    ("i have nothing to live for", 4, 4),
+    ("i dont want to be alive", 4, 4),
+    # gerunds — the db stores "hurt myself", people write "hurting myself"
+    ("i have been thinking about hurting myself", 4, 4),
+    ("thinking about killing myself", 4, 4),
+    ("ive been cutting myself", 4, 4),
+    ("starving myself", 4, 4),
+    # self-harm methods added to the crisis db
+    ("i want to overdose", 4, 4),
+    ("im going to hang myself", 4, 4),
+    ("i slit my wrists", 4, 4),
+    # violent action + person target, no starter slot needed
+    ("im going to kill him", 4, 4),
+    ("i wanna stab that guy", 4, 4),
+    ("beat the shit out of my roommate", 4, 4),
+    # distress roots
+    ("at my breaking point", 2, 4),
+    ("having a breakdown", 2, 4),
+    ("having a meltdown", 2, 4),
+    ("i cant handle this pressure", 1, 4),      # contraction of "cannot"
+    ("i cannot handle this pressure", 1, 4),
+    ("mentally tired", 1, 4),
+
+    # --- Context: the SAME words joking must stay silent ---
+    ("lol i wanna die that was so embarrassing", 0, 0),
+    ("i wanna die of embarrassment lmao", 0, 0),
+    ("haha i want to die", 0, 0),
+    ("this homework makes me wanna die lol", 0, 0),
+    ("im cutting the onions", 0, 0),
+    ("cutting class today", 0, 0),
+    ("cutting costs this quarter", 0, 0),
+    ("i cut myself a slice of cake", 0, 0),
+    ("cut myself off from everyone", 0, 0),
+    ("i cut myself short during the presentation", 0, 0),
+    ("i could kill for a coffee", 0, 0),
+    ("i need to kill this bug in my code", 0, 0),
+    ("i am so tired of waiting for the bus", 0, 0),
+    ("im sick and tired of this weather", 0, 0),
+    ("suicide squad was mid", 0, 0),
+    ("the character will die in chapter 3", 0, 0),
+    ("beat the eggs until fluffy", 0, 0),
+    ("lets end class early", 0, 0),
+
+    # --- ...but an explicit crisis phrase is NEVER masked by a joke marker ---
+    ("lol i want to kill myself", 4, 4),
+    ("haha im gonna commit suicide fr", 4, 4),
+    ("lmao kms", 4, 4),
+    ("i am done with this homework and want to kill myself", 4, 4),
+
+    # --- Glue words must never fire alone ---
+    ("him", 0, 0),
+    ("really", 0, 0),
+    ("today", 0, 0),
+    ("that guy", 0, 0),
+    ("i am going to the store", 0, 0),
 ]
 
 
