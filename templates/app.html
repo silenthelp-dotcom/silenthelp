@@ -57,7 +57,15 @@
    re-maps them by attribute selector. One place to read, one place to change,
    and the markup keeps working if the theme is ever reverted.
    ═══════════════════════════════════════════════════════════════════════ */
-html, body { background:#000; color:#f2f5fb; }
+/* One continuous ground. The landing page's hero sits on this exact wash, so
+   scrolling the site and then opening the app never crosses a seam. */
+html, body {
+  background:#05070d; color:#f2f5fb;
+  background-image:radial-gradient(120% 80% at 50% -10%, #101a33 0%, #070c18 45%, #03050b 100%);
+  background-attachment:fixed;
+}
+/* Panels sit ON that wash, so the app frame must not paint its own dark box. */
+[style*="background:#f8fafc"] { background:rgba(255,255,255,.028) !important; }
 
 /* Page and panel grounds ------------------------------------------------ */
 [style*="background:#fff"], [style*="background: #fff"],
@@ -264,9 +272,17 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
                          deepened so it glows against black rather than washing
                          out. Structure and IDs are unchanged. -->
                     <div style="position:absolute; inset:-34px; border-radius:50%; background:radial-gradient(circle at 50% 56%, rgba(80,150,255,.30), transparent 66%); animation:emGlow 7s ease-in-out infinite;"></div>
+                    <!-- The sphere is the landing page's hero footage, masked
+                         into the orb: the same visual identity carries from the
+                         marketing page straight into the product. A flat
+                         gradient sits underneath so the orb still reads if the
+                         video is blocked, offline, or refused autoplay. -->
                     <div class="orb-shell" style="position:absolute; inset:0; border-radius:50%; overflow:hidden; background:rgba(255,255,255,.03); box-shadow:inset 0 1px 1px rgba(255,255,255,.16), inset 0 -18px 40px rgba(0,20,60,.5), 0 22px 60px rgba(0,0,0,.6);">
-                      <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:172px; height:172px; border-radius:50%; background:radial-gradient(circle at 50% 36%, #9fd2ff 0%, #4d9cf5 26%, #1f6ddb 54%, #10419b 78%, #071f52 100%); box-shadow:0 0 62px rgba(60,140,255,.45), inset 0 -8px 26px rgba(0,10,40,.55);"></div>
-                      <div style="position:absolute; left:34%; top:28%; width:44px; height:26px; border-radius:50%; background:rgba(255,255,255,.5); filter:blur(9px);"></div>
+                      <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:172px; height:172px; border-radius:50%; overflow:hidden; background:radial-gradient(circle at 50% 36%, #9fd2ff 0%, #4d9cf5 26%, #1f6ddb 54%, #10419b 78%, #071f52 100%); box-shadow:0 0 62px rgba(60,140,255,.45), inset 0 -8px 26px rgba(0,10,40,.55);">
+                        <video id="orbVideo" autoplay muted playsinline loop preload="auto"
+                               style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity .9s ease; mix-blend-mode:screen;"></video>
+                      </div>
+                      <div style="position:absolute; left:34%; top:28%; width:44px; height:26px; border-radius:50%; background:rgba(255,255,255,.5); filter:blur(9px); pointer-events:none;"></div>
                     </div>
                     <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                       <div style="font-size:58px; font-weight:300; color:#fff; letter-spacing:-.03em; line-height:1;" id="battNum">76</div>
@@ -625,6 +641,24 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
 </div>
 
 <script>
+/* The orb's sphere plays the landing page's hero footage. Declared here so the
+   URL lives in one place; if it fails to load the gradient underneath simply
+   stays visible and nothing else changes. */
+window.SH_HERO_VIDEO = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4";
+(function initOrbVideo(){
+  var start = function(){
+    var v = document.getElementById('orbVideo');
+    if (!v) return;
+    v.src = window.SH_HERO_VIDEO;
+    v.addEventListener('loadeddata', function(){
+      v.style.opacity = '.85';          // let the gradient read through
+      var p = v.play(); if (p && p.catch) p.catch(function(){});
+    });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
+
 const App = {
   screen: 'onboarding',
   contact: 'Ms. Rivera — School Counselor',
