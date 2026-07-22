@@ -43,7 +43,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 from email.message import EmailMessage
 
-from flask import Flask, Response, jsonify, make_response, redirect, render_template, request, send_file, session, stream_with_context
+from flask import Flask, Response, jsonify, make_response, redirect, render_template, request, send_file, send_from_directory, session, stream_with_context
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 
@@ -440,10 +440,14 @@ def _pipeline(message: str, record: bool = False, toggles: dict | None = None):
 
 @app.route("/")
 def landing():
-    # Front page — badge-led hero: the SilentHelp mark, the four detection
-    # layers, the privacy vow, pricing. Specular buttons are a vanilla WebGL2
-    # port (static/specular.js) since this app has no React/bundler.
-    return render_template("landing.html")
+    # Front page — Lithos hero rebuilt with looping video + liquid-glass chrome.
+    #
+    # Served as a STATIC file, not render_template(): the page is React/JSX
+    # compiled in the browser by Babel, and JSX's `{{ ... }}` (an object literal
+    # inside a prop) is indistinguishable from Jinja's print syntax, so Jinja
+    # raises TemplateSyntaxError on it. There are no server-side variables in
+    # this page, so there is nothing to render anyway.
+    return send_from_directory(app.template_folder, "landing.html")
 
 
 @app.route("/hero-lithos")
