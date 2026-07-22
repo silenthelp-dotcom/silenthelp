@@ -443,6 +443,14 @@ _BENIGN_RE = re.compile(
     | \b(?:so\s+|im\s+so\s+|i'?m\s+so\s+)?done\s+with\s+(?:this|the|that)\s+(?:show|season|episode|series|book|game|movie|level|semester|assignment|project|essay|homework)\b
     | \btired\s+of\s+(?:waiting|hearing|listening|explaining|repeating|arguing|talking\s+about)\b
     | \b(?:sick\s+and\s+)?tired\s+of\s+(?:this\s+)?(?:weather|traffic|rain|noise|ads|commute)\b
+    # "running on empty" is an idiom for TIREDNESS (level 1). The fuzzy pass
+    # matches the bare word "empty" inside it as level-3 hopelessness ("i feel
+    # empty"), which escalated 408 everyday-stress phrases to an urgent crisis
+    # popup. Same for the other fuel/capacity idioms.
+    | \b(?:running|runnin)\s+on\s+(?:empty|fumes)\b
+    | \b(?:out\s+of|low\s+on)\s+(?:gas|steam|juice|fuel|spoons|bandwidth)\b
+    | \bempty\s+(?:stomach|calories|nest|handed|promise|threat|seat|chair|room|box|bottle|cup|glass|tank|file|folder|list|space)\b
+    | \b(?:the|my|his|her|their|an?)\s+empty\b
     """,
     re.IGNORECASE | re.VERBOSE,
 )
@@ -538,7 +546,11 @@ _AMBIGUOUS_ROOTS = frozenset({
     "cant stop crying", "cannot stop crying", "havent slept in days",
     "have not slept in days", "cant sleep at all", "chest feels tight",
     "chest is tight all the time", "cant get out of bed", "cannot get out of bed",
-    "running on empty", "cant catch a break", "if i disappeared",
+    # "running on empty" is NOT listed here: _BENIGN_RE now scopes it as a
+    # tiredness idiom, so it lands at level 1 on its own. Listing it as
+    # ambiguous too meant any mundane referent nearby ("in this group chat")
+    # suppressed it to level 0 — a real everyday-stress signal, lost.
+    "cant catch a break", "if i disappeared",
     "shutting everyone out", "pushing everyone away", "wouldnt be missed",
 })
 
