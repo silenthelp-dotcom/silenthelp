@@ -26,10 +26,9 @@
   @keyframes fadeBg { 0%{opacity:0} 100%{opacity:1} }
   @keyframes ripple { 0%{transform:scaleX(0);opacity:0} 100%{transform:scaleX(1);opacity:1} }
   @keyframes dotPulse { 0%,100%{opacity:.3} 50%{opacity:1} }
-  /* Exactly as the design declares it:
-       .screen-anim { animation: screenIn .7s cubic-bezier(.16,1,.3,1); }
-     (This restores the screen-change animation that was previously removed.) */
-  .screen-anim { animation: screenIn .7s cubic-bezier(.16,1,.3,1); }
+  /* Tab effect off, per standing instruction: switching screens is instant.
+     The keyframes stay defined because the popups still reference screenIn. */
+  .screen-anim { animation: none !important; }
   .hov:hover { filter: brightness(.96); }
   .hovup { transition: all .25s; }
   .hovup:hover { transform: translateY(-2px); }
@@ -212,18 +211,14 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
 /* Per the design's navStyle(): the ACTIVE item carries .liquid-glass and full
    white text; inactive items are rgba(255,255,255,.6) with no fill.
    (This restores the active-tab pill that was previously removed.) */
-/* Inactive items only — the blanket box-shadow:none here also killed the
-   inset highlight on the active pill, since .liquid-glass supplies it. */
-.navitem:not(.active) {
-  color:rgba(255,255,255,.6) !important;
+/* No pill on any item, active or not. */
+.navitem, .navitem.active {
   background:transparent !important; box-shadow:none !important;
+  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+  transition:color .2s;
 }
-.navitem { transition:color .2s; }
 .navitem:hover { color:rgba(255,255,255,.85) !important; }
-/* The active item is given .liquid-glass by paintNav(), exactly as the design
-   does — so the pill comes from that shared class rather than a duplicate rule
-   here. Only the radius is pinned, so the ::before edge follows the pill. */
-.navitem.active { color:#fff !important; border-radius:9999px !important; }
+.navitem.active { color:#fff !important; }
 .navitem .navdot { background:rgba(255,255,255,.35) !important; }
 .navitem.active .navdot { background:#fff !important; }
 
@@ -963,8 +958,9 @@ const App = {
     document.querySelectorAll('.navitem').forEach(it => {
       const on = it.dataset.screen === this.screen;
       it.classList.toggle('active', on);
-      it.classList.toggle('liquid-glass', on);
-      it.style.background = '';           // let .liquid-glass paint it
+      // No pill: the current screen is shown by text colour and its dot only.
+      it.classList.remove('liquid-glass');
+      it.style.background = 'transparent';
       it.style.color = on ? '#ffffff' : 'rgba(255,255,255,.6)';
       const dot = it.querySelector('.navdot');
       if (dot) dot.style.background = on ? '#ffffff' : 'rgba(255,255,255,.35)';
