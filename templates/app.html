@@ -7,13 +7,15 @@
 <link rel="icon" type="image/png" sizes="180x180" href="/static/img/badge-180.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/static/img/badge-32.png">
 <link rel="apple-touch-icon" href="/static/img/badge-180.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500;1,600&family=Instrument+Serif:ital@0;1&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Della+Respira&family=Barlow:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
 <style>
-  * { box-sizing: border-box; font-family: 'Barlow', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+  * { box-sizing: border-box; font-family: 'Barlow', -apple-system, BlinkMacSystemFont, sans-serif; }
   html, body { margin: 0; padding: 0; }
-  /* .pf was Playfair italic; the landing page uses Instrument Serif italic, so
-     the two surfaces now share one display face. */
-  .pf { font-family: 'Instrument Serif', 'Playfair Display', serif; font-style: italic; font-weight: 400; letter-spacing: -.01em; }
+  /* Display face is Della Respira (requested). It ships a single 400 weight and
+     no italic, so headings must not ask for bold or italic — the browser would
+     synthesize both and the letterforms fall apart. Barlow carries body copy,
+     where a serif display face at 12-13px would be hard to read. */
+  .pf, .hd { font-family: 'Della Respira', Georgia, serif; font-style: normal; font-weight: 400; letter-spacing: -.005em; }
   ::-webkit-scrollbar { width: 9px; height: 9px; }
   ::-webkit-scrollbar-thumb { background: #d6dee7; border-radius: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
@@ -24,7 +26,10 @@
   @keyframes fadeBg { 0%{opacity:0} 100%{opacity:1} }
   @keyframes ripple { 0%{transform:scaleX(0);opacity:0} 100%{transform:scaleX(1);opacity:1} }
   @keyframes dotPulse { 0%,100%{opacity:.3} 50%{opacity:1} }
-  .screen-anim { animation: screenIn .6s cubic-bezier(.16,1,.3,1); }
+  /* Screen-change animation removed by request ("take off the tab effect") —
+     switching tabs is now instant. The keyframes stay defined because other
+     elements (popups) still reference screenIn. */
+  .screen-anim { animation: none !important; }
   .hov:hover { filter: brightness(.96); }
   .hovup { transition: all .25s; }
   .hovup:hover { transform: translateY(-2px); }
@@ -66,6 +71,10 @@ html, body {
 }
 /* Panels sit ON that wash, so the app frame must not paint its own dark box. */
 [style*="background:#f8fafc"] { background:rgba(255,255,255,.028) !important; }
+
+/* The backdrop video and its scrim are inserted at z-index 0/1, so everything
+   the user interacts with must sit above them. */
+body > *:not(video):not([style*="z-index:1"]) { position:relative; z-index:2; }
 
 /* ── Liquid glass — the landing page's exact utilities ──────────────────
    Same declarations as templates/landing.html so a panel looks identical on
@@ -193,7 +202,23 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
 /* Sidebar / nav --------------------------------------------------------- */
 .navitem { color:#c3ccdd !important; }
 .navitem:hover { background:rgba(255,255,255,.05) !important; color:#fff !important; }
-.navitem.active { background:rgba(255,255,255,.09) !important; color:#fff !important; }
+/* Active tab is shown by TEXT COLOUR only — the pill highlight was removed by
+   request. Dimmed = inactive, full white = current screen, which is how the
+   imported design falls back when nothing is selected. */
+/* No pill, no hover fill — the current screen is signalled by text colour and
+   its dot alone. `.navitem` must also beat the generic glass-panel rule below,
+   which matches on border-radius and would otherwise re-add the highlight. */
+.navitem, .navitem:hover, .navitem.active {
+  background:transparent !important; box-shadow:none !important; backdrop-filter:none !important;
+}
+.navitem { color:rgba(255,255,255,.6) !important; }
+.navitem:hover { color:rgba(255,255,255,.85) !important; }
+.navitem.active { color:#fff !important; }
+.navitem .navdot { background:rgba(255,255,255,.35) !important; }
+.navitem.active .navdot { background:#fff !important; }
+/* Della Respira ships one weight (400). Anything asking for 600/700 in a
+   heading would be synthetically emboldened and lose its letterforms. */
+.pf, .hd, .pf *, .hd * { font-weight:400 !important; font-style:normal !important; }
 
 /* Buttons — reuse the landing page's glass rather than the light gradient */
 .glass, .glass.ghost {
@@ -322,45 +347,17 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
 
               <div style="display:flex; gap:44px; margin-top:38px; align-items:center; flex-wrap:wrap;">
                 <!-- orb -->
-                <div style="flex-shrink:0; display:flex; flex-direction:column; align-items:center; width:300px;">
-                  <div style="position:relative; width:236px; height:236px; animation:emBreath 7s ease-in-out infinite;">
-                    <!-- Dark-theme orb: the outer disc becomes glass instead of
-                         a pale plate, and the sphere keeps its blue but is
-                         deepened so it glows against black rather than washing
-                         out. Structure and IDs are unchanged. -->
-                    <!-- Neutral halo. The old blue bloom belonged to the blue
-                         blob; the orb's own light is warm-white, so a blue ring
-                         around it read as a mismatched second light source. -->
-                    <div style="position:absolute; inset:-34px; border-radius:50%; background:radial-gradient(circle at 50% 56%, rgba(190,205,240,.16), transparent 66%); animation:emGlow 7s ease-in-out infinite;"></div>
-                    <!-- The sphere is the landing page's hero footage, masked
-                         into the orb: the same visual identity carries from the
-                         marketing page straight into the product. A flat
-                         gradient sits underneath so the orb still reads if the
-                         video is blocked, offline, or refused autoplay. -->
-                    <!-- The shell is a thin glass rim, not a plate: the video
-                         fills it edge to edge so the orb reads as the object
-                         itself rather than a picture sitting inside a disc. -->
-                    <div class="orb-shell" style="position:absolute; inset:0; border-radius:50%; overflow:hidden; background:transparent; box-shadow:inset 0 1px 1px rgba(255,255,255,.14), 0 22px 60px rgba(0,0,0,.6);">
-                      <!-- The orb IS the hero footage — no blue gradient behind
-                           it. A near-black disc sits under the video only as a
-                           fallback for the seconds before it loads (or if
-                           autoplay is refused), so the circle is never a bright
-                           hole on the dark page. -->
-                      <div style="position:absolute; inset:0; border-radius:50%; overflow:hidden; background:radial-gradient(circle at 50% 40%, #16203a 0%, #0a1020 60%, #05070d 100%); box-shadow:0 0 66px rgba(150,175,235,.22);">
-                        <!-- The orb sits centre-frame in the source but the
-                             clip is 3:2, so a square cover-crop would cut it.
-                             Scale up and pull to the orb's centre instead. -->
-                        <video id="orbVideo" autoplay muted playsinline loop preload="auto"
-                               style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(1.55); width:100%; height:100%; object-fit:contain; opacity:0; transition:opacity .9s ease;"></video>
-                      </div>
-                    </div>
-                    <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                      <div style="font-size:58px; font-weight:300; color:#fff; letter-spacing:-.03em; line-height:1;" id="battNum">76</div>
-                      <div style="font-size:10.5px; font-weight:700; letter-spacing:.18em; color:#cfe6ff; margin-top:2px;" id="battLabel">CHARGED</div>
-                    </div>
+                <!-- Mental battery, per the imported "SilentHelp App" design:
+                     large numerals rather than an orb. IDs battNum / battLabel /
+                     battDelta are unchanged so the live backend values still bind. -->
+                <div style="flex-shrink:0; display:flex; flex-direction:column; align-items:center; width:290px;">
+                  <div style="display:flex; align-items:flex-start; justify-content:center;">
+                    <div class="hd" id="battNum" style="font-size:150px; color:#fff; line-height:.9; letter-spacing:-4px;">76</div>
+                    <div class="hd" style="font-size:44px; color:rgba(255,255,255,.6); line-height:1; margin-top:14px;">%</div>
                   </div>
-                  <div style="font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:#7a93ad; margin-top:24px;">Mental Battery</div>
-                  <div style="font-size:13px; color:#5e6f7e; margin-top:9px; text-align:center; line-height:1.6; font-weight:300;" id="battDelta">Learning your rhythm.</div>
+                  <div id="battLabel" style="font-size:10px; font-weight:600; letter-spacing:.24em; color:rgba(255,255,255,.75); margin-top:6px;">CHARGED</div>
+                  <div style="font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.6); margin-top:20px; font-weight:300;">Mental Battery</div>
+                  <div id="battDelta" style="font-size:13px; color:rgba(255,255,255,.8); margin-top:8px; text-align:center; line-height:1.6; font-weight:300;">Learning your rhythm.</div>
                 </div>
 
                 <!-- readings -->
@@ -711,18 +708,59 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
 </div>
 
 <script>
-/* The orb's sphere plays the landing page's hero footage. Declared here so the
-   URL lives in one place; if it fails to load the gradient underneath simply
-   stays visible and nothing else changes. */
+/* Backdrop video, per the imported design: the same hero footage the landing
+   page uses, fixed behind the whole app with a dark scrim over it. The glass
+   panels blur against it, which is what gives them their depth.
+   Crossfade is the FadingVideo behaviour from the design spec — rAF-driven,
+   `loop` off, fade out 0.55s before the end and back in on restart, so the
+   wrap-around is never a hard cut. */
 window.SH_HERO_VIDEO = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4";
-(function initOrbVideo(){
+(function initBackdrop(){
   var start = function(){
-    var v = document.getElementById('orbVideo');
-    if (!v) return;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var v = document.createElement('video');
     v.src = window.SH_HERO_VIDEO;
+    v.autoplay = true; v.muted = true; v.playsInline = true; v.preload = 'auto';
+    v.setAttribute('aria-hidden','true');
+    // Dimmed and blurred: the design frames this video inside a 1180x760
+    // window where it reads as ambience. Full-bleed behind real content it
+    // competes with the readings, so it is pushed back to a texture.
+    v.style.cssText = 'position:fixed; inset:0; width:100%; height:100%; object-fit:cover;' +
+                      'object-position:top; z-index:0; opacity:0; pointer-events:none;' +
+                      'filter:blur(18px) saturate(.8);';
+    var scrim = document.createElement('div');
+    scrim.style.cssText = 'position:fixed; inset:0; z-index:1; pointer-events:none;' +
+      'background:radial-gradient(120% 80% at 50% 0%, rgba(5,7,13,.72), rgba(3,5,11,.9) 60%, rgba(0,0,0,.95));';
+    document.body.insertBefore(scrim, document.body.firstChild);
+    document.body.insertBefore(v, document.body.firstChild);
+
+    var FADE = 500, LEAD = 0.55, raf = null, fadingOut = false;
+    var fadeTo = function(target){
+      if (raf) cancelAnimationFrame(raf);
+      var from = parseFloat(v.style.opacity || '0'), t0 = performance.now();
+      var step = function(t){
+        var p = Math.min(1, (t - t0) / FADE);
+        v.style.opacity = String(from + (target - from) * p);
+        if (p < 1) raf = requestAnimationFrame(step);
+      };
+      raf = requestAnimationFrame(step);
+    };
     v.addEventListener('loadeddata', function(){
-      v.style.opacity = '1';            // the orb IS the visual, not a tint
+      v.style.opacity = '0';
       var p = v.play(); if (p && p.catch) p.catch(function(){});
+      fadeTo(.55);          // ambience, not the subject
+    });
+    v.addEventListener('timeupdate', function(){
+      var left = v.duration - v.currentTime;
+      if (!fadingOut && v.duration && left <= LEAD && left > 0) { fadingOut = true; fadeTo(0); }
+    });
+    v.addEventListener('ended', function(){
+      v.style.opacity = '0';
+      setTimeout(function(){
+        v.currentTime = 0;
+        var p = v.play(); if (p && p.catch) p.catch(function(){});
+        fadingOut = false; fadeTo(.55);
+      }, 100);
     });
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
