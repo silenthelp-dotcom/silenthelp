@@ -440,7 +440,16 @@ def _pipeline(message: str, record: bool = False, toggles: dict | None = None):
 
 @app.route("/")
 def landing():
-    # Front page — the Lithos hero (Claude Design "SilentHelp Hero - Lithos").
+    # Front page — badge-led hero: the SilentHelp mark, the four detection
+    # layers, the privacy vow, pricing. Specular buttons are a vanilla WebGL2
+    # port (static/specular.js) since this app has no React/bundler.
+    return render_template("landing.html")
+
+
+@app.route("/hero-lithos")
+def hero_lithos():
+    # The previous front page (Claude Design "SilentHelp Hero - Lithos"), kept
+    # reachable so the rock/spotlight treatment isn't lost.
     return render_template("hero.html")
 
 

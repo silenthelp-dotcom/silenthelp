@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SilentHelp — Support at its finest</title>
+<meta name="description" content="SilentHelp notices burnout, stress, and crisis signals from your own device behavior — privately, on-device — and points you toward real human support before you'd think to ask.">
+<link rel="canonical" href="https://silenthelp.org/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://silenthelp.org/">
+<meta property="og:site_name" content="SilentHelp">
+<meta property="og:title" content="SilentHelp — Support at its finest">
+<meta property="og:description" content="A quiet companion that notices when you're running low — long before you'd think to ask for help. Privacy-first, on-device, free for students.">
+<meta property="og:image" content="https://silenthelp.org/static/img/badge-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/png" sizes="180x180" href="/static/img/badge-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/static/img/badge-32.png">
+<link rel="apple-touch-icon" href="/static/img/badge-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────────────────────────────
+   TOKENS — palette derived from the SilentHelp badge: deep navy ring,
+   crimson vasculature, near-black field. Dark ground because the mark
+   itself is dark; a white page would orphan it.
+   Warm crimson advances (the signal), cool navy recedes (the ground).
+   ───────────────────────────────────────────────────────────────── */
+:root{
+  --ink:#05070d;          /* page ground, blue-black not pure black */
+  --ink-2:#080c17;
+  --panel:#0c1222;
+  --line:rgba(150,175,235,.13);
+  --navy:#1b2a5e;         /* badge ring */
+  --navy-lift:#2f4790;
+  --crimson:#c8202e;      /* badge vasculature — reserved for signal */
+  --crimson-soft:#e2545f;
+  --text:#eef2fb;
+  --muted:#93a1c0;
+  --muted-2:#65718d;
+  --r:16px;
+  --maxw:1180px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--ink); color:var(--text);
+  font-family:'Inter',system-ui,sans-serif;
+  letter-spacing:-.011em; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:var(--maxw); margin:0 auto; padding:0 24px}
+.serif{font-family:'Playfair Display',Georgia,serif}
+
+/* ── Specular button (vanilla port) ───────────────────────────── */
+.specular-button{
+  --sb-radius:18px; --sb-text-color:#f5f5f5;
+  position:relative; display:inline-flex; align-items:center; justify-content:center;
+  border:none; margin:0; font-family:inherit; font-weight:500; letter-spacing:.01em;
+  line-height:1; color:var(--sb-text-color); background:transparent;
+  border-radius:var(--sb-radius); cursor:pointer; outline:none;
+  transition:transform .15s ease;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 8px 24px rgba(0,0,0,.25);
+}
+.specular-button:active{transform:scale(.97)}
+.specular-button:focus-visible{outline:2px solid var(--navy-lift); outline-offset:3px}
+.specular-button--sm{font-size:.85rem; padding:10px 22px}
+.specular-button--md{font-size:1rem; padding:14px 30px}
+.specular-button--lg{font-size:1.06rem; padding:17px 38px}
+/* The fx layer is a bare <span> that hosts the WebGL canvas. It must never
+   paint anything itself — without an explicit transparent background and a
+   contained canvas it inherits the page's default and renders as a white
+   block over the label. */
+.specular-button__fx{position:absolute; inset:-20px; pointer-events:none; z-index:1;
+  background:none; border:0; overflow:visible; line-height:0}
+.specular-button__fx canvas{display:block; background:transparent; border:0; max-width:none}
+.specular-button__label{position:relative; z-index:2; display:inline-flex; align-items:center; gap:9px}
+/* Primary reads as the one lit path — filled, not just outlined. */
+.sb-primary{background:linear-gradient(180deg,#22346d,#16224b)}
+
+/* ── Nav ──────────────────────────────────────────────────────── */
+.nav{position:fixed; top:0; left:0; right:0; z-index:60;
+  backdrop-filter:blur(18px) saturate(150%); -webkit-backdrop-filter:blur(18px) saturate(150%);
+  background:rgba(5,7,13,.62); border-bottom:1px solid transparent; transition:border-color .3s, background .3s}
+.nav.scrolled{border-bottom-color:var(--line); background:rgba(5,7,13,.86)}
+.nav-in{max-width:var(--maxw); margin:0 auto; padding:13px 24px; display:flex; align-items:center; gap:14px}
+.brand{display:flex; align-items:center; gap:11px; text-decoration:none; color:var(--text)}
+.brand img{width:34px; height:34px; border-radius:50%}
+.brand b{font-weight:600; font-size:1.02rem; letter-spacing:-.02em}
+.nav-links{margin-left:auto; display:flex; align-items:center; gap:4px}
+.nav-links a{color:var(--muted); text-decoration:none; font-size:.9rem; font-weight:450;
+  padding:8px 14px; border-radius:9px; transition:color .18s, background .18s}
+.nav-links a:hover{color:var(--text); background:rgba(120,150,220,.09)}
+@media(max-width:860px){ .nav-links .hide-sm{display:none} }
+
+/* ── Hero ─────────────────────────────────────────────────────── */
+.hero{position:relative; min-height:100svh; display:flex; align-items:center;
+  padding:120px 0 72px; overflow:hidden}
+/* Depth: a cool navy bloom behind the mark, warm crimson kept minimal.
+   Cool recedes → the glow sits *behind* the content plane. */
+.hero-glow{position:absolute; left:50%; top:46%; transform:translate(-50%,-50%);
+  width:min(1150px,135vw); aspect-ratio:1; pointer-events:none; z-index:0;
+  background:radial-gradient(circle,rgba(47,71,144,.30) 0%,rgba(27,42,94,.14) 38%,transparent 68%);
+  filter:blur(14px)}
+.hero-grid{position:absolute; inset:0; z-index:0; pointer-events:none; opacity:.5;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:64px 64px;
+  -webkit-mask-image:radial-gradient(ellipse 70% 58% at 50% 42%,#000 35%,transparent 76%);
+  mask-image:radial-gradient(ellipse 70% 58% at 50% 42%,#000 35%,transparent 76%)}
+.hero-in{position:relative; z-index:2; text-align:center; width:100%}
+
+/* The badge artwork contains a solid white ring, so on a dark ground it reads
+   as a hard-edged disc pasted onto the page. Rather than fight the mark, give
+   it a deliberate plinth: a soft navy halo that lets the white edge land as
+   intentional contrast instead of a cutout error. */
+.badge-mark{width:clamp(142px,19vw,196px); height:auto; margin:0 auto 26px; display:block;
+  border-radius:50%;
+  box-shadow:0 0 0 1px rgba(160,190,255,.16), 0 26px 74px rgba(28,46,110,.62),
+             0 0 120px 24px rgba(47,71,144,.28)}
+
+.eyebrow{display:inline-flex; align-items:center; gap:8px; margin:0 0 20px;
+  padding:7px 15px; border:1px solid var(--line); border-radius:999px;
+  background:rgba(27,42,94,.2); color:#a9b8dc; font-size:.775rem;
+  font-weight:500; letter-spacing:.045em; text-transform:uppercase}
+.dot{width:6px; height:6px; border-radius:50%; background:var(--crimson-soft);
+  box-shadow:0 0 11px var(--crimson); animation:pulse 2.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+h1{margin:0 0 22px; font-weight:600; line-height:1.03;
+  font-size:clamp(2.6rem,7.2vw,5.05rem); letter-spacing:-.038em}
+h1 em{font-style:italic; font-weight:400; color:#b9c8ec}
+.sub{margin:0 auto 38px; max-width:610px; color:var(--muted);
+  font-size:clamp(1.02rem,1.65vw,1.19rem); line-height:1.62; font-weight:350}
+.cta-row{display:flex; gap:15px; justify-content:center; flex-wrap:wrap}
+.reassure{margin:26px 0 0; color:var(--muted-2); font-size:.83rem}
+
+/* ── Sections ─────────────────────────────────────────────────── */
+section{position:relative}
+.band{padding:106px 0; border-top:1px solid var(--line)}
+.sec-head{max-width:660px; margin:0 0 52px}
+.kicker{color:var(--crimson-soft); font-size:.755rem; font-weight:600;
+  letter-spacing:.13em; text-transform:uppercase; margin:0 0 15px}
+h2{margin:0 0 16px; font-weight:600; font-size:clamp(1.85rem,3.5vw,2.65rem);
+  letter-spacing:-.03em; line-height:1.14}
+.sec-head p{margin:0; color:var(--muted); font-size:1.045rem; line-height:1.68; font-weight:350}
+
+.grid{display:grid; gap:18px; grid-template-columns:repeat(auto-fit,minmax(268px,1fr))}
+.card{padding:29px; border:1px solid var(--line); border-radius:var(--r);
+  background:linear-gradient(165deg,rgba(18,28,55,.62),rgba(8,12,23,.42));
+  transition:border-color .25s, transform .25s}
+.card:hover{border-color:rgba(150,175,235,.28); transform:translateY(-3px)}
+.card h3{margin:0 0 9px; font-size:1.055rem; font-weight:600; letter-spacing:-.018em}
+.card p{margin:0; color:var(--muted); font-size:.925rem; line-height:1.66; font-weight:350}
+.num{display:inline-flex; align-items:center; justify-content:center; width:31px; height:31px;
+  margin-bottom:16px; border-radius:9px; background:rgba(47,71,144,.28);
+  border:1px solid rgba(120,150,220,.24); color:#accaff;
+  font-size:.775rem; font-weight:650; font-variant-numeric:tabular-nums}
+
+/* Layer list — the 4-layer pipeline, the actual product substance */
+.layers{display:grid; gap:12px}
+.layer{display:grid; grid-template-columns:auto 1fr auto; gap:19px; align-items:center;
+  padding:21px 24px; border:1px solid var(--line); border-radius:13px;
+  background:rgba(12,18,34,.5); transition:border-color .25s}
+.layer:hover{border-color:rgba(150,175,235,.26)}
+.layer-n{font-family:'Playfair Display',serif; font-style:italic; font-size:1.5rem; color:var(--navy-lift); min-width:30px}
+.layer h4{margin:0 0 4px; font-size:1rem; font-weight:600; letter-spacing:-.015em}
+.layer p{margin:0; color:var(--muted); font-size:.895rem; line-height:1.58; font-weight:350}
+.chip{padding:5px 11px; border-radius:999px; font-size:.7rem; font-weight:600;
+  letter-spacing:.05em; text-transform:uppercase; white-space:nowrap;
+  background:rgba(47,71,144,.26); color:#a9c2f2; border:1px solid rgba(120,150,220,.22)}
+.chip.hot{background:rgba(200,32,46,.15); color:#f0949c; border-color:rgba(226,84,95,.3)}
+@media(max-width:640px){ .layer{grid-template-columns:auto 1fr; } .layer .chip{grid-column:2; justify-self:start} }
+
+/* Privacy — the trust anchor, visually distinct so it reads as a promise */
+.vow{padding:38px; border:1px solid rgba(120,150,220,.2); border-radius:var(--r);
+  background:linear-gradient(150deg,rgba(27,42,94,.4),rgba(8,12,23,.3))}
+.vow ul{margin:0; padding:0; list-style:none; display:grid; gap:14px}
+.vow li{display:flex; gap:13px; align-items:flex-start; color:var(--muted);
+  font-size:.955rem; line-height:1.56; font-weight:350}
+.tick{flex:none; width:19px; height:19px; margin-top:2px; border-radius:50%;
+  background:rgba(47,71,144,.36); border:1px solid rgba(140,175,255,.34);
+  display:flex; align-items:center; justify-content:center; color:#b7d0ff; font-size:.68rem}
+.split{display:grid; gap:44px; grid-template-columns:1fr 1fr; align-items:center}
+@media(max-width:880px){ .split{grid-template-columns:1fr} }
+
+/* Pricing */
+.tiers{display:grid; gap:18px; grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.tier{padding:30px; border:1px solid var(--line); border-radius:var(--r);
+  background:rgba(12,18,34,.46); display:flex; flex-direction:column}
+.tier.feat{border-color:rgba(120,150,220,.36); background:linear-gradient(165deg,rgba(27,42,94,.44),rgba(8,12,23,.4))}
+.tier h3{margin:0 0 10px; font-size:.83rem; font-weight:600; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--muted)}
+.price{font-size:2.3rem; font-weight:600; letter-spacing:-.038em; margin:0; line-height:1}
+.price span{font-size:.88rem; color:var(--muted-2); font-weight:400; letter-spacing:0}
+.tier p{color:var(--muted); font-size:.9rem; line-height:1.62; margin:16px 0 24px; font-weight:350; flex:1}
+.tier .specular-button{width:100%}
+
+/* Footer */
+footer{border-top:1px solid var(--line); padding:52px 0 60px; color:var(--muted-2); font-size:.875rem}
+.f-in{display:flex; gap:22px; align-items:center; flex-wrap:wrap}
+footer a{color:var(--muted); text-decoration:none}
+footer a:hover{color:var(--text)}
+
+/* Motion — ease-out entries, no bounce, reduced-motion honored */
+.rise{opacity:0; transform:translateY(22px); transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1)}
+.rise.in{opacity:1; transform:none}
+@media(prefers-reduced-motion:reduce){
+  .rise{opacity:1 !important; transform:none !important; transition:none}
+  .dot{animation:none}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="nav-in">
+    <a class="brand" href="/"><img src="/static/img/badge-256.png" alt=""><b>SilentHelp</b></a>
+    <div class="nav-links">
+      <a href="#how" class="hide-sm">How it works</a>
+      <a href="#layers" class="hide-sm">Detection</a>
+      <a href="#privacy" class="hide-sm">Privacy</a>
+      <a href="#pricing" class="hide-sm">Pricing</a>
+      <a href="/app">Open app</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── HERO ─────────────────────────────────────────────────── -->
+<header class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-grid"></div>
+  <div class="wrap hero-in">
+    <img class="badge-mark rise" src="/static/img/badge-512.png"
+         alt="SilentHelp — support at its finest" width="512" height="512">
+    <div class="rise"><p class="eyebrow"><span class="dot"></span>On-device · Private by design</p></div>
+    <h1 class="rise">Support that notices<br><em class="serif">before you ask.</em></h1>
+    <p class="sub rise">
+      SilentHelp reads the rhythm of your own device — not your diary. Four quiet
+      layers pick up burnout, stress, and crisis signals with real context, then
+      point you toward a person who can actually help.
+    </p>
+    <div class="cta-row rise">
+      <button class="specular-button specular-button--lg sb-primary" id="btnStart">
+        <span class="specular-button__fx"></span>
+        <span class="specular-button__label">Get started — free</span>
+      </button>
+      <button class="specular-button specular-button--lg" id="btnHow">
+        <span class="specular-button__fx"></span>
+        <span class="specular-button__label">See how it works</span>
+      </button>
+    </div>
+    <p class="reassure rise">Free for students · Nothing leaves your device · No account needed to try</p>
+  </div>
+</header>
+
+<!-- ── HOW ──────────────────────────────────────────────────── -->
+<section class="band" id="how">
+  <div class="wrap">
+    <div class="sec-head rise">
+      <p class="kicker">How it works</p>
+      <h2>It watches the pattern, not the person.</h2>
+      <p>Most tools wait for you to open them and say something is wrong — which is
+         exactly the moment that is hardest. SilentHelp works the other way around.</p>
+    </div>
+    <div class="grid">
+      <div class="card rise"><div class="num">1</div><h3>It learns your baseline</h3>
+        <p>Typing rhythm, session length, late-night use, how often you switch away.
+           A few ordinary days establish what normal looks like for you.</p></div>
+      <div class="card rise"><div class="num">2</div><h3>It notices the drift</h3>
+        <p>Signals are read on your machine and judged in context — a joke about a
+           hard exam is not the same as the sentence underneath it.</p></div>
+      <div class="card rise"><div class="num">3</div><h3>It waits for a trend</h3>
+        <p>One rough night is a rough night. Nothing surfaces until a pattern holds —
+           unless something urgent appears, which never waits.</p></div>
+      <div class="card rise"><div class="num">4</div><h3>It hands you to a human</h3>
+        <p>When it matters, it drafts the message to a counselor or someone you trust.
+           You read it. You edit it. <strong style="color:var(--text);font-weight:600">You press send.</strong></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── LAYERS ───────────────────────────────────────────────── -->
+<section class="band" id="layers">
+  <div class="wrap">
+    <div class="sec-head rise">
+      <p class="kicker">Detection</p>
+      <h2>Four layers, each covering the last one's blind spot.</h2>
+      <p>No single method is honest enough on its own. Keywords miss meaning, models
+         miss patterns, and behavior alone cannot tell you why.</p>
+    </div>
+    <div class="layers">
+      <div class="layer rise"><div class="layer-n">i</div>
+        <div><h4>Keyword</h4><p>Tens of thousands of phrases matched on-device in under a millisecond. Nothing leaves your machine.</p></div>
+        <span class="chip">Local</span></div>
+      <div class="layer rise"><div class="layer-n">ii</div>
+        <div><h4>Semantic</h4><p>Reads meaning and intent, so “this test is killing me” and a genuine goodbye are never confused.</p></div>
+        <span class="chip">Context</span></div>
+      <div class="layer rise"><div class="layer-n">iii</div>
+        <div><h4>Behavioral</h4><p>Reads no text at all — only rhythm. The strongest signal, and the most private one.</p></div>
+        <span class="chip">No text read</span></div>
+      <div class="layer rise"><div class="layer-n">iv</div>
+        <div><h4>Trend gate</h4><p>Holds everything back until a pattern persists — so support arrives as care, not as noise.</p></div>
+        <span class="chip hot">Crisis bypasses</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRIVACY ──────────────────────────────────────────────── -->
+<section class="band" id="privacy">
+  <div class="wrap split">
+    <div class="sec-head rise" style="margin:0">
+      <p class="kicker">Privacy</p>
+      <h2>The data never leaves.</h2>
+      <p>A wellness tool that quietly ships your worst moments to a server has already
+         failed. SilentHelp is built so that betrayal isn't technically possible.</p>
+    </div>
+    <div class="vow rise">
+      <ul>
+        <li><span class="tick">✓</span><span>Detection runs <strong style="color:var(--text);font-weight:600">on your device</strong>. Raw text is never stored or transmitted.</span></li>
+        <li><span class="tick">✓</span><span>Only a category and a level are recorded — never what you wrote.</span></li>
+        <li><span class="tick">✓</span><span>Nothing is sent to anyone automatically. Escalation is drafted; <strong style="color:var(--text);font-weight:600">you send it</strong>.</span></li>
+        <li><span class="tick">✓</span><span>No selling data. No training public models on it. No ads, ever.</span></li>
+        <li><span class="tick">✓</span><span>Export or erase everything, any time, in one click.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRICING ──────────────────────────────────────────────── -->
+<section class="band" id="pricing">
+  <div class="wrap">
+    <div class="sec-head rise">
+      <p class="kicker">Pricing</p>
+      <h2>Free for the people who need it most.</h2>
+      <p>Students never pay. That is the whole point.</p>
+    </div>
+    <div class="tiers">
+      <div class="tier rise"><h3>Student</h3><p class="price">Free</p>
+        <p>Every detection layer, the coping chat, and escalation drafting. No card, no trial clock.</p>
+        <button class="specular-button specular-button--md" data-sb><span class="specular-button__fx"></span><span class="specular-button__label">Get started</span></button></div>
+      <div class="tier feat rise"><h3>Family</h3><p class="price">$4.99<span> / month</span></p>
+        <p>Up to five people, shared trusted contacts, and a weekly summary for parents — signals only, never content.</p>
+        <button class="specular-button specular-button--md sb-primary" data-sb><span class="specular-button__fx"></span><span class="specular-button__label">Choose Family</span></button></div>
+      <div class="tier rise"><h3>Schools</h3><p class="price">Custom</p>
+        <p>Counselor routing, district deployment, and aggregate wellbeing trends that identify no individual student.</p>
+        <button class="specular-button specular-button--md" data-sb><span class="specular-button__fx"></span><span class="specular-button__label">Talk to us</span></button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CLOSE ────────────────────────────────────────────────── -->
+<section class="band" style="text-align:center">
+  <div class="wrap">
+    <h2 class="rise" style="max-width:660px;margin:0 auto 18px">
+      Nobody should have to ask twice.</h2>
+    <p class="sub rise" style="margin-bottom:34px">
+      Set it up once. It stays quiet until it matters.</p>
+    <div class="cta-row rise">
+      <button class="specular-button specular-button--lg sb-primary" data-sb onclick="location.href='/app'">
+        <span class="specular-button__fx"></span><span class="specular-button__label">Open SilentHelp</span></button>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap f-in">
+    <a class="brand" href="/" style="gap:9px"><img src="/static/img/badge-128.png" alt="" style="width:26px;height:26px"><b style="font-size:.92rem">SilentHelp</b></a>
+    <span style="margin-left:auto">© 2026 SilentHelp</span>
+    <a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/careers">Careers</a>
+  </div>
+  <div class="wrap" style="margin-top:22px; color:var(--muted-2); font-size:.8rem; line-height:1.6; max-width:760px">
+    SilentHelp is a wellbeing companion, not a medical device, and it does not diagnose
+    or provide treatment. If you are in immediate danger, call or text <strong style="color:var(--muted)">988</strong>
+    (US Suicide &amp; Crisis Lifeline) or your local emergency number.
+  </div>
+</footer>
+
+<script src="/static/specular.js"></script>
+<script>
+(function(){
+  // Nav hairline appears only once the hero has scrolled under it.
+  var nav=document.getElementById('nav');
+  var onScroll=function(){ nav.classList.toggle('scrolled', window.scrollY>12); };
+  onScroll(); window.addEventListener('scroll',onScroll,{passive:true});
+
+  // Entrance: staggered per section so the eye lands in reading order.
+  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var risers=[].slice.call(document.querySelectorAll('.rise'));
+  // The hero is above the fold — reveal it on load rather than waiting for an
+  // IntersectionObserver callback, so it can never be left invisible.
+  [].slice.call(document.querySelectorAll('.hero .rise')).forEach(function(el,i){
+    el.style.transitionDelay=(i*80)+'ms'; requestAnimationFrame(function(){el.classList.add('in')});
+  });
+  risers=risers.filter(function(el){ return !el.closest('.hero'); });
+  if(reduce){ risers.forEach(function(el){el.classList.add('in')}); }
+  else{
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(!e.isIntersecting) return;
+        var sibs=[].slice.call(e.target.parentNode.children).filter(function(c){return c.classList.contains('rise')});
+        e.target.style.transitionDelay=(Math.min(sibs.indexOf(e.target),5)*70)+'ms';
+        e.target.classList.add('in'); io.unobserve(e.target);
+      });
+    },{threshold:.12, rootMargin:'0px 0px -8%'});
+    risers.forEach(function(el){io.observe(el)});
+  }
+
+  // Specular highlight — navy edge, cool white sweep, matching the badge ring.
+  var opts={ radius:18, lineColor:'#cddcff', baseColor:'#2c3f78',
+             intensity:1, shineSize:10, shineFade:40, thickness:1,
+             followMouse:true, proximity:260, autoAnimate:false };
+  document.querySelectorAll('.specular-button').forEach(function(b){
+    Specular.attach(b, opts);
+  });
+
+  document.getElementById('btnStart').addEventListener('click',function(){ location.href='/app'; });
+  document.getElementById('btnHow').addEventListener('click',function(){
+    document.getElementById('how').scrollIntoView({behavior:reduce?'auto':'smooth'});
+  });
+})();
+</script>
+</body>
+</html>
