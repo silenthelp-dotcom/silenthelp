@@ -41,9 +41,22 @@ import json
 import os
 import re
 import time
+from pathlib import Path
 from typing import Any, Dict
 
 from openai import OpenAI
+
+# Load the untracked .env sitting next to this file, so API keys are present no
+# matter which entry point started the process (app.py, chat.py, helper.py, or
+# running this module directly). Without this every provider lookup fails and
+# ALL traffic silently falls through to the fail-safe. Real environment
+# variables win — override=False keeps prod/CI config authoritative.
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(Path(__file__).with_name(".env"), override=False)
+except ImportError:  # dotenv absent: rely on the real environment
+    pass
 
 
 # ---------------------------------------------------------------------------
@@ -471,10 +484,15 @@ def _run_harness() -> None:
     print("=" * 78)
 
     underrated = 0
+    failsafed = 0
+    first_error = None
     for message, expected in TEST_MESSAGES:
         judgment = classify_message(message)
         action = decide_response(judgment)
         actual = judgment.get("risk_level", "?")
+        if judgment.get("_source") == "fail_safe":
+            failsafed += 1
+            first_error = first_error or judgment.get("_error")
 
         print()
         print(f"MESSAGE   : {message!r}")
@@ -502,8 +520,19 @@ def _run_harness() -> None:
 
     print()
     print("=" * 78)
+    # A provider outage makes every message fail-safe to "high", which reads as a
+    # wall of plausible verdicts. Say so loudly: these rows measure the provider,
+    # not the prompt, and no conclusion about classifier quality can be drawn.
+    if failsafed:
+        print(f"!!! PROVIDER FAILURE: {failsafed}/{len(TEST_MESSAGES)} message(s) never "
+              f"reached the model and fail-safed to 'high'.")
+        print(f"!!! These rows say NOTHING about classifier accuracy — fix the provider first.")
+        if first_error:
+            print(f"!!! First error: {first_error}")
     if underrated:
         print(f"RESULT: {underrated} crisis/high message(s) were UNDER-RATED. Investigate.")
+    elif failsafed == len(TEST_MESSAGES):
+        print("RESULT: inconclusive — no message reached the classifier.")
     else:
         print("RESULT: no crisis/high messages were under-rated.")
     print("=" * 78)
