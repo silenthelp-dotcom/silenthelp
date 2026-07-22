@@ -7,11 +7,13 @@
 <link rel="icon" type="image/png" sizes="180x180" href="/static/img/badge-180.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/static/img/badge-32.png">
 <link rel="apple-touch-icon" href="/static/img/badge-180.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500;1,600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500;1,600&family=Instrument+Serif:ital@0;1&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <style>
-  * { box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+  * { box-sizing: border-box; font-family: 'Barlow', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
   html, body { margin: 0; padding: 0; }
-  .pf { font-family: 'Playfair Display', serif; font-style: italic; font-weight: 500; }
+  /* .pf was Playfair italic; the landing page uses Instrument Serif italic, so
+     the two surfaces now share one display face. */
+  .pf { font-family: 'Instrument Serif', 'Playfair Display', serif; font-style: italic; font-weight: 400; letter-spacing: -.01em; }
   ::-webkit-scrollbar { width: 9px; height: 9px; }
   ::-webkit-scrollbar-thumb { background: #d6dee7; border-radius: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
@@ -45,6 +47,110 @@
   .glass.ghost { background:linear-gradient(180deg, rgba(255,255,255,.6), rgba(248,250,253,.4)) !important; color:#46535f !important;
     box-shadow:0 6px 16px rgba(20,40,80,.10), inset 0 1px 1px rgba(255,255,255,.9), inset 0 0 0 1px rgba(10,40,80,.05) !important; }
   .glass.ghost:hover { filter:brightness(1.01); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DARK THEME — syncs /app with the landing page's liquid-glass system.
+
+   The app's 1000+ lines carry ~150 hardcoded light colors inline
+   (background:#fff, color:#0e1822, #f6f9fc panels, #007aff accents). Rather
+   than hand-edit every one — slow and easy to miss a few — this block
+   re-maps them by attribute selector. One place to read, one place to change,
+   and the markup keeps working if the theme is ever reverted.
+   ═══════════════════════════════════════════════════════════════════════ */
+html, body { background:#000; color:#f2f5fb; }
+
+/* Page and panel grounds ------------------------------------------------ */
+[style*="background:#fff"], [style*="background: #fff"],
+[style*="background:#ffffff"], [style*="background:#f6f9fc"],
+[style*="background:#f8fafc"], [style*="background:#f2f8ff"],
+[style*="background:#eef4fb"], [style*="background:#f4f7fb"],
+[style*="background:#fafcfe"], [style*="background:#f6f8fb"] {
+  background:rgba(255,255,255,0.022) !important;
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+}
+/* Tinted chips/bars: pale blue fills (#eef5ff, #bcd9ff, #9cc7ff) and the warm
+   amber note (#fff6ec) all vanish on black. Keep their MEANING — cool = data,
+   warm = caution — at dark-appropriate weights. */
+[style*="background:#eef5ff"] { background:rgba(90,150,255,.14) !important; }
+/* Pale gradient panels (the insight card) — flat-color selectors miss these. */
+[style*="linear-gradient(100deg, #eaf3ff"], [style*="linear-gradient(#eaf3ff"],
+[style*="linear-gradient(180deg, #f6f9fc"], [style*="linear-gradient(#f4f9ff"] {
+  background:linear-gradient(100deg, rgba(90,150,255,.13), rgba(90,150,255,.05)) !important;
+}
+[style*="color:#3d8bdb"] { color:#7cb8ff !important; }
+[style*="background:#bcd9ff"] { background:rgba(120,175,255,.42) !important; }
+[style*="background:#9cc7ff"] { background:rgba(120,175,255,.55) !important; }
+[style*="background:#fff6ec"] { background:rgba(255,176,90,.13) !important; }
+[style*="color:#8a5a20"], [style*="color:#a86a1f"] { color:#f0b46a !important; }
+[style*="background:#1f9d55"] { background:#1f9d55 !important; }
+[style*="color:#1f9d55"] { color:#4fd48a !important; }
+/* Full-screen radial washes (onboarding, auth, and the gentle/urgent popups).
+   These MUST be caught: they are the backdrop behind text that the rules below
+   turn light, and a missed one leaves white text on a white ground. The popups
+   use a different focal point (at 50% 30%) than onboarding (at 50% 0%), so
+   match on the shared prefix rather than the full string. */
+[style*="radial-gradient(120% 90% at 50%"] {
+  background:radial-gradient(120% 90% at 50% 24%, #0b1120, #05070d 62%, #000) !important;
+}
+/* Popup close buttons sit on that wash. */
+#popup-urgent .hov, #popup-gentle .hov {
+  background:rgba(255,255,255,.06) !important;
+  border-color:rgba(150,175,235,.2) !important;
+  color:#c3ccdd !important;
+}
+
+/* Text ------------------------------------------------------------------ */
+[style*="color:#0e1822"], [style*="color:#16202b"], [style*="color:#1a2632"],
+[style*="color:#12202c"], [style*="color:#0f1b26"] { color:#f2f5fb !important; }
+[style*="color:#3c4a57"], [style*="color:#46535f"], [style*="color:#5e6f7e"] { color:#c3ccdd !important; }
+[style*="color:#7a93ad"], [style*="color:#8b99a6"], [style*="color:#9aa7b3"],
+[style*="color:#a8b4c0"] { color:#8b97ad !important; }
+
+/* Borders and rules ----------------------------------------------------- */
+[style*="border:1px solid #e9eef4"], [style*="border:1px solid #eef2f6"],
+[style*="border:1px solid #e6ecf3"], [style*="border:1px solid #dfe7ef"],
+[style*="border:1px solid #e3eaf2"], [style*="border:1px solid #edf1f6"] {
+  border-color:rgba(150,175,235,.14) !important;
+}
+[style*="border-bottom:1px solid #e9eef4"], [style*="border-bottom:1px solid #eef2f6"],
+[style*="border-top:1px solid #e9eef4"], [style*="border-top:1px solid #eef2f6"] {
+  border-color:rgba(150,175,235,.12) !important;
+}
+
+/* Inputs ---------------------------------------------------------------- */
+input, textarea, select {
+  background:rgba(255,255,255,.04) !important;
+  color:#f2f5fb !important;
+  border-color:rgba(150,175,235,.18) !important;
+}
+input::placeholder, textarea::placeholder { color:#7b879d !important; }
+
+/* Sidebar / nav --------------------------------------------------------- */
+.navitem { color:#c3ccdd !important; }
+.navitem:hover { background:rgba(255,255,255,.05) !important; color:#fff !important; }
+.navitem.active { background:rgba(255,255,255,.09) !important; color:#fff !important; }
+
+/* Buttons — reuse the landing page's glass rather than the light gradient */
+.glass, .glass.ghost {
+  background:rgba(255,255,255,0.02) !important;
+  color:#f2f5fb !important;
+  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.16), 0 6px 20px rgba(0,0,0,.4) !important;
+}
+.glass:hover, .glass.ghost:hover {
+  background:rgba(255,255,255,.055) !important;
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.24), 0 10px 26px rgba(0,0,0,.5) !important;
+}
+
+/* The app frame itself -------------------------------------------------- */
+[style*="box-shadow:0 30px 90px"], [style*="box-shadow:0 24px 70px"] {
+  box-shadow:0 30px 90px rgba(0,0,0,.7) !important;
+}
+
+/* Keep the blue accent, but lift it so it reads on black. #007aff is a
+   light-background blue and goes muddy against #000. */
+[style*="color:#007aff"] { color:#6fb0ff !important; }
+[style*="background:#007aff"] { background:#2f6fd0 !important; }
 </style>
 </head>
 <body>
@@ -153,10 +259,14 @@
                 <!-- orb -->
                 <div style="flex-shrink:0; display:flex; flex-direction:column; align-items:center; width:300px;">
                   <div style="position:relative; width:236px; height:236px; animation:emBreath 7s ease-in-out infinite;">
-                    <div style="position:absolute; inset:-30px; border-radius:50%; background:radial-gradient(circle at 50% 56%, rgba(0,122,255,.32), transparent 64%); animation:emGlow 7s ease-in-out infinite;"></div>
-                    <div style="position:absolute; inset:0; border-radius:50%; overflow:hidden; background:#eef4fb; box-shadow:inset 0 2px 18px rgba(0,60,140,.12), 0 18px 50px rgba(0,122,255,.18);">
-                      <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:172px; height:172px; border-radius:50%; background:radial-gradient(circle at 50% 40%, #b6e0ff 0%, #5ab0ff 30%, #007aff 56%, #0055c8 78%, #003a94 100%); box-shadow:0 0 50px rgba(0,122,255,.35);"></div>
-                      <div style="position:absolute; left:34%; top:30%; width:42px; height:26px; border-radius:50%; background:rgba(255,255,255,.55); filter:blur(8px);"></div>
+                    <!-- Dark-theme orb: the outer disc becomes glass instead of
+                         a pale plate, and the sphere keeps its blue but is
+                         deepened so it glows against black rather than washing
+                         out. Structure and IDs are unchanged. -->
+                    <div style="position:absolute; inset:-34px; border-radius:50%; background:radial-gradient(circle at 50% 56%, rgba(80,150,255,.30), transparent 66%); animation:emGlow 7s ease-in-out infinite;"></div>
+                    <div class="orb-shell" style="position:absolute; inset:0; border-radius:50%; overflow:hidden; background:rgba(255,255,255,.03); box-shadow:inset 0 1px 1px rgba(255,255,255,.16), inset 0 -18px 40px rgba(0,20,60,.5), 0 22px 60px rgba(0,0,0,.6);">
+                      <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:172px; height:172px; border-radius:50%; background:radial-gradient(circle at 50% 36%, #9fd2ff 0%, #4d9cf5 26%, #1f6ddb 54%, #10419b 78%, #071f52 100%); box-shadow:0 0 62px rgba(60,140,255,.45), inset 0 -8px 26px rgba(0,10,40,.55);"></div>
+                      <div style="position:absolute; left:34%; top:28%; width:44px; height:26px; border-radius:50%; background:rgba(255,255,255,.5); filter:blur(9px);"></div>
                     </div>
                     <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                       <div style="font-size:58px; font-weight:300; color:#fff; letter-spacing:-.03em; line-height:1;" id="battNum">76</div>
