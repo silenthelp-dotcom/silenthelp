@@ -362,11 +362,27 @@ def _pipeline(message: str, record: bool = False, toggles: dict | None = None):
         final = "high"
 
     categories = l1["categories"] or judgment.get("categories") or []
-    # Popup policy for BACKGROUND monitoring (agent/OCR): interrupt only when it
-    # matters. crisis/high → urgent · moderate → gentle · low → logged silently
-    # (feeds trends/dashboard) · none → nothing.
-    surface = ("urgent" if final in ("crisis", "high")
-               else "gentle" if final == "moderate" else "none")
+    # Popup policy for BACKGROUND monitoring (agent/OCR).
+    #
+    #   balanced (default) — interrupt only when it matters:
+    #       crisis/high → urgent · moderate → gentle · low → logged silently
+    #       (still detected; feeds trends/dashboard) · none → nothing.
+    #
+    #   everything — EVERY detection surfaces, including everyday stress
+    #       ("i'm tired from studying"). Detection is unchanged; only the
+    #       interrupt threshold moves. Low fires a gentle popup instead of
+    #       logging quietly. Expect this to fire often during normal use.
+    #
+    # "none" never surfaces under either policy — there is nothing to show.
+    policy = (tog.get("popup_policy")
+              or (store.get_settings().get("popup_policy", "balanced")
+                  if toggles is None else "balanced"))
+    if policy == "everything":
+        surface = ("urgent" if final in ("crisis", "high")
+                   else "gentle" if final in ("moderate", "low") else "none")
+    else:
+        surface = ("urgent" if final in ("crisis", "high")
+                   else "gentle" if final == "moderate" else "none")
     judgment = {**judgment, "risk_level": final, "_l1_level": l1_level,
                 "_l2_level": l2_level, "_l1_tier3": bool(l1["tier3"]),
                 "surface": surface, "received_threat": received_threat,

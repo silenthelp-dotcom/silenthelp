@@ -44,6 +44,16 @@ DEFAULTS: Dict[str, Any] = {
         "contact": "School Counselor <counselor@school.edu>",
         "onboarded": False,
         "toggles": {"keyword": True, "semantic": True, "behavioral": True, "trend": True},
+        # How aggressively detections interrupt the user.
+        #   "balanced" (default) — crisis/high → urgent popup, moderate → gentle
+        #                          popup, low → detected + logged silently, feeding
+        #                          the trend graph without interrupting.
+        #   "everything"        — EVERY detection pops up, including everyday
+        #                          stress ("i'm tired from studying"). Nothing is
+        #                          detected that wasn't detected before; this only
+        #                          changes what interrupts. Expect frequent popups
+        #                          during normal use.
+        "popup_policy": "balanced",
     },
     "days": {},        # "YYYY-MM-DD" -> {signals, metrics}
     "events": [],      # {ts, layer:int, level:str, category:str}  (no raw text)
@@ -99,6 +109,12 @@ def update_settings(patch: Dict[str, Any]) -> Dict[str, Any]:
                 s[key] = str(value)
             elif key == "onboarded":
                 s["onboarded"] = bool(value)
+            elif key == "popup_policy":
+                # Unknown values fall back to "balanced" rather than silently
+                # disabling popups entirely.
+                s["popup_policy"] = (
+                    "everything" if str(value) == "everything" else "balanced"
+                )
         _save(data)
         return s
 
