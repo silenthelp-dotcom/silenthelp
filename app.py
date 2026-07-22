@@ -262,6 +262,59 @@ def _common():
 _ORDER = {"none": 0, "low": 1, "moderate": 2, "high": 3, "crisis": 4}
 
 
+# How many separate crisis detections inside 24h before the note sends itself.
+AUTO_ESCALATE_AFTER = 3
+
+
+def _maybe_auto_escalate(message: str) -> bool:
+    """Send the counselor note automatically once crisis repeats.
+
+    Requested behaviour: no confirmation, no countdown — once tier-3 crisis has
+    fired AUTO_ESCALATE_AFTER times inside 24 hours, the note goes out on its
+    own. This REVERSES the earlier "user must press send" rule, deliberately.
+
+    Guards that remain, because they are about not making things worse:
+      * one automatic note per 24h, so a person in a long crisis is not spammed
+        and their counselor does not get a flood;
+      * a single crisis message never triggers it — the threshold is a repeated
+        pattern;
+      * it needs a trusted contact and working SMTP, and it fails quietly.
+        A failed auto-send must never break detection, and the manual draft
+        path is still there as the fallback.
+    """
+    try:
+        if store.crisis_count_24h() < AUTO_ESCALATE_AFTER:
+            return False
+        if store.auto_sent_recently(24):
+            return False
+        contact = (store.get_settings().get("contact") or "").strip()
+        m = re.search(r"[\w.+-]+@[\w-]+\.[\w.-]+", contact)
+        if not m:
+            return False                     # nowhere to send it
+        to_addr = m.group(0)
+        name = (store.get_settings().get("name") or "").strip()
+        snippet = (message or "").strip()[:140]
+        body = (
+            "Hi,\n\n"
+            "This note was sent automatically by SilentHelp. Over the last day it "
+            f"detected {AUTO_ESCALATE_AFTER} separate crisis-level signals in what "
+            f"{name or 'this student'} wrote — a repeated pattern, not a single message.\n\n"
+            f'The most recent one:\n\n  "{snippet}"\n\n'
+            "They may not have asked for help directly. A gentle check-in soon would matter.\n\n"
+            "— SilentHelp\n\n"
+            "If this is an emergency, call or text 988 (US Suicide & Crisis Lifeline) "
+            "or your local emergency number."
+        )
+        sent = _smtp_send(to_addr, "SilentHelp — automatic crisis alert", body)
+        if sent:
+            store.mark_auto_sent()
+            store.record_event(1, "crisis", "auto_escalation")
+        return sent
+    except Exception:
+        # Never let escalation failure take down the detection path.
+        return False
+
+
 def _pipeline(message: str, record: bool = False, toggles: dict | None = None):
     """
     Graded layered detection. Honors the Settings toggles.
@@ -308,6 +361,7 @@ def _pipeline(message: str, record: bool = False, toggles: dict | None = None):
         action = detection.decide_response({"risk_level": "crisis"})
         if record:
             store.record_event(1, "crisis", (l1["categories"] or ["crisis"])[0])
+            _maybe_auto_escalate(message)
         return l1, judgment, action
 
     # FAST PATH 2 (popup_policy="everything"): every L1 detection surfaces

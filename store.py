@@ -275,6 +275,49 @@ def record_event(layer: int, level: str, category: str) -> None:
         _save(data)
 
 
+def crisis_count_24h() -> int:
+    """How many separate crisis-level events in the last 24 hours.
+
+    Drives auto-escalation: a single crisis message is not enough, but a
+    repeated pattern within a day is. Counts events, not messages, so the same
+    text re-scanned by the agent's polling loop does not inflate it — the
+    pipeline records one event per distinct detection.
+    """
+    with _LOCK:
+        data = _load()
+        cutoff = datetime.now() - timedelta(hours=24)
+        n = 0
+        for e in data.get("events", []):
+            if _LEVEL_ORDER.get(e.get("level"), 0) < 4:
+                continue
+            try:
+                if datetime.fromisoformat(e["ts"]) >= cutoff:
+                    n += 1
+            except (ValueError, KeyError):
+                continue
+        return n
+
+
+def mark_auto_sent() -> None:
+    """Record that the automatic note went out, so it fires once per episode."""
+    with _LOCK:
+        data = _load()
+        data["last_auto_send"] = datetime.now().isoformat()
+        _save(data)
+
+
+def auto_sent_recently(hours: int = 24) -> bool:
+    """True if an automatic note already went out inside `hours`."""
+    with _LOCK:
+        ts = _load().get("last_auto_send")
+    if not ts:
+        return False
+    try:
+        return datetime.fromisoformat(ts) >= datetime.now() - timedelta(hours=hours)
+    except ValueError:
+        return False
+
+
 def _recompute_streak(data: Dict[str, Any]) -> None:
     """Count distinct recent days that carried any flagged event."""
     cutoff = datetime.now() - timedelta(days=7)
