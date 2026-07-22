@@ -355,17 +355,14 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
         <!-- CONTENT -->
         <div style="flex:1; min-width:0; overflow:auto; background:#f6f8fb;">
 
-          <!-- DASHBOARD -->
+          <!-- DASHBOARD — 1:1 with SilentHelp App.dc.html -->
           <div class="appscreen" id="scr-dashboard" style="display:none;">
-            <div class="screen-anim" style="padding:34px 40px;">
-              <div style="font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:#7a93ad;" id="dashDate">Surface conditions</div>
-              <div class="pf" style="font-size:40px; color:#0e1822; margin-top:8px; line-height:1;" id="dashGreet">Good afternoon.</div>
+            <div class="screen-anim" style="padding:30px 40px;">
+              <div style="font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:rgba(255,255,255,.6); font-weight:300;" id="dashDate">Surface conditions</div>
+              <div class="hd" style="font-size:46px; color:#fff; margin-top:6px; line-height:1; letter-spacing:-1px;" id="dashGreet">Good afternoon.</div>
 
-              <div style="display:flex; gap:44px; margin-top:38px; align-items:center; flex-wrap:wrap;">
-                <!-- orb -->
-                <!-- Mental battery, per the imported "SilentHelp App" design:
-                     large numerals rather than an orb. IDs battNum / battLabel /
-                     battDelta are unchanged so the live backend values still bind. -->
+              <div style="display:flex; gap:40px; margin-top:32px; align-items:center;">
+                <!-- battery -->
                 <div style="flex-shrink:0; display:flex; flex-direction:column; align-items:center; width:290px;">
                   <div style="display:flex; align-items:flex-start; justify-content:center;">
                     <div class="hd" id="battNum" style="font-size:150px; color:#fff; line-height:.9; letter-spacing:-4px;">76</div>
@@ -378,33 +375,29 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
 
                 <!-- readings -->
                 <div style="flex:1; display:flex; flex-direction:column;">
-                  <div style="display:flex; align-items:baseline; justify-content:space-between; padding:18px 0; border-bottom:1px solid #e9eef4;">
-                    <div><div style="font-size:13px; color:#3c4a57;">Focus stability</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">Measured against your own baseline</div></div>
-                    <div style="font-size:34px; font-weight:300; color:#16202b;" id="rFocus">84<span style="font-size:15px; color:#9aa7b3;"> / 100</span></div>
+                  <div style="display:flex; align-items:baseline; justify-content:space-between; padding:17px 0; border-bottom:1px solid rgba(255,255,255,.12);">
+                    <div><div style="font-size:13px; color:rgba(255,255,255,.9);">Focus stability</div><div style="font-size:12px; color:rgba(255,255,255,.55); margin-top:3px; font-weight:300;">Measured against your own baseline</div></div>
+                    <div class="hd" id="rFocus" style="font-size:36px; color:#fff; white-space:nowrap; flex-shrink:0;">84<span style="font-size:16px; color:rgba(255,255,255,.5);"> / 100</span></div>
                   </div>
-                  <div style="display:flex; align-items:baseline; justify-content:space-between; padding:18px 0; border-bottom:1px solid #e9eef4;">
-                    <div><div style="font-size:13px; color:#3c4a57;">Tab-switching</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">Counted against your usual pace</div></div>
-                    <div style="font-size:34px; font-weight:300; color:#16202b;" id="rTab">42</div>
+                  <div style="display:flex; align-items:baseline; justify-content:space-between; padding:17px 0; border-bottom:1px solid rgba(255,255,255,.12);">
+                    <div><div style="font-size:13px; color:rgba(255,255,255,.9);">Tab-switching</div><div style="font-size:12px; color:rgba(255,255,255,.55); margin-top:3px; font-weight:300;">Counted against your usual pace</div></div>
+                    <div class="hd" id="rTab" style="font-size:36px; color:#fff;">42</div>
                   </div>
-                  <div style="display:flex; align-items:baseline; justify-content:space-between; padding:18px 0; border-bottom:1px solid #e9eef4;">
-                    <div><div style="font-size:13px; color:#3c4a57;">Active time</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">Across today's focus sessions</div></div>
-                    <div style="font-size:34px; font-weight:300; color:#16202b;" id="rActive">5<span style="font-size:18px;">h</span> 12<span style="font-size:18px;">m</span></div>
+                  <div style="display:flex; align-items:baseline; justify-content:space-between; padding:17px 0; border-bottom:1px solid rgba(255,255,255,.12);">
+                    <div><div style="font-size:13px; color:rgba(255,255,255,.9);">Active time</div><div style="font-size:12px; color:rgba(255,255,255,.55); margin-top:3px; font-weight:300;">Across today's focus sessions</div></div>
+                    <div class="hd" id="rActive" style="font-size:36px; color:#fff; white-space:nowrap; flex-shrink:0;">5<span style="font-size:18px;">h</span> 12<span style="font-size:18px;">m</span></div>
                   </div>
-                  <div style="display:flex; align-items:baseline; justify-content:space-between; padding:18px 0; border-bottom:1px solid #e9eef4;">
-                    <div><div style="font-size:13px; color:#3c4a57;">Late-night signal</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">Worth a gentle eye — not a worry</div></div>
-                    <div style="font-size:34px; font-weight:300; color:#e8862a;" id="rLate">18<span style="font-size:18px;">m</span></div>
-                  </div>
-                  <div style="display:flex; align-items:baseline; justify-content:space-between; padding:18px 0;">
-                    <div><div style="font-size:13px; color:#3c4a57;">Typing rhythm</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">Correction rate as you type — no words read</div></div>
-                    <div style="font-size:34px; font-weight:300; color:#16202b;" id="rType">9<span style="font-size:18px;">%</span></div>
+                  <div style="display:flex; align-items:baseline; justify-content:space-between; padding:17px 0;">
+                    <div><div style="font-size:13px; color:rgba(255,255,255,.9);">Late-night signal</div><div style="font-size:12px; color:rgba(255,255,255,.55); margin-top:3px; font-weight:300;">Worth a gentle eye — not a worry</div></div>
+                    <div class="hd" id="rLate" style="font-size:36px; color:rgba(255,255,255,.75);">18<span style="font-size:18px;">m</span></div>
                   </div>
                 </div>
               </div>
 
-              <div style="margin-top:30px; padding:22px 26px; border-radius:14px; background:linear-gradient(100deg, #eaf3ff, #f4f9ff); border:1px solid #dce9fb; position:relative; overflow:hidden;">
-                <div style="position:absolute; left:0; top:0; bottom:0; width:3px; background:linear-gradient(#5ab0ff,#007aff);"></div>
-                <div style="font-size:11px; letter-spacing:.2em; color:#3d8bdb;">WHAT THE SURFACE SHOWS</div>
-                <div class="pf" style="font-size:21px; color:#16202b; margin-top:9px; line-height:1.35;" id="dashInsight">SilentHelp is learning your rhythm — check back after a day of normal use.</div>
+              <!-- insight strip -->
+              <div class="liquid-glass" style="margin-top:26px; padding:20px 26px; border-radius:20px;">
+                <div style="font-size:11px; letter-spacing:.22em; color:rgba(255,255,255,.6); font-weight:300;">WHAT THE SURFACE SHOWS</div>
+                <div class="hd" id="dashInsight" style="font-size:23px; color:#fff; margin-top:8px; line-height:1.3;">Your attention is holding together nicely today.</div>
               </div>
             </div>
           </div>
