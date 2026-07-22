@@ -310,6 +310,37 @@ def _pipeline(message: str, record: bool = False, toggles: dict | None = None):
             store.record_event(1, "crisis", (l1["categories"] or ["crisis"])[0])
         return l1, judgment, action
 
+    # FAST PATH 2 (popup_policy="everything"): every L1 detection surfaces
+    # anyway, so waiting on the semantic model just delays a popup whose outcome
+    # is already decided. L2 costs 8-20s when the provider is slow or throttled
+    # (measured: 16.8s for a level-1 phrase vs 0.09ms for L1) — the single
+    # biggest source of "it takes a long time to pop up".
+    #
+    # L2 can only ever RAISE the level here, and under this policy low/moderate
+    # both surface as gentle, so skipping it changes the popup for nobody except
+    # the rare case where L2 would have escalated to high/crisis. That case is
+    # already covered: tier-3 fast-pathed above, and the agent re-checks
+    # /api/gating. Precision is unaffected — L1 scoring "none" still means no
+    # popup, so jokes and benign text stay silent either way.
+    _policy_pre = (tog.get("popup_policy")
+                   or (store.get_settings().get("popup_policy", "balanced")
+                       if toggles is None else "balanced"))
+    if keyword_on and _policy_pre == "everything" and l1["level"] > 0:
+        lvl = l1.get("level_name", "none")
+        judgment = {
+            "risk_level": lvl,
+            "categories": l1["categories"] or [],
+            "confidence": 0.9,
+            "rationale": "Layer-1 match; semantic layer skipped for instant popup.",
+            "_source": "layer1", "_l1_level": lvl, "_l2_level": "(skipped-fast)",
+            "_l1_tier3": False,
+            "surface": "urgent" if lvl in ("crisis", "high") else "gentle",
+        }
+        action = detection.decide_response({"risk_level": lvl})
+        if record:
+            store.record_event(1, lvl, (l1["categories"] or ["unknown"])[0])
+        return l1, judgment, action
+
     if semantic_on:
         judgment = detection.classify_message(message)
         l2_failed = judgment.get("_source") == "fail_safe"

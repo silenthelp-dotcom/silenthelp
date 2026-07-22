@@ -41,7 +41,11 @@ enum Config {
     static var backend = localBackend
     static let pollSeconds: TimeInterval = 1.5   // how often we read the focused field
     static let minChars = 8                       // ignore very short text
-    static let cooldownSeconds: TimeInterval = 90 // after a popup, stay quiet
+    // After a popup, stay quiet. Short because popups now STACK: this only
+    // debounces the same moment re-firing, it is not a gate on the next
+    // distinct detection. (Was 90s, which suppressed every follow-up popup and
+    // made stacking impossible.) Crisis hits bypass it entirely.
+    static let cooldownSeconds: TimeInterval = 4
     static let ocrSeconds: TimeInterval = 1.2     // how often we OCR the screen
     static let ocrCooldown: TimeInterval = 15     // quiet window after an OCR-driven popup
                                                   // (crisis hits BYPASS the cooldown)
@@ -189,27 +193,31 @@ enum Snooze {
 // MARK: - Popup
 final class Popup {
     static let shared = Popup()
-    private var panel: NSPanel?
-    private var currentMessage = ""
-    private var currentCrisis = false
+    /// Every popup currently on screen, oldest first. Notifications STACK:
+    /// a new detection slides in above the previous ones instead of replacing
+    /// them, so several moments in a row are all visible and each can be
+    /// actioned or dismissed on its own.
+    private var panels: [NSPanel] = []
     private var lastShowAt = Date.distantPast
+    /// Cap the stack so a burst can never wallpaper the screen; past this the
+    /// oldest is retired to make room for the newest.
+    private let maxStack = 5
+    private let stackGap: CGFloat = 10
 
     func show(title: String, message: String, crisis: Bool) {
         DispatchQueue.main.async { self._show(title: title, message: message, crisis: crisis) }
     }
 
     private func _show(title: String, message: String, crisis: Bool) {
-        // A popup of the same severity is ALREADY on screen and fresh — one
-        // moment, one popup, even when several detection paths fire at once.
-        // Dismissing it re-arms immediately.
-        if let p = panel, p.isVisible {
-            if currentMessage == title + message { return }
-            if crisis == currentCrisis && Date() < lastShowAt.addingTimeInterval(30) { return }
+        // Drop panels the user already closed.
+        panels.removeAll { !$0.isVisible }
+        // Exact same text already on screen → don't duplicate it.
+        if panels.contains(where: { ($0.identifier?.rawValue ?? "") == title + message }) { return }
+        // Stack full → retire the oldest to make room.
+        while panels.count >= maxStack {
+            panels.removeFirst().close()
         }
-        currentMessage = title + message
-        currentCrisis = crisis
         lastShowAt = Date()
-        panel?.close()
 
         let w: CGFloat = 380
         let pad: CGFloat = 20
@@ -244,12 +252,12 @@ final class Popup {
         snooze2.bezelStyle = .rounded
         snooze2.frame = NSRect(x: pad + third + 8, y: pad, width: third, height: btnH)
 
-        let dismiss = NSButton(title: "Dismiss", target: self, action: #selector(close))
+        let dismiss = NSButton(title: "Dismiss", target: self, action: #selector(close(_:)))
         dismiss.bezelStyle = .rounded
         dismiss.frame = NSRect(x: pad + (third + 8) * 2, y: pad, width: third, height: btnH)
 
         // Main action row above the snooze row.
-        let talk = NSButton(title: crisis ? "Get support" : "Talk it through", target: self, action: #selector(openChat))
+        let talk = NSButton(title: crisis ? "Get support" : "Talk it through", target: self, action: #selector(openChat(_:)))
         talk.bezelStyle = .rounded
         talk.frame = NSRect(x: pad, y: pad + btnH + 8, width: innerW, height: btnH)
         talk.keyEquivalent = "\r"
@@ -280,26 +288,74 @@ final class Popup {
         panel.hidesOnDeactivate = false
         panel.contentView = content
 
+        // Identify the panel by its text so an identical repeat isn't stacked.
+        panel.identifier = NSUserInterfaceItemIdentifier(title + message)
+
         if let screen = NSScreen.main {
             let f = screen.visibleFrame
-            panel.setFrameOrigin(NSPoint(x: f.maxX - w - 22, y: f.maxY - total - 22))
+            // Stack downward from the top-right: each existing popup pushes the
+            // new one further down by its own height + a gap.
+            var y = f.maxY - total - 22
+            for p in panels { y -= p.frame.height + stackGap }
+            // Ran out of screen → put it back at the top and retire the oldest,
+            // so the newest moment is always visible.
+            if y < f.minY + 22 {
+                if !panels.isEmpty { panels.removeFirst().close() }
+                y = f.maxY - total - 22
+                for p in panels { y -= p.frame.height + stackGap }
+            }
+            panel.setFrameOrigin(NSPoint(x: f.maxX - w - 22, y: y))
         }
         panel.orderFrontRegardless()
-        self.panel = panel
+        panels.append(panel)
         NSSound(named: "Glass")?.play()
-        shLog("POPUP shown crisis=\(crisis)")
+        shLog("POPUP shown crisis=\(crisis) stack=\(panels.count)")
     }
 
-    @objc private func openChat() {
+    /// Re-flow the stack after one is dismissed, so no gap is left behind.
+    private func restack() {
+        panels.removeAll { !$0.isVisible }
+        guard let screen = NSScreen.main else { return }
+        let f = screen.visibleFrame
+        var y = f.maxY - 22
+        for p in panels {
+            y -= p.frame.height
+            p.setFrameOrigin(NSPoint(x: f.maxX - p.frame.width - 22, y: y))
+            y -= stackGap
+        }
+    }
+
+    @objc private func openChat(_ sender: Any?) {
         // Always open the HOSTED app for the human-facing chat — a localhost
         // page means nothing to whoever is sitting at the popup. Detection
         // still talks to Config.backend (local when available, private).
         if let url = URL(string: Config.hostedBackend + "/chat") { NSWorkspace.shared.open(url) }
-        close()
+        close(sender)
     }
-    @objc private func ignore1h() { Snooze.set(hours: 1); close() }
-    @objc private func ignore2h() { Snooze.set(hours: 2); close() }
-    @objc private func close() { panel?.close(); panel = nil; currentMessage = "" }
+    // Snoozing silences everything for a while, so it clears the whole stack —
+    // leaving older popups on screen after "Ignore 2h" would contradict itself.
+    @objc private func ignore1h() { Snooze.set(hours: 1); closeAll() }
+    @objc private func ignore2h() { Snooze.set(hours: 2); closeAll() }
+    /// Close only the popup whose button was clicked, then re-flow the rest.
+    /// The buttons all target this shared object, so the sender's window is the
+    /// only way to know WHICH popup the user acted on — closing `panels.last`
+    /// would dismiss the wrong one when several are stacked.
+    @objc private func close(_ sender: Any?) {
+        if let w = (sender as? NSView)?.window {
+            panels.removeAll { $0 === w }
+            w.close()
+        } else {
+            panels.forEach { $0.close() }
+            panels.removeAll()
+        }
+        restack()
+    }
+
+    /// Dismiss every popup at once (used by the snooze actions).
+    private func closeAll() {
+        panels.forEach { $0.close() }
+        panels.removeAll()
+    }
 }
 
 // MARK: - Monitor
@@ -352,17 +408,35 @@ final class Monitor {
             _ = action; _ = gating
             let tier3 = l1["tier3"] as? Bool ?? false
             // The backend read the CONTEXT (joke vs genuine) and set the popup
-            // policy: urgent = crisis/high · gentle = moderate · none = low
-            // (still logged for trends — just no interruption) or nothing.
+            // policy. Under popup_policy="everything" every detection surfaces:
+            // urgent = crisis/high · gentle = moderate AND low · none = nothing
+            // detected (jokes, benign text) — those never surface.
             let surface = judgment["surface"] as? String ?? "none"
 
+            // Popups STACK, so the post-popup quiet window only needs to stop a
+            // single message from firing twice — not to block the next distinct
+            // detection. A 90s gate would mean the second, third, ... moments
+            // never appear at all, which is the opposite of stacking.
+            // Log EVERY decision (not just the ones that pop) so the log is a
+            // complete record of what was detected and why it did or did not
+            // surface. Level/category only — never the text itself.
+            let lvl = l1["level_name"] as? String ?? "?"
+            let cats = (l1["categories"] as? [String] ?? []).joined(separator: ",")
             let quiet = Date() < self.quietUntil
+            shLog("SCAN level=\(lvl) cats=[\(cats)] tier3=\(tier3) surface=\(surface) quiet=\(quiet)")
+
             if surface == "urgent" || tier3 {
-                guard Date() >= self.crisisQuietUntil else { return }
+                guard Date() >= self.crisisQuietUntil else {
+                    shLog("  -> suppressed (crisis cooldown)"); return
+                }
                 self.crisisQuietUntil = Date().addingTimeInterval(30)
                 self.fire(crisis: true)
             } else if surface == "gentle" && !quiet {
                 self.fire(crisis: false)
+            } else if surface == "gentle" {
+                shLog("  -> suppressed (debounce, \(Int(Config.cooldownSeconds))s)")
+            } else {
+                shLog("  -> no popup (nothing detected)")
             }
         }
     }
