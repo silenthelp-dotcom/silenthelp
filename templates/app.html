@@ -67,6 +67,63 @@ html, body {
 /* Panels sit ON that wash, so the app frame must not paint its own dark box. */
 [style*="background:#f8fafc"] { background:rgba(255,255,255,.028) !important; }
 
+/* ── Liquid glass — the landing page's exact utilities ──────────────────
+   Same declarations as templates/landing.html so a panel looks identical on
+   both surfaces. Applied to the app's existing panels via the selectors
+   below rather than by rewriting every element's markup. */
+.liquid-glass{
+  background: rgba(255,255,255,0.01);
+  background-blend-mode: luminosity;
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  border: none; box-shadow: inset 0 1px 1px rgba(255,255,255,0.1);
+  position: relative; overflow: hidden;
+}
+.liquid-glass::before{
+  content:""; position:absolute; inset:0; border-radius:inherit; padding:1.4px;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.15) 20%,
+    rgba(255,255,255,0) 40%,  rgba(255,255,255,0) 60%,
+    rgba(255,255,255,0.15) 80%, rgba(255,255,255,0.45) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none;
+}
+.liquid-glass-strong{
+  background: rgba(255,255,255,0.01);
+  background-blend-mode: luminosity;
+  backdrop-filter: blur(50px); -webkit-backdrop-filter: blur(50px);
+  border: none;
+  box-shadow: 4px 4px 4px rgba(0,0,0,0.05), inset 0 1px 1px rgba(255,255,255,0.15);
+  position: relative; overflow: hidden;
+}
+.liquid-glass-strong::before{
+  content:""; position:absolute; inset:0; border-radius:inherit; padding:1.4px;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.5) 0%,  rgba(255,255,255,0.2) 20%,
+    rgba(255,255,255,0) 40%,   rgba(255,255,255,0) 60%,
+    rgba(255,255,255,0.2) 80%, rgba(255,255,255,0.5) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none;
+}
+
+/* Give the app's cards the glass edge. ::before needs a positioned parent and
+   a radius to inherit, which these panels already have. */
+.appscreen [style*="border-radius:18px"],
+.appscreen [style*="border-radius:16px"],
+.appscreen [style*="border-radius:14px"],
+.appscreen [style*="border-radius:20px"]{
+  position:relative;
+  background:rgba(255,255,255,0.014) !important;
+  backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.1) !important;
+  border-color:transparent !important;
+}
+/* The sidebar is the app's persistent chrome — heavier blur, like the
+   landing page's primary CTA. */
+#appview > div > div:first-child{
+  backdrop-filter:blur(50px); -webkit-backdrop-filter:blur(50px);
+  box-shadow:4px 0 4px rgba(0,0,0,.05), inset 0 1px 1px rgba(255,255,255,.15);
+}
+
 /* Page and panel grounds ------------------------------------------------ */
 [style*="background:#fff"], [style*="background: #fff"],
 [style*="background:#ffffff"], [style*="background:#f6f9fc"],
@@ -271,18 +328,31 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
                          a pale plate, and the sphere keeps its blue but is
                          deepened so it glows against black rather than washing
                          out. Structure and IDs are unchanged. -->
-                    <div style="position:absolute; inset:-34px; border-radius:50%; background:radial-gradient(circle at 50% 56%, rgba(80,150,255,.30), transparent 66%); animation:emGlow 7s ease-in-out infinite;"></div>
+                    <!-- Neutral halo. The old blue bloom belonged to the blue
+                         blob; the orb's own light is warm-white, so a blue ring
+                         around it read as a mismatched second light source. -->
+                    <div style="position:absolute; inset:-34px; border-radius:50%; background:radial-gradient(circle at 50% 56%, rgba(190,205,240,.16), transparent 66%); animation:emGlow 7s ease-in-out infinite;"></div>
                     <!-- The sphere is the landing page's hero footage, masked
                          into the orb: the same visual identity carries from the
                          marketing page straight into the product. A flat
                          gradient sits underneath so the orb still reads if the
                          video is blocked, offline, or refused autoplay. -->
-                    <div class="orb-shell" style="position:absolute; inset:0; border-radius:50%; overflow:hidden; background:rgba(255,255,255,.03); box-shadow:inset 0 1px 1px rgba(255,255,255,.16), inset 0 -18px 40px rgba(0,20,60,.5), 0 22px 60px rgba(0,0,0,.6);">
-                      <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:172px; height:172px; border-radius:50%; overflow:hidden; background:radial-gradient(circle at 50% 36%, #9fd2ff 0%, #4d9cf5 26%, #1f6ddb 54%, #10419b 78%, #071f52 100%); box-shadow:0 0 62px rgba(60,140,255,.45), inset 0 -8px 26px rgba(0,10,40,.55);">
+                    <!-- The shell is a thin glass rim, not a plate: the video
+                         fills it edge to edge so the orb reads as the object
+                         itself rather than a picture sitting inside a disc. -->
+                    <div class="orb-shell" style="position:absolute; inset:0; border-radius:50%; overflow:hidden; background:transparent; box-shadow:inset 0 1px 1px rgba(255,255,255,.14), 0 22px 60px rgba(0,0,0,.6);">
+                      <!-- The orb IS the hero footage — no blue gradient behind
+                           it. A near-black disc sits under the video only as a
+                           fallback for the seconds before it loads (or if
+                           autoplay is refused), so the circle is never a bright
+                           hole on the dark page. -->
+                      <div style="position:absolute; inset:0; border-radius:50%; overflow:hidden; background:radial-gradient(circle at 50% 40%, #16203a 0%, #0a1020 60%, #05070d 100%); box-shadow:0 0 66px rgba(150,175,235,.22);">
+                        <!-- The orb sits centre-frame in the source but the
+                             clip is 3:2, so a square cover-crop would cut it.
+                             Scale up and pull to the orb's centre instead. -->
                         <video id="orbVideo" autoplay muted playsinline loop preload="auto"
-                               style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity .9s ease; mix-blend-mode:screen;"></video>
+                               style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(1.55); width:100%; height:100%; object-fit:contain; opacity:0; transition:opacity .9s ease;"></video>
                       </div>
-                      <div style="position:absolute; left:34%; top:28%; width:44px; height:26px; border-radius:50%; background:rgba(255,255,255,.5); filter:blur(9px); pointer-events:none;"></div>
                     </div>
                     <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                       <div style="font-size:58px; font-weight:300; color:#fff; letter-spacing:-.03em; line-height:1;" id="battNum">76</div>
@@ -651,7 +721,7 @@ window.SH_HERO_VIDEO = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJO
     if (!v) return;
     v.src = window.SH_HERO_VIDEO;
     v.addEventListener('loadeddata', function(){
-      v.style.opacity = '.85';          // let the gradient read through
+      v.style.opacity = '1';            // the orb IS the visual, not a tint
       var p = v.play(); if (p && p.catch) p.catch(function(){});
     });
   };
