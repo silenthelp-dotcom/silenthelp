@@ -69,12 +69,21 @@ html, body {
   background-image:radial-gradient(120% 80% at 50% -10%, #101a33 0%, #070c18 45%, #03050b 100%);
   background-attachment:fixed;
 }
-/* Panels sit ON that wash, so the app frame must not paint its own dark box. */
-[style*="background:#f8fafc"] { background:rgba(255,255,255,.028) !important; }
+/* The updated design has NO sidebar fill and no window frame — nav sits
+   directly on the footage. Keep only a hairline rule to separate it. */
+[style*="background:#f8fafc"] {
+  background:transparent !important;
+  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+  box-shadow:none !important;
+  border-right:1px solid rgba(255,255,255,.10) !important;
+}
 
 /* The backdrop video and its scrim are inserted at z-index 0/1, so everything
-   the user interacts with must sit above them. */
-body > *:not(video):not([style*="z-index:1"]) { position:relative; z-index:2; }
+   the user interacts with must sit above them. Both are tagged data-backdrop
+   and excluded by that attribute — an earlier attempt matched on the inline
+   z-index string, which the scrim's own style did not literally contain, so the
+   rule promoted the scrim above the video and it stopped dimming anything. */
+body > *:not([data-backdrop]) { position:relative; z-index:2; }
 
 /* ── Liquid glass — the landing page's exact utilities ──────────────────
    Same declarations as templates/landing.html so a panel looks identical on
@@ -309,8 +318,16 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
     </div>
 
     <!-- ════ APP ════ -->
-    <div id="appview" style="display:none; position:relative; z-index:5; flex:1; min-height:0;">
-      <div style="display:flex; height:100%;">
+    <div id="appview" style="display:none; position:relative; z-index:5; flex:1; min-height:0; flex-direction:column;">
+      <!-- Topbar from the design: wordmark left, ON-DEVICE status chip right.
+           It states the product's core promise on every screen. -->
+      <div style="height:56px; flex-shrink:0; display:flex; align-items:center; padding:0 26px; position:relative; z-index:10;">
+        <div class="hd" style="flex:1; font-size:17px; color:rgba(255,255,255,.9);">SilentHelp</div>
+        <div class="liquid-glass" style="display:flex; align-items:center; gap:6px; font-size:10.5px; font-weight:600; letter-spacing:.08em; color:rgba(255,255,255,.9); border-radius:9999px; padding:5px 12px;"><div style="width:5px; height:5px; border-radius:50%; background:#fff;"></div>ON-DEVICE</div>
+      </div>
+      <!-- flex:1 + min-height:0, not height:100% — the topbar above now takes
+           56px, so a full-height row would overflow the viewport. -->
+      <div style="display:flex; flex:1; min-height:0;">
 
         <!-- SIDEBAR -->
         <div style="width:218px; flex-shrink:0; padding:8px 14px 18px; display:flex; flex-direction:column; background:#f8fafc; border-right:1px solid #eef2f6;">
@@ -328,6 +345,12 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
           <div class="navitem" data-screen="settings" onclick="App.go('settings')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Settings</div>
           <div class="navitem" data-screen="account" onclick="App.go('account')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Account</div>
           <div style="flex:1;"></div>
+          <!-- "Demo the moments" — from the design's sidebar. These call the
+               same App.openGentle / App.openUrgent the settings screen uses, so
+               the real popups fire, not mockups. -->
+          <div style="font-size:9.5px; font-weight:600; letter-spacing:.16em; color:rgba(255,255,255,.45); margin:0 12px 10px;">DEMO THE MOMENTS</div>
+          <button class="liquid-glass" onclick="App.openGentle(true)" style="text-align:left; background:transparent; color:rgba(255,255,255,.85); border:none; border-radius:9999px; padding:9px 16px; font-size:12px; font-weight:500; cursor:pointer; margin-bottom:7px;">Quiet check-in</button>
+          <button onclick="App.openUrgent(true)" style="text-align:left; background:#fff; color:#000; border:none; border-radius:9999px; padding:9px 16px; font-size:12px; font-weight:600; cursor:pointer; margin-bottom:12px;">Something surfacing</button>
           <div id="snoozeChip" onclick="App.clearSnooze()" style="display:none; margin:0 2px 8px; padding:9px 12px; border-radius:9px; background:#fff8ea; border:1px solid #f0e2c0; font-size:11.5px; color:#a4701f; cursor:pointer; font-weight:600;"></div>
           <div id="sideUser" onclick="App.go('account')" style="display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; background:#fff; border:1px solid #e6ecf2; cursor:pointer;">
             <div id="sideAvatar" style="width:26px; height:26px; border-radius:50%; background:radial-gradient(circle at 50% 38%, #7cc4ff, #007aff 60%, #0049c4); color:#fff; font-size:11px; font-weight:700; display:grid; place-items:center;">·</div>
@@ -721,16 +744,18 @@ window.SH_HERO_VIDEO = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJO
     var v = document.createElement('video');
     v.src = window.SH_HERO_VIDEO;
     v.autoplay = true; v.muted = true; v.playsInline = true; v.preload = 'auto';
-    v.setAttribute('aria-hidden','true');
-    // Dimmed and blurred: the design frames this video inside a 1180x760
-    // window where it reads as ambience. Full-bleed behind real content it
-    // competes with the readings, so it is pushed back to a texture.
+    v.setAttribute('aria-hidden','true'); v.setAttribute('data-backdrop','');
+    // The updated design DROPPED the framed window — no glass card, no rounded
+    // corners, no dark fill. Content sits straight on the footage with only a
+    // scrim between, so the video is meant to read as the actual backdrop
+    // rather than a dim texture. Shown sharp at the design's own .35 scrim,
+    // with a slight extra veil low down where the body copy sits.
     v.style.cssText = 'position:fixed; inset:0; width:100%; height:100%; object-fit:cover;' +
-                      'object-position:top; z-index:0; opacity:0; pointer-events:none;' +
-                      'filter:blur(18px) saturate(.8);';
+                      'object-position:top; z-index:0; opacity:0; pointer-events:none;';
     var scrim = document.createElement('div');
+    scrim.setAttribute('data-backdrop','');
     scrim.style.cssText = 'position:fixed; inset:0; z-index:1; pointer-events:none;' +
-      'background:radial-gradient(120% 80% at 50% 0%, rgba(5,7,13,.72), rgba(3,5,11,.9) 60%, rgba(0,0,0,.95));';
+      'background:linear-gradient(180deg, rgba(0,0,0,.35) 0%, rgba(0,0,0,.42) 45%, rgba(0,0,0,.62) 100%);';
     document.body.insertBefore(scrim, document.body.firstChild);
     document.body.insertBefore(v, document.body.firstChild);
 
@@ -748,7 +773,7 @@ window.SH_HERO_VIDEO = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJO
     v.addEventListener('loadeddata', function(){
       v.style.opacity = '0';
       var p = v.play(); if (p && p.catch) p.catch(function(){});
-      fadeTo(.55);          // ambience, not the subject
+      fadeTo(1);            // the backdrop IS the surface now
     });
     v.addEventListener('timeupdate', function(){
       var left = v.duration - v.currentTime;
@@ -759,7 +784,7 @@ window.SH_HERO_VIDEO = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJO
       setTimeout(function(){
         v.currentTime = 0;
         var p = v.play(); if (p && p.catch) p.catch(function(){});
-        fadingOut = false; fadeTo(.55);
+        fadingOut = false; fadeTo(1);
       }, 100);
     });
   };
