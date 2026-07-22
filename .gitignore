@@ -9,3 +9,4 @@ SilentHelpAgent/SilentHelpAgent.app/
 users.json
 userdata/
 nohup.out
+.claude/settings.local.json
