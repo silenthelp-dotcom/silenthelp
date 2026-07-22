@@ -115,6 +115,11 @@
   // third-party CDN bucket that could disappear or rate-limit without notice.
   window.SH_HERO_VIDEO = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4";
   window.SH_CAPS_VIDEO = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_094631_d30ab262-45ee-4b7d-99f3-5d5848c8ef13.mp4";
+
+  // Lithos rock pair from the original SilentHelp hero: the barren surface and
+  // the same rock alive underneath, revealed by the cursor spotlight.
+  window.SH_LITHOS_BASE   = "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_195923_b0ba8ace-1d1d-4f2c-9a28-1ab84b330680.png&w=1920&q=88";
+  window.SH_LITHOS_REVEAL = "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_201152_bba90a12-bf12-459f-91f0-51f237dbaf3b.png&w=1920&q=88";
 </script>
 
 <!-- ══ Icons ══ -->
@@ -417,9 +422,99 @@ function Hero() {
 window.Hero = Hero;
 </script>
 
+<!-- ══ LithosReveal — the original hero's rock/spotlight, ported ══ -->
+<script type="text/babel">
+const { useRef, useEffect } = React;
+
+/*
+ * The Lithos treatment from the original SilentHelp hero: two stacked images of
+ * the same rock — barren on top, alive with moss and flowers underneath — with
+ * a spotlight that follows the cursor and reveals the living layer through it.
+ * It is the "see beneath the surface" metaphor made literal, which is why it
+ * belongs behind "Support that notices first".
+ *
+ * Differences from the original: that page was WHITE, so the base was rendered
+ * with filter:invert(1) to turn the black rock pale. This page is black, so
+ * both layers are used as-shot. The mask is a radial-gradient driven by
+ * pointer position; on touch (no hover) it falls back to a slow drift so the
+ * reveal still reads.
+ */
+function LithosReveal() {
+  const wrapRef = useRef(null);
+  const revealRef = useRef(null);
+  const rafRef = useRef(0);
+
+  useEffect(() => {
+    const wrap = wrapRef.current, reveal = revealRef.current;
+    if (!wrap || !reveal) return;
+
+    const R = 260;                         // spotlight radius, px
+    const pos = { x: 0.5, y: 0.5 };        // normalized target
+    const cur = { x: 0.5, y: 0.5 };        // eased actual
+    const fine = matchMedia("(hover: hover) and (pointer: fine)").matches;
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const paint = () => {
+      const r = wrap.getBoundingClientRect();
+      const px = cur.x * r.width, py = cur.y * r.height;
+      const m = `radial-gradient(circle ${R}px at ${px}px ${py}px,` +
+                ` #000 0%, rgba(0,0,0,.86) 42%, rgba(0,0,0,0) 72%)`;
+      reveal.style.webkitMaskImage = m;
+      reveal.style.maskImage = m;
+    };
+
+    const onMove = (e) => {
+      const r = wrap.getBoundingClientRect();
+      pos.x = (e.clientX - r.left) / r.width;
+      pos.y = (e.clientY - r.top) / r.height;
+    };
+
+    let t = 0;
+    const loop = () => {
+      rafRef.current = requestAnimationFrame(loop);
+      if (!fine || reduce) {           // no cursor: drift the light slowly
+        t += 0.0045;
+        pos.x = 0.5 + Math.cos(t) * 0.26;
+        pos.y = 0.5 + Math.sin(t * 0.8) * 0.2;
+      }
+      cur.x += (pos.x - cur.x) * 0.12;  // ease toward the target
+      cur.y += (pos.y - cur.y) * 0.12;
+      paint();
+    };
+
+    if (fine && !reduce) window.addEventListener("pointermove", onMove, { passive: true });
+    paint();
+    rafRef.current = requestAnimationFrame(loop);
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      window.removeEventListener("pointermove", onMove);
+    };
+  }, []);
+
+  return (
+    <div ref={wrapRef} className="absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
+      {/* barren rock — the surface */}
+      <div className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+           style={{ backgroundImage:`url("${window.SH_LITHOS_BASE}")` }} />
+      {/* the same rock alive — revealed only inside the spotlight */}
+      <div ref={revealRef} className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+           style={{ backgroundImage:`url("${window.SH_LITHOS_REVEAL}")`,
+                    WebkitMaskImage:"radial-gradient(circle 0px at 50% 50%, #000, transparent)",
+                    maskImage:"radial-gradient(circle 0px at 50% 50%, #000, transparent)" }} />
+      {/* the footage runs edge to edge; fade the bottom so the section below
+          does not start on a hard horizon line */}
+      <div className="absolute inset-x-0 bottom-0 h-40"
+           style={{ background:"linear-gradient(to bottom, transparent, #000)" }} />
+    </div>
+  );
+}
+window.LithosReveal = LithosReveal;
+</script>
+
 <!-- ══ Capabilities — the four detection layers ══ -->
 <script type="text/babel">
-const { FadingVideo } = window;
+const { LithosReveal } = window;
 
 const IconLayers = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6 text-white" aria-hidden="true">
@@ -452,7 +547,7 @@ const CARDS = [
 function Capabilities() {
   return (
     <section id="how" className="relative min-h-screen bg-black overflow-hidden">
-      <FadingVideo src={window.SH_CAPS_VIDEO} className="absolute inset-0 w-full h-full object-cover z-0" />
+      <LithosReveal />
 
       <div className="relative z-10 px-8 md:px-16 lg:px-20 pt-24 pb-10 flex flex-col min-h-screen">
         <div className="mb-auto">
