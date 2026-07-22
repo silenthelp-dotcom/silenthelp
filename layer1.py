@@ -1,38 +1,44 @@
 """
-SilentHelp — Layer 1 Keyword Engine
-===================================
+SilentHelp — Layer 1 Keyword Engine (schema silenthelp.merged/v2)
+=================================================================
 
-The cheap, fully-local pre-filter. NO AI. It loads the three level databases in
-layer1_db/ (schema 4.0.0-regex) and compiles their regex templates ONCE at
-import:
+The cheap, fully-local pre-filter. NO AI, no network. It loads the three merged
+databases in layer1_db/ and compiles everything ONCE at import.
 
-    layer1_db/level1_everyday_stress.json   -> level 1  (everyday stress)
-    layer1_db/level2_major_stress.json      -> level 2  (major stress)
-    layer1_db/level3_crisis.json            -> level 4  (crisis, bypasses gating)
+Each merged database carries FOUR independent matchers, because no single one
+catches everything:
 
-Each level ships:
-  * regex_templates — slot machines (<starter> <modifier> <state> <context>
-    <time>) already compiled into a single alternation-per-slot pattern. A hit
-    means a full, contextual sentence matched, so precision is high.
-  * exact_high_precision_phrases — short standalone phrases that are signal on
-    their own ("i wish i was dead", "screw this test").
+  1. regex_rules      — the v1 regex-pack grammar. Filler-tolerant slot chains
+                        ("i'm so extremely fucking burnt out today"). Very high
+                        precision, but REQUIRES a first-person starter.
+  2. regex_templates  — the legacy 4.0.0 slot templates. Extra recall on
+                        contextual sentences the pack's grammar misses.
+  3. exact phrases    — short standalone phrases ("i wish i was dead").
+  4. root vocabulary  — every signal-bearing component phrase, matched DIRECTLY.
 
-Layer 1's only job: catch obvious signals fast and pass them to Layer 2. It is
-deliberately dumb — string/regex matching, no understanding. Level-3 (crisis)
-hits are flagged to BYPASS Layer 4's trend gate: a single hit is enough.
+Matcher 4 is the one that makes detection starter-independent. The grammar rules
+alone miss "kill myself", "kms", "commit suicide", "i wish i was dead" — all of
+which score 0 without a starter, because the rules are built as
+<starter><filler><action>. A user in crisis does not reliably supply a starter.
+So the roots fire on their own and the final level is the MAX across all four.
 
-Alongside the database, three safety nets stay local to this file because they
-are behaviour, not vocabulary:
-  * a benign-idiom / joke guard so "dying laughing" never fires,
-  * a spelling-tolerant pass over core emotion words ("depresed", "alon"),
-  * a received-threat pattern (bullying aimed AT the user).
+Precision is preserved by three mechanisms, in order of authority:
+  * negative_context_regex (from the pack) — jokes/idioms per level.
+  * the local benign-idiom / laughter guard — "dying laughing", "phone is dead".
+  * signal-vs-glue split — "him", "really", "today" are grammar glue and never
+    fire alone; only signal groups produce standalone hits.
+  * ambiguity guard — roots that are also ordinary English ("no way out",
+    "dark thoughts") need the sentence to lack an innocent explanation.
+
+Explicit self-directed crisis phrasing is NEVER suppressed by any guard.
 
 scan(text) -> {
-    "tier3": bool,                 # crisis vocabulary present (level 3 db)
+    "tier3": bool,                 # crisis vocabulary present (bypasses gating)
     "matched": bool,               # any L1 hit at all
-    "categories": [str, ...],      # which level categories fired
+    "categories": [str, ...],
     "hits": [{"phrase","category","tier"}, ...],
     "level": int,                  # 0-4 severity
+    "level_name": str,
     ...
 }
 """
@@ -62,59 +68,38 @@ def _alt(words: List[str]) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Root vocabulary — the fix for "none of the words in the database work".
+# Signal vs glue.
 #
-# The 4.0.0 regex_templates are SLOT MACHINES: they only fire when a whole
-# contextual sentence lines up (<starter> <modifier> <state> <context> <time>).
-# That made the databases' own vocabulary inert on its own — "kill myself",
-# "commit suicide", "kms", "at my breaking point" all scored 0 unless the user
-# happened to phrase the entire sentence the template's way. An audit found 789
-# of 829 component phrases unreachable.
+#   SIGNAL — means something on its own: "kill myself", "having a breakdown",
+#            "kill me". These match bare and set the level.
+#   GLUE   — meaningless alone: "him", "really", "today", "i am". Matching these
+#            bare would fire on every sentence in English, so they NEVER produce
+#            a standalone hit; they only feed the grammar rules and templates.
 #
-# So every component group is also compiled as a DIRECT matcher. But the groups
-# are not equal: some carry the signal, others are only grammar glue.
-#
-#   SIGNAL  — means something on its own. "kill myself", "having a breakdown",
-#             "kill me". These match bare and set the level.
-#   GLUE    — meaningless alone. "him", "really", "today", "i am". Matching
-#             these bare would fire on every sentence in English, so they are
-#             NEVER standalone hits; they only serve the slot templates.
-#
-# Glue is listed explicitly (allow-list of what may fire), because a new group
-# added to a database later should default to safe-but-silent, not to matching
-# the word "today" at level 4.
+# Glue is an explicit deny-list AND signal an explicit allow-list, so a group
+# added to a database later defaults to safe-but-silent rather than matching
+# the word "today" at crisis level.
 # ---------------------------------------------------------------------------
-_SIGNAL_GROUPS = {
-    # group name -> level override (None = use the database's own severity)
-    "states": None,
-    "self_harm_actions": None,
-    "reported_crisis_actions": None,
-    "threat_actions": None,
-}
-# Groups that must never produce a standalone hit.
-_GLUE_GROUPS = {
+_SIGNAL_GROUPS = frozenset({
+    "states", "self_harm_actions", "reported_crisis_actions", "threat_actions",
+})
+_GLUE_GROUPS = frozenset({
     "self_starters", "intent_starters", "modifiers", "intensifiers",
     "contexts", "time", "time_or_immediacy", "other_speakers",
     "person_targets", "violent_actions", "reason_context",
     "reason_context_third", "third_party_reporters", "threat_subjects",
-}
+})
 
 # "violent_actions" is glue on purpose: "kill" / "hurt" / "end" alone are far
 # too common ("kill the lights", "that hurt", "end of class"). They need a
-# target, which the pairing pass below supplies.
+# target, which the action+target pairing below supplies.
 
 _MIN_ROOT_LEN = 4  # below this a "root" is a fragment, not a phrase
+_SHORT_ROOT_ALLOW = frozenset({"kms"})  # unambiguous despite being short
 
-# Short crisis terms that are real signal despite being under the length floor.
-# "kms" is unambiguous; bare "die" is NOT (it needs a subject, so it stays out
-# and is covered by the templates, the exact phrases, and the hyperbole guard).
-_SHORT_ROOT_ALLOW = {"kms"}
-
-
-# The databases store one canonical inflection ("kill myself", "hurt myself"),
-# but people write the gerund just as often — "thinking about hurting myself",
-# "kept cutting myself". Rather than bloat the JSON with every form, derive the
-# -ing form of the leading verb for phrases whose first word is a bare verb.
+# The databases store one canonical inflection ("hurt myself"), but people write
+# the gerund just as often ("thinking about hurting myself"). Derive it rather
+# than bloating the JSON with every form.
 _VERB_ING = {
     "kill": "killing", "hurt": "hurting", "end": "ending", "take": "taking",
     "cut": "cutting", "harm": "harming", "stab": "stabbing", "shoot": "shooting",
@@ -128,11 +113,9 @@ _VERB_ING = {
     "overdose": "overdosing",
 }
 
-
-# People type "cant"/"can't" where the database says "cannot", "dont" for
-# "do not", and so on. Expanding the TEXT would shift every match offset and
-# desync the benign-idiom spans, so instead each stored phrase gains its
-# contracted variants here, at build time.
+# People type "cant"/"can't" where the database says "cannot". Expanding the
+# TEXT would shift match offsets and desync the benign-idiom spans, so each
+# stored phrase instead gains its contracted variants here, at build time.
 _CONTRACTIONS = [
     ("cannot", ["can't", "cant"]),
     ("do not", ["don't", "dont"]),
@@ -150,7 +133,6 @@ _CONTRACTIONS = [
 
 
 def _contraction_variants(phrase: str) -> List[str]:
-    """Every contracted spelling of `phrase` (one substitution per variant)."""
     out = []
     for full, shorts in _CONTRACTIONS:
         if full in phrase:
@@ -171,7 +153,7 @@ def _inflect(phrase: str) -> List[str]:
 
 
 def _root_phrases(doc: Dict[str, Any]) -> List[str]:
-    """Every component phrase that is signal on its own."""
+    """Every component phrase that is signal on its own, plus its variants."""
     out: List[str] = []
     for group, values in (doc.get("components") or {}).items():
         if group in _GLUE_GROUPS or group not in _SIGNAL_GROUPS:
@@ -179,27 +161,23 @@ def _root_phrases(doc: Dict[str, Any]) -> List[str]:
         for v in values:
             if not isinstance(v, str):
                 continue
-            v = v.lower()
+            v = v.strip().lower()
             if len(v) >= _MIN_ROOT_LEN or v in _SHORT_ROOT_ALLOW:
                 out.extend(_inflect(v))
     return out
 
 
 def _pair_regex(doc: Dict[str, Any]) -> "re.Pattern | None":
-    """Violent action + person target, as one unit.
+    """Violent action + person target as one unit.
 
-    "kill" is glue and "him" is glue, but "kill him" is a crisis phrase. This
-    pairs the two groups directly so the intent doesn't need a matching starter
-    slot — "kill him", "stab that guy", "beat the shit out of my roommate" all
-    fire without "i'm going to" in front.
+    "kill" is glue and "him" is glue, but "kill him" is a crisis phrase. Pairing
+    the groups lets intent fire without a matching starter slot.
     """
     comp = doc.get("components") or {}
-    actions = [f for a in comp.get("violent_actions", []) if isinstance(a, str)
-               for f in _inflect(a.lower())]
-    # Bare verbs have no " rest" to inflect, so add their gerunds explicitly:
-    # "killing him", "stabbing that guy".
-    actions += [_VERB_ING[a.lower()] for a in comp.get("violent_actions", [])
-                if isinstance(a, str) and a.lower() in _VERB_ING]
+    raw = [a.lower() for a in comp.get("violent_actions", []) if isinstance(a, str)]
+    actions = [f for a in raw for f in _inflect(a)]
+    # bare verbs have no " rest" to inflect — add their gerunds explicitly
+    actions += [_VERB_ING[a] for a in raw if a in _VERB_ING]
     targets = [t for t in comp.get("person_targets", []) if isinstance(t, str)]
     if not actions or not targets:
         return None
@@ -214,41 +192,50 @@ def _load_db() -> List[Dict[str, Any]]:
     for fname, severity, category in _DB_FILES:
         with (_DB_DIR / fname).open(encoding="utf-8") as f:
             doc = json.load(f)
-        patterns = [
-            (t["id"], re.compile(t["regex"], re.IGNORECASE | re.UNICODE))
-            for t in doc["regex_templates"]
+
+        # 1. v1 pack grammar rules (filler-tolerant, starter-required)
+        rules = [
+            (r["id"], re.compile(r["regex"]))
+            for r in doc.get("regex_rules", [])
         ]
-        exact = doc.get("exact_high_precision_phrases", [])
+        # 2. legacy slot templates (extra recall)
+        templates = [
+            (t["id"], re.compile(t["regex"], re.IGNORECASE | re.UNICODE))
+            for t in doc.get("regex_templates", [])
+        ]
+        # 3. exact standalone phrases
+        exact = [e.lower() for e in doc.get("exact_high_precision_phrases", [])]
         exact_re = (
             re.compile(rf"(?<!\w)(?:{_alt(exact)})(?!\w)", re.IGNORECASE | re.UNICODE)
-            if exact
-            else None
+            if exact else None
         )
+        # 4. root vocabulary — starter-independent
         roots = _root_phrases(doc)
         roots_re = (
             re.compile(rf"(?<!\w)(?:{_alt(roots)})(?!\w)", re.IGNORECASE | re.UNICODE)
-            if roots
-            else None
+            if roots else None
         )
-        levels.append(
-            {
-                "file": fname,
-                "severity": severity,
-                "category": category,
-                "name": doc.get("name", category),
-                "bypasses_gate": bool(doc.get("bypasses_four_day_trend_gate")),
-                "patterns": patterns,
-                "exact_re": exact_re,
-                "roots_re": roots_re,
-                "pair_re": _pair_regex(doc),
-                "root_count": len(roots),
-                "exact_count": len(exact),
-                "template_count": len(patterns),
-                "combinations": doc.get("statistics", {}).get(
-                    "theoretical_phrase_combinations", 0
-                ),
-            }
-        )
+        # per-level joke/idiom guard shipped by the pack
+        neg = [re.compile(p, re.IGNORECASE) for p in doc.get("negative_context_regex", [])]
+
+        levels.append({
+            "file": fname,
+            "severity": severity,
+            "category": category,
+            "name": doc.get("name", category),
+            "bypasses_gate": bool(doc.get("bypasses_four_day_trend_gate")),
+            "routing": doc.get("routing", {}),
+            "rules": rules,
+            "templates": templates,
+            "exact_re": exact_re,
+            "roots_re": roots_re,
+            "pair_re": _pair_regex(doc),
+            "neg": neg,
+            "counts": {
+                "rules": len(rules), "templates": len(templates),
+                "exact": len(exact), "roots": len(roots),
+            },
+        })
     return levels
 
 
@@ -519,6 +506,8 @@ _ALWAYS_SERIOUS_RE = re.compile(
 )
 
 
+
+
 def _benign_spans(text: str) -> List[tuple]:
     return [m.span() for m in _BENIGN_RE.finditer(text)]
 
@@ -526,6 +515,78 @@ def _benign_spans(text: str) -> List[tuple]:
 def _in_benign(span: tuple, benign: List[tuple]) -> bool:
     return any(s <= span[0] and span[1] <= e for s, e in benign)
 
+
+# ---------------------------------------------------------------------------
+# Ambiguous roots — real ideation vocabulary that is ALSO ordinary English.
+#
+# "kill myself" means one thing. "no way out", "dark thoughts", "i can't do this
+# anymore", "giving my stuff away" mean distress in one context and a parking
+# garage, a band name, decaf, and moving to college in another. Adding them to
+# the root vocabulary bought real recall and cost real precision, so they are
+# only counted when nothing in the sentence explains them away.
+# ---------------------------------------------------------------------------
+_AMBIGUOUS_ROOTS = frozenset({
+    "no way out", "no way out of this", "dark thoughts", "having dark thoughts",
+    "cant do this anymore", "cannot do this anymore", "give up on everything",
+    "want it to stop", "want it all to stop", "want everything to stop",
+    "giving my stuff away", "giving away my things", "left a note",
+    "wrote a note for my parents", "thinking about ending things",
+    "thinking of ending things", "end things tonight", "ready to end things",
+    "im a burden", "i am a burden", "burden to everyone", "burden to my family",
+    "give up", "i give up", "gave up",
+    "the world would be better off", "too much right now", "everything is too much",
+    "cant stop crying", "cannot stop crying", "havent slept in days",
+    "have not slept in days", "cant sleep at all", "chest feels tight",
+    "chest is tight all the time", "cant get out of bed", "cannot get out of bed",
+    "running on empty", "cant catch a break", "if i disappeared",
+    "shutting everyone out", "pushing everyone away", "wouldnt be missed",
+})
+
+def _is_ambiguous(phrase: str) -> bool:
+    """True if `phrase` IS or CONTAINS an ambiguous root.
+
+    The matchers often return a span wider than the root itself ("i give up" for
+    "give up on everything", "i cant do this anymore" for "cant do this
+    anymore"), so equality alone lets the innocent sentence through.
+    """
+    if phrase in _AMBIGUOUS_ROOTS:
+        return True
+    return any(r in phrase or phrase in r for r in _AMBIGUOUS_ROOTS)
+
+
+# A concrete everyday referent that explains an ambiguous phrase innocently.
+_MUNDANE_OBJECT_RE = re.compile(
+    r"\b(?:"
+    r"parking\s+garage|garage|maze|elevator|escape\s+room|building|exit|"
+    r"puzzle|video\s*game|game|level|boss\s+fight|quest|match|"
+    r"movie|film|show|episode|book|novel|band|album|song|theme|character|plot|"
+    r"decaf|coffee|caffeine|spicy|food|pizza|diet|"
+    r"puppy|kitten|dog|cat|baby|newborn|"
+    r"field\s+trip|homework|assignment|essay|project|worksheet|"
+    r"workout|gym|run|marathon|practice|rehearsal|"
+    r"wedding|birthday|party|concert|vacation|"
+    r"college|dorm|move|moving|packing|donate|donating|thrift|"
+    r"traffic|weather|rain|snow|allergies|construction|wifi|printer|laptop"
+    r")\b",
+    re.IGNORECASE,
+)
+
+# Several ambiguous phrases take their own object right after them, which is
+# what makes them innocent: "want it to stop RAINING", "the world would be
+# better off WITH MORE DOGS". A completion re-scopes the phrase onto something
+# concrete. Genuine distress phrasing trails off or ends instead.
+_INNOCENT_COMPLETION_RE = re.compile(
+    r"\s*(?:"
+    r"rain\w*|snow\w*|"
+    r"with\s+(?:more|less|fewer|a|an|some|out)\b|"
+    r"early\b|late\b|now\s+so\b|so\s+(?:everyone|we|they)\b|"
+    r"it'?s?\s+(?:so|too|really)\b|"
+    r"in\s+(?:this|the|that|my)\s+\w+|"
+    r"im\s+switching\b|because\s+of\s+the\b|"
+    r"at\s+(?:this|the|that)\s+\w+"
+    r")",
+    re.IGNORECASE,
+)
 
 # Four severity levels (the app's 1–4 scale):
 #   1 = not that critical   (everyday stress)
@@ -543,35 +604,35 @@ LEVEL_NAME = {0: "none", 1: "low", 2: "moderate", 3: "high", 4: "crisis"}
 def scan(text: str, *, root_only: bool = True) -> Dict[str, Any]:
     """Scan one chunk of text. Pure, fast, local. Returns a 1–4 severity level.
 
-    Context-aware: hits inside benign idioms ("dying laughing", "phone is dead")
-    are discarded, and when the text carries clear joking/laughter markers,
-    hyperbole-prone phrases are dropped too — unless an explicit self-directed
-    crisis phrase is present, which always stays serious.
+    Runs all four matchers (pack grammar rules, legacy slot templates, exact
+    phrases, and starter-independent root vocabulary) and takes the max, so a
+    phrase is caught whether or not the user supplied a first-person starter.
 
-    `root_only` is accepted for call-site compatibility; the 4.0.0 databases are
-    fully contextual, so there are no bare roots to opt into.
+    `root_only` is accepted for call-site compatibility.
     """
-    # Normalize typographic quotes (OCR/macOS smart quotes) so "can’t" matches
-    # the database's "can't", lowercase, and collapse runs of whitespace, exactly
-    # as each database's `matching.normalization` requires.
     text = (text or "").replace("’", "'").replace("‘", "'")
     text = re.sub(r"\s+", " ", text).strip().lower()
+    if not text:
+        return {"tier3": False, "matched": False, "categories": [], "hits": [],
+                "level": 0, "level_name": "none", "joking_context": False,
+                "received_threat": False}
+
     benign = _benign_spans(text)
     laugh_spans = [m.span() for m in _LAUGH_RE.finditer(text)]
     always_serious = bool(_ALWAYS_SERIOUS_RE.search(text))
-    # A threat aimed AT the user (bullying / intimidation they received). A joke
-    # marker right next to it ("i'll kill you lol") reads as banter; an explicit
-    # threat with no laughter stays serious.
+
     threat_m = _RECEIVED_THREAT_RE.search(text)
     received_threat = False
     if threat_m:
-        near_joke = any(s <= threat_m.end() + _JOKE_RADIUS and e >= threat_m.start() - _JOKE_RADIUS
-                        for s, e in laugh_spans)
-        received_threat = not near_joke
+        near = any(s <= threat_m.end() + _JOKE_RADIUS and e >= threat_m.start() - _JOKE_RADIUS
+                   for s, e in laugh_spans)
+        received_threat = not near
 
     def _near_laugh(span: tuple) -> bool:
         return any(s <= span[1] + _JOKE_RADIUS and e >= span[0] - _JOKE_RADIUS
                    for s, e in laugh_spans)
+
+    mundane = bool(_MUNDANE_OBJECT_RE.search(text))
 
     def _keep(m: "re.Match") -> bool:
         if _in_benign(m.span(), benign):
@@ -579,6 +640,15 @@ def scan(text: str, *, root_only: bool = True) -> Dict[str, Any]:
         phrase = m.group(0).lower()
         if not always_serious and phrase in _HYPERBOLE and _near_laugh(m.span()):
             return False
+        # An ambiguous root may be matched as part of a slightly longer span
+        # ("i cant do this anymore" contains "cant do this anymore"), so test
+        # containment rather than equality — otherwise the guard silently
+        # misses and the innocent sentence scores.
+        if not always_serious and _is_ambiguous(phrase):
+            if mundane or _near_laugh(m.span()):
+                return False
+            if _INNOCENT_COMPLETION_RE.match(text, m.end()):
+                return False
         return True
 
     joking = bool(laugh_spans)
@@ -587,22 +657,23 @@ def scan(text: str, *, root_only: bool = True) -> Dict[str, Any]:
     categories: List[str] = []
     tier3 = False
 
-    # Walk the three databases. Crisis (level 3 db) carries tier "3" and bypasses
-    # the trend gate; the others are contextual signal for Layer 2 to judge.
     for lvl in _LEVELS:
         category = lvl["category"]
         tier = "3" if lvl["bypasses_gate"] else "1"
+        # A level's own negative-context guard (jokes/idioms shipped by the
+        # pack). Explicit crisis phrasing overrides it.
+        if not always_serious and any(p.search(text) for p in lvl["neg"]):
+            continue
         found = set()
-        for _tid, pattern in lvl["patterns"]:
+        for _rid, pattern in lvl["rules"]:          # 1. pack grammar
             found |= {m.group(0) for m in pattern.finditer(text) if _keep(m)}
-        if lvl["exact_re"] is not None:
+        for _tid, pattern in lvl["templates"]:      # 2. legacy templates
+            found |= {m.group(0) for m in pattern.finditer(text) if _keep(m)}
+        if lvl["exact_re"] is not None:             # 3. exact phrases
             found |= {m.group(0) for m in lvl["exact_re"].finditer(text) if _keep(m)}
-        # Root vocabulary: the database's own signal phrases, matched directly
-        # rather than only as slots inside a full contextual sentence.
-        if lvl["roots_re"] is not None:
+        if lvl["roots_re"] is not None:             # 4. starter-independent roots
             found |= {m.group(0) for m in lvl["roots_re"].finditer(text) if _keep(m)}
-        # violent action + person target ("kill him", "stab that guy").
-        if lvl["pair_re"] is not None:
+        if lvl["pair_re"] is not None:              #    violent action + target
             found |= {m.group(0) for m in lvl["pair_re"].finditer(text) if _keep(m)}
         if found:
             categories.append(category)
@@ -611,23 +682,18 @@ def scan(text: str, *, root_only: bool = True) -> Dict[str, Any]:
             for phrase in sorted(found):
                 hits.append({"phrase": phrase, "category": category, "tier": tier})
 
-    # Spelling-tolerant core-word pass: catches "depresed", "im so alon", etc.
-    # Suppressed when the message is clearly joking (unless always-serious).
     fuzzy_level = 0
     if not (joking and not always_serious):
-        fuzzy = _fuzzy_scan(text, benign)
-        for word, lvl_num in fuzzy.items():
+        for word, lvl_num in _fuzzy_scan(text, benign).items():
             fuzzy_level = max(fuzzy_level, lvl_num)
             hits.append({"phrase": word, "category": "fuzzy", "tier": "1"})
 
-    # A received threat is a safety concern → at least level 3 (high).
     if received_threat:
         hits.append({"phrase": threat_m.group(0).lower().strip(),
                      "category": "received_threat", "tier": "3"})
         if "received_threat" not in categories:
             categories.append("received_threat")
 
-    # Highest level wins. Crisis database = 4. Received threat = 3.
     cat_level = max((CATEGORY_LEVEL.get(c, 0) for c in categories), default=0)
     level = 4 if tier3 else max(cat_level, fuzzy_level, 3 if received_threat else 0)
 
@@ -643,37 +709,13 @@ def scan(text: str, *, root_only: bool = True) -> Dict[str, Any]:
     }
 
 
-# Quick counts for diagnostics / startup logging.
 STATS = {
-    "schema": "4.0.0-regex",
+    "schema": "silenthelp.merged/v2",
     "levels": {
         lvl["category"]: {
-            "file": lvl["file"],
-            "name": lvl["name"],
-            "severity": lvl["severity"],
-            "templates": lvl["template_count"],
-            "exact_phrases": lvl["exact_count"],
-            "root_phrases": lvl["root_count"],
-            "combinations": lvl["combinations"],
-            "bypasses_gate": lvl["bypasses_gate"],
+            "file": lvl["file"], "name": lvl["name"], "severity": lvl["severity"],
+            "bypasses_gate": lvl["bypasses_gate"], **lvl["counts"],
         }
         for lvl in _LEVELS
     },
-    "total_combinations": sum(lvl["combinations"] for lvl in _LEVELS),
 }
-
-
-if __name__ == "__main__":
-    for t in [
-        "what time does the library close",
-        "im really stressed out because of work today",
-        "i'm completely overwhelmed by everything because of school lately",
-        "i want to fucking kill myself tonight because i cannot take this anymore",
-        "i wish i was dead",
-        "bro im dying laughing lmao",
-        "kill yourself loser",
-        "im so depresed and alon",
-    ]:
-        r = scan(t)
-        print(f"L{r['level']} {r['level_name']:9} tier3={r['tier3']!s:5} "
-              f"cats={r['categories']!r:40} :: {t}")

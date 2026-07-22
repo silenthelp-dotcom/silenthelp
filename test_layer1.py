@@ -155,7 +155,6 @@ CASES = [
     ("i hate my life", 2, 3),
     ("i give up", 2, 3),
     ("nobody cares about me", 2, 3),
-    ("i can't do this anymore", 2, 3),
     ("everything is falling apart", 2, 3),
     ("i'm all alone", 2, 3),
     ("i don't want to be here", 4, 4),
@@ -212,6 +211,9 @@ CASES = [
     ("at my breaking point", 2, 4),
     ("having a breakdown", 2, 4),
     ("having a meltdown", 2, 4),
+    # Reaches crisis via the ideation vocabulary ("cant do this anymore"), not
+    # just major stress — deliberate after the v2 merge.
+    ("i can't do this anymore", 2, 4),
     ("i cant handle this pressure", 1, 4),      # contraction of "cannot"
     ("i cannot handle this pressure", 1, 4),
     ("mentally tired", 1, 4),
