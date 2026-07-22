@@ -61,13 +61,12 @@
    re-maps them by attribute selector. One place to read, one place to change,
    and the markup keeps working if the theme is ever reverted.
    ═══════════════════════════════════════════════════════════════════════ */
-/* One continuous ground. The landing page's hero sits on this exact wash, so
-   scrolling the site and then opening the app never crosses a seam. */
-html, body {
-  background:#05070d; color:#f2f5fb;
-  background-image:radial-gradient(120% 80% at 50% -10%, #101a33 0%, #070c18 45%, #03050b 100%);
-  background-attachment:fixed;
-}
+/* Pure black, exactly as the design declares it:
+     html, body { margin:0; padding:0; background:#000; }
+   The navy radial wash that was here (#101a33) was added for a "one continuous
+   background" pass — it is what read as a blue page behind everything, and it
+   is not in the design. The backdrop video supplies the depth instead. */
+html, body { background:#000; color:#f2f5fb; }
 /* The updated design has NO sidebar fill and no window frame — nav sits
    directly on the footage. Keep only a hairline rule to separate it. */
 [style*="background:#f8fafc"] {
