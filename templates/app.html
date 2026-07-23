@@ -162,10 +162,12 @@ button[style*="background:#fff"], [style*="background:#fff"][style*="color:#000"
    The screens were sized for the design's narrow 1180px window; at full width
    the type looked small and stranded in empty space. Cap the content column,
    centre it, and give it room to breathe. */
+/* Content screens only — NOT auth/onboarding, which are full-bleed. */
 .appscreen > div {
   max-width:1240px; margin:0 auto;
   padding:44px 56px !important;
 }
+#scr-auth > div, #scr-onboarding > div { max-width:none !important; padding:0 !important; }
 /* Bump the dashboard's key type so it fills the wider column. */
 #scr-dashboard #dashGreet { font-size:clamp(46px,3.6vw,60px) !important; }
 #scr-dashboard #battNum   { font-size:clamp(150px,12vw,190px) !important; }
@@ -194,6 +196,18 @@ button[style*="background:#fff"], [style*="background:#fff"][style*="color:#000"
 #scr-auth input::placeholder { color:rgba(255,255,255,.4) !important; }
 /* On phones the promo panel is hidden (.l-desk); the form fills the screen. */
 @media (max-width:900px){ #scr-auth .l-desk { display:none !important; } }
+
+/* Auth is a full-bleed split screen: break it out of the frame's 1680px cap so
+   the promo panel reaches the actual screen edge, top to bottom. The class is
+   toggled by go() when the sign-in gate is shown. */
+/* Full-bleed sign-in: drop the frame cap AND the outer 40px padding so the
+   promo panel reaches every screen edge, top to bottom. */
+#appframe.frame-fullbleed {
+  max-width:none !important; width:100vw !important; height:100vh !important; margin:0 !important;
+}
+#appouter:has(.frame-fullbleed) { padding:0 !important; display:block !important; }
+#scr-auth { height:100vh; }
+#scr-auth > div { height:100vh; width:100%; max-width:none; }
 
 /* ── No blue anywhere ───────────────────────────────────────────────────
    The blue glow under the onboarding/auth buttons reads as a coloured border
@@ -249,6 +263,17 @@ button[style*="background:#fff"], [style*="background:#fff"][style*="color:#000"
 /* Pale-blue chips: as flat panels they stay a cool tint, but as BUTTONS the
    design makes them white pills with black text — no blue anywhere. */
 [style*="background:#eef5ff"] { background:rgba(90,150,255,.14) !important; }
+/* Charts & heatmap: the design encodes intensity in WHITE opacity, not blue.
+   Map every blue chart fill onto the matching white step. */
+[style*="background:#bcd9ff"] { background:rgba(255,255,255,.25) !important; }
+[style*="background:#9cc7ff"] { background:rgba(255,255,255,.4) !important; }
+[style*="background:#0049c4"] { background:#ffffff !important; }
+.appscreen [style*="background:#007aff"]:not(button) { background:#ffffff !important; }
+/* Blue text/icon accents (LOCKED ON, step numerals) → white, per the no-blue
+   design. Excludes buttons, which are white-backed and would go white-on-white. */
+.appscreen div[style*="color:#0a6dff"], .appscreen div[style*="color:#3d8bdb"],
+.appscreen span[style*="color:#0a6dff"] { color:#fff !important; }
+.appscreen svg[stroke="#0a6dff"] { stroke:#fff !important; }
 button[style*="background:#eef5ff"] {
   background:#fff !important; color:#000 !important;
   border-color:transparent !important; border-radius:9999px !important;
@@ -376,7 +401,7 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
 <!-- The design's shell paints #000, but its video is a SIBLING behind it. Here
      the video is appended to <body> at z-index 0, so an opaque shell would
      cover it — the black lives on <body> instead and the shell stays clear. -->
-<div style="min-height:100vh; background:transparent; display:flex; position:relative; z-index:2; overflow:auto; padding:40px;">
+<div id="appouter" style="min-height:100vh; background:transparent; display:flex; position:relative; z-index:2; overflow:auto; padding:40px;">
   <!-- The design's fixed 1180x760 window is a mock frame; at full size it left
        a hard-edged card floating on the backdrop. Fills the viewport instead,
        capped so it never stretches absurdly wide on large displays. -->
@@ -455,10 +480,9 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
           </div>
         </div>
 
-        <!-- RIGHT · promo panel with the hero video (Moniveo's dark side).
-             A rounded, inset panel rather than a full-bleed half — the hard
-             vertical seam down the middle was the "annoying block". -->
-        <div class="l-desk" style="flex:1; min-width:0; position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; padding:56px; margin:24px 24px 24px 0; border-radius:28px;">
+        <!-- RIGHT · promo panel with the hero video. Full-bleed: it runs top to
+             bottom and to the right edge of the screen (no inset, no radius). -->
+        <div class="l-desk" style="flex:1; min-width:0; position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; padding:56px;">
           <video autoplay muted playsinline loop preload="auto" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;"></video>
           <div style="position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.72));"></div>
           <div style="position:relative; z-index:2;">
@@ -961,6 +985,8 @@ const App = {
     document.getElementById('scr-auth').style.display = gate ? 'flex' : 'none';
     document.getElementById('scr-onboarding').style.display = onb ? 'flex' : 'none';
     document.getElementById('appview').style.display = (gate || onb) ? 'none' : 'block';
+    // The sign-in split screen is full-bleed, so let the frame break its cap.
+    document.getElementById('appframe').classList.toggle('frame-fullbleed', gate);
     if (gate) return;
     document.querySelectorAll('.appscreen').forEach(el => el.style.display = 'none');
     const el = document.getElementById('scr-' + screen);
@@ -1219,8 +1245,11 @@ const App = {
   paintToggles(){
     document.querySelectorAll('.sw').forEach(sw => {
       const on = this.toggles[sw.dataset.key];
-      sw.style.background = on ? '#007aff' : '#cdd6e0';
-      sw.querySelector('.swk').style.left = on ? '20px' : '2px';
+      // Design uses white-when-on, not blue.
+      sw.style.background = on ? '#ffffff' : 'rgba(255,255,255,.15)';
+      const knob = sw.querySelector('.swk');
+      knob.style.left = on ? '20px' : '2px';
+      knob.style.background = on ? '#000000' : '#ffffff';
     });
   },
   async exportData(){
