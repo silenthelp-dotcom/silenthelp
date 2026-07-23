@@ -549,6 +549,16 @@ def hero_lithos():
     return render_template("hero.html")
 
 
+@app.route("/stage")
+def stage():
+    # Demo film set: a wall of six laptops running Messages/Discord/Snapchat/
+    # Instagram/WhatsApp/Slack. Messages type themselves, hit the REAL detector
+    # via /classify, and raise popups on the laptop that fired — then the camera
+    # pushes in. Built to be screen-recorded, not used; it is deliberately not
+    # linked from the product nav. Press space (or add ?auto=1) to run.
+    return render_template("stage.html")
+
+
 @app.route("/careers")
 def careers():
     # SilentHelp HQ — careers, team directory, and founder admin (shared, server-backed SPA).

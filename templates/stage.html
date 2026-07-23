@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SilentHelp — Demo Stage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+/* ── Demo stage ───────────────────────────────────────────────────────────
+   A wall of six laptops, each running a different chat app. Messages type
+   themselves, hit the REAL detector (/classify), and the ones that matter
+   raise a real SilentHelp popup on that laptop's screen. The camera then
+   pushes in on that laptop so the popup fills frame.
+
+   This is a filming set, not product UI — it exists to be screen-recorded.
+   Everything is CSS transforms on one .wall element so the "camera" move is
+   a single GPU-composited transform (no layout work mid-shot).           */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0; height: 100%; background: #000; overflow: hidden;
+  font-family: 'Barlow', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #fff; -webkit-font-smoothing: antialiased;
+}
+.hd { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; }
+
+/* Room: a dark studio with a soft pool of light so the laptops read as
+   objects in space rather than flat divs. */
+#room {
+  position: fixed; inset: 0; overflow: hidden;
+  background:
+    radial-gradient(120% 80% at 50% 18%, rgba(70,80,110,.20), transparent 60%),
+    radial-gradient(90% 60% at 50% 100%, rgba(40,50,80,.16), transparent 65%),
+    #000;
+  perspective: 2200px;
+}
+
+/* The camera target. Every push-in animates THIS element's transform.
+   The wall is a fixed 1560x880 design surface; #fit scales it to whatever
+   viewport is recording, so framing is identical at 1080p and on a laptop. */
+#fit {
+  position: absolute; top: 50%; left: 50%;
+  width: 1560px; height: 880px; margin: -440px 0 0 -780px;
+  transform-origin: 50% 50%;
+}
+#wall {
+  position: absolute; inset: 0;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, auto); align-content: center;
+  gap: 74px 40px; padding: 10px 10px 34px;
+  transform-origin: 50% 50%;
+  transition: transform 1.65s cubic-bezier(.66,.02,.24,1);
+  will-change: transform;
+}
+
+/* ── One laptop ──────────────────────────────────────────────────────── */
+.lap { position: relative; display: flex; flex-direction: column; align-items: center;
+       justify-content: center; min-height: 0;
+       transition: opacity .9s ease, filter .9s ease; }
+/* Wrapper sized by the lid, so the base can key off the lid's real width. */
+.unit { position: relative; display: flex; flex-direction: column; align-items: center;
+        justify-content: center; height: 100%; width: 100%; min-height: 0; }
+/* Non-focused laptops fall back visually so the shot has a clear subject
+   (dominance — the eye needs one place to land). */
+.lap.dim { opacity: .34; filter: brightness(.5) saturate(.7); }
+
+.lid {
+  /* Width-driven: the grid column sets the width, aspect-ratio sets the height.
+     (Height-driven + aspect-ratio derives width from the row and overflows the
+     column, which silently widens the whole wall past its 1560px surface.) */
+  position: relative; width: 100%; aspect-ratio: 16 / 10.4;
+  border-radius: 16px 16px 5px 5px; padding: 9px 9px 15px;
+  background: linear-gradient(168deg, #3a3d44, #202227 42%, #17181c);
+  box-shadow:
+    0 30px 60px -18px rgba(0,0,0,.9),
+    0 0 0 1px rgba(255,255,255,.09),
+    inset 0 1px 0 rgba(255,255,255,.16);
+}
+/* Camera notch + the glass sheen that sells it as a screen, not a rectangle. */
+.lid::before {
+  content: ''; position: absolute; top: 4px; left: 50%; width: 46px; height: 3.5px;
+  transform: translateX(-50%); border-radius: 3px; background: #0c0d10;
+}
+.lid::after {
+  content: ''; position: absolute; inset: 9px 9px 15px; border-radius: 8px;
+  background: linear-gradient(122deg, rgba(255,255,255,.10) 0%, transparent 30%, transparent 72%, rgba(255,255,255,.05) 100%);
+  pointer-events: none; z-index: 6;
+}
+.scr {
+  position: relative; width: 100%; height: 100%; border-radius: 8px; overflow: hidden;
+  background: #000; display: flex; flex-direction: column;
+}
+/* Base of the laptop — a wedge so it reads as sitting on a surface. */
+.base {
+  /* Slightly wider than the lid, but bounded to the cell so six units still
+     fit the wall's width (a %-overflow here silently blows out the grid). */
+  width: 108%; max-width: 100%; height: 13px; border-radius: 0 0 12px 12px;
+  background: linear-gradient(180deg, #34373d, #1b1d21 60%, #0e0f12);
+  box-shadow: 0 16px 26px -10px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.15);
+  position: relative;
+}
+.base::after {  /* the trackpad notch */
+  content: ''; position: absolute; top: 0; left: 50%; width: 84px; height: 4px;
+  transform: translateX(-50%); border-radius: 0 0 5px 5px; background: rgba(0,0,0,.5);
+}
+/* Reflection on the desk — cheap, but it grounds the object. */
+.lap::after {
+  content: ''; position: absolute; bottom: -26px; left: 12%; width: 76%; height: 26px;
+  background: radial-gradient(50% 100% at 50% 0%, rgba(150,170,210,.16), transparent 70%);
+  filter: blur(5px); pointer-events: none;
+}
+
+/* ── Chat app chrome (shared) ────────────────────────────────────────── */
+.appbar {
+  display: flex; align-items: center; gap: 7px; padding: 7px 10px;
+  font-size: 10.5px; font-weight: 600; letter-spacing: .01em; flex: none;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.appbar .dot { width: 15px; height: 15px; border-radius: 50%; flex: none;
+               display: grid; place-items: center; font-size: 8px; font-weight: 700; }
+/* Threads sit lower-middle rather than pinned to the bottom: a real chat has
+   history above the fold, and it keeps the screen from reading as empty. */
+.thread {
+  flex: 1; padding: 9px 10px 4px; display: flex; flex-direction: column; gap: 6px;
+  overflow: hidden; justify-content: flex-end;
+}
+.thread::before { content: ''; flex: 0 1 22%; }
+.msg {
+  max-width: 78%; padding: 6px 10px; border-radius: 13px; font-size: 12.5px;
+  line-height: 1.34; word-break: break-word; animation: pop .32s cubic-bezier(.2,.9,.3,1.3);
+}
+.msg.them { align-self: flex-start; border-bottom-left-radius: 4px;
+            background: rgba(255,255,255,.13); color: rgba(255,255,255,.92); }
+.msg.me   { align-self: flex-end;  border-bottom-right-radius: 4px; color: #fff; }
+@keyframes pop { from { opacity: 0; transform: translateY(7px) scale(.96); } }
+/* The composer, where the typing happens. */
+.composer {
+  flex: none; display: flex; align-items: center; gap: 6px; padding: 6px 9px;
+  border-top: 1px solid rgba(255,255,255,.08); font-size: 10.5px;
+}
+.field {
+  flex: 1; min-height: 20px; padding: 4px 9px; border-radius: 999px;
+  background: rgba(255,255,255,.11); color: #fff; line-height: 1.3;
+  display: flex; align-items: center;
+}
+.field .ph { color: rgba(255,255,255,.34); }
+.caret { display: inline-block; width: 1.5px; height: 11px; background: #fff;
+         margin-left: 1px; animation: blink 1.05s steps(1) infinite; vertical-align: -2px; }
+@keyframes blink { 50% { opacity: 0; } }
+.send { width: 19px; height: 19px; border-radius: 50%; flex: none; display: grid;
+        place-items: center; font-size: 10px; color: #fff; }
+
+/* Per-app palettes. Each app is instantly recognisable by colour + bar alone,
+   which is what sells "this is happening everywhere you talk". */
+.a-messages .appbar { background: #1c1c1e; color: #fff; }
+.a-messages .appbar .dot { background: linear-gradient(180deg,#5ee06a,#2bb742); color: #fff; }
+.a-messages { background: #000; }
+.a-messages .msg.me { background: linear-gradient(180deg,#2a8cff,#0a6cf1); }
+
+.a-discord .appbar { background: #1e1f22; color: #f2f3f5; }
+.a-discord .appbar .dot { background: #5865f2; }
+.a-discord { background: #313338; }
+.a-discord .msg.me { background: #4752c4; }
+.a-discord .msg.them { background: rgba(255,255,255,.08); }
+
+/* Snapchat's yellow is the one saturated surface here; held back so it reads
+   as brand recognition, not a light source blowing out the shot. */
+.a-snap .appbar { background: #d4d000; color: #101010; }
+.a-snap .appbar .dot { background: #101010; color: #d4d000; }
+.a-snap { background: #0b0b0b; }
+.a-snap .msg.me { background: #e0392f; }
+.a-snap .msg.them { background: rgba(255,255,255,.12); }
+
+.a-insta .appbar { background: #101010; color: #fff; }
+.a-insta .appbar .dot { background: linear-gradient(45deg,#f9ce34,#ee2a7b 50%,#6228d7); }
+.a-insta { background: #000; }
+.a-insta .msg.me { background: linear-gradient(45deg,#a033ff,#e62e7b 60%,#ff5b39); }
+
+.a-whats .appbar { background: #1f2c33; color: #e9edef; }
+.a-whats .appbar .dot { background: #25d366; color: #05340f; }
+.a-whats { background: #0b141a; }
+.a-whats .msg.me { background: #005c4b; }
+.a-whats .msg.them { background: #202c33; }
+
+.a-slack .appbar { background: #350d36; color: #fff; }
+.a-slack .appbar .dot { background: #e01e5a; }
+.a-slack { background: #1a1d21; }
+.a-slack .msg.me { background: #1164a3; }
+.a-slack .msg.them { background: rgba(255,255,255,.08); }
+
+/* ── The SilentHelp popup, rendered INSIDE a laptop screen ───────────── */
+.pop {
+  position: absolute; right: 7px; top: 7px; width: 61%; z-index: 8;
+  border-radius: 11px; padding: 9px 10px 10px;
+  background: rgba(14,14,16,.74);
+  backdrop-filter: blur(22px) saturate(1.5); -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  box-shadow: 0 16px 34px -10px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.14),
+              0 0 0 1px rgba(255,255,255,.10);
+  transform: translateX(115%); opacity: 0;
+  transition: transform .62s cubic-bezier(.2,.9,.28,1.06), opacity .45s ease;
+}
+.pop.in { transform: translateX(0); opacity: 1; }
+/* Crisis reads hotter — a warm rim, no colour flood (one accent, held back). */
+.pop.crisis { box-shadow: 0 16px 40px -8px rgba(0,0,0,.92), inset 0 1px 0 rgba(255,255,255,.18),
+                          0 0 0 1px rgba(255,138,110,.55), 0 0 22px -4px rgba(255,120,90,.35); }
+.pop .ptop { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+.pop .mark { width: 12px; height: 12px; border-radius: 50%; flex: none;
+             background: radial-gradient(circle at 33% 30%, #fff, #9fb4d8 45%, #45557a);
+             box-shadow: 0 0 9px rgba(180,205,255,.6); }
+.pop .pname { font-size: 8px; font-weight: 600; letter-spacing: .1em;
+              text-transform: uppercase; color: rgba(255,255,255,.55); }
+.pop .ptitle { font-size: 12.5px; line-height: 1.28; color: #fff; margin-bottom: 3px; }
+.pop .pbody { font-size: 9.5px; line-height: 1.4; color: rgba(255,255,255,.66); }
+.pop .pacts { display: flex; gap: 5px; margin-top: 8px; }
+.pop .pbtn { flex: 1; text-align: center; padding: 4.5px 0; border-radius: 999px;
+             font-size: 9px; font-weight: 500; background: rgba(255,255,255,.11);
+             color: rgba(255,255,255,.85); box-shadow: inset 0 1px 0 rgba(255,255,255,.14); }
+.pop .pbtn.primary { background: #fff; color: #000; box-shadow: none; font-weight: 600; }
+
+/* Menu-bar icon that wakes when detection fires. */
+.tray { position: absolute; top: 6px; right: 9px; z-index: 7; width: 9px; height: 9px;
+        border-radius: 50%; background: rgba(255,255,255,.22); transition: all .5s ease; }
+.tray.live { background: radial-gradient(circle at 34% 30%, #fff, #9fb4d8 46%, #4a5a80);
+             box-shadow: 0 0 11px rgba(180,205,255,.9); animation: breathe 2.1s ease-in-out infinite; }
+@keyframes breathe { 50% { transform: scale(1.28); } }
+
+/* "Stayed quiet" — the joke guard needs a visible non-event, or the viewer
+   reads it as the detector simply failing. */
+.quiet {
+  position: absolute; right: 7px; top: 7px; z-index: 8; padding: 5px 9px;
+  border-radius: 999px; font-size: 8.5px; letter-spacing: .04em;
+  color: rgba(255,255,255,.6); background: rgba(255,255,255,.07);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1);
+  opacity: 0; transform: translateY(-5px); transition: all .5s ease;
+}
+.quiet.in { opacity: 1; transform: translateY(0); }
+
+/* App name plate under each laptop — only while wide, hidden on push-in. */
+.plate {
+  position: absolute; bottom: -34px; left: 0; right: 0; text-align: center;
+  font-size: 10px; letter-spacing: .17em; text-transform: uppercase;
+  color: rgba(255,255,255,.32); transition: opacity .5s ease;
+}
+#wall.zoomed .plate { opacity: 0; }
+
+/* ── Caption + title card ────────────────────────────────────────────── */
+#cap {
+  position: fixed; left: 50%; bottom: 46px; transform: translateX(-50%);
+  z-index: 60; padding: 13px 30px; border-radius: 999px; font-size: 23px;
+  background: rgba(0,0,0,.55); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,.13); pointer-events: none;
+  opacity: 0; transition: opacity .6s ease; max-width: 78vw; text-align: center;
+}
+#cap.in { opacity: 1; }
+#title {
+  position: fixed; inset: 0; z-index: 80; display: grid; place-items: center;
+  background: #000; text-align: center; transition: opacity 1.1s ease; padding: 0 8vw;
+}
+#title.out { opacity: 0; pointer-events: none; }
+#title h1 { font-size: 62px; margin: 0 0 14px; line-height: 1.1; }
+#title p { font-size: 17px; color: rgba(255,255,255,.5); margin: 0; letter-spacing: .04em; }
+#hint { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 80;
+        font-size: 12px; color: rgba(255,255,255,.3); letter-spacing: .05em; }
+</style>
+</head>
+<body>
+
+<div id="room">
+  <div id="fit"><div id="wall"><!-- laptops injected --></div></div>
+</div>
+
+<div id="cap" class="hd"></div>
+
+<div id="title">
+  <div>
+    <h1 class="hd">Some things never get said out loud.</h1>
+    <p>SilentHelp — detection running live on every screen.</p>
+  </div>
+</div>
+<div id="hint">press <b>space</b> to start · <b>R</b> to restart</div>
+
+<script>
+/* ── Stage data ───────────────────────────────────────────────────────────
+   Six laptops, six apps. Each carries a scripted conversation; the final
+   line of each is the one that gets typed live and sent to the REAL
+   detector. Nothing here is a hardcoded verdict — `/classify` decides, and
+   the popup reflects what it actually returned. If detection changes, this
+   demo changes with it. That's the point: it's proof, not a mockup.       */
+var LAPTOPS = [
+  { id:'messages', app:'Messages', cls:'a-messages', icon:'✉', who:'Mom',
+    seed:[ {t:'you coming to dinner?', me:false},
+           {t:'not hungry, sorry', me:true} ],
+    line:'i’m so overwhelmed by everything' },
+
+  { id:'discord', app:'Discord', cls:'a-discord', icon:'◈', who:'#late-night',
+    seed:[ {t:'anyone still up lol', me:false},
+           {t:'yeah cant sleep', me:true} ],
+    line:'i’m at my breaking point' },
+
+  { id:'snap', app:'Snapchat', cls:'a-snap', icon:'👻', who:'jay',
+    seed:[ {t:'bro that test was brutal', me:false} ],
+    line:'lol this homework is literally killing me haha', expectQuiet:true },
+
+  { id:'insta', app:'Instagram', cls:'a-insta', icon:'◎', who:'sam',
+    seed:[ {t:'u ok? havent seen u post', me:false},
+           {t:'im fine', me:true} ],
+    line:'i don’t see the point anymore' },
+
+  { id:'whats', app:'WhatsApp', cls:'a-whats', icon:'✆', who:'Priya',
+    seed:[ {t:'call me when you can ❤️', me:false} ],
+    line:'everyone would be better off without me' },
+
+  { id:'slack', app:'Slack', cls:'a-slack', icon:'#', who:'#general',
+    seed:[ {t:'standup in 5!', me:false},
+           {t:'be right there', me:true} ],
+    line:'i’m completely burnt out' }
+];
+
+/* ── Build the wall ─────────────────────────────────────────────────── */
+var wall = document.getElementById('wall');
+LAPTOPS.forEach(function(L){
+  var el = document.createElement('div');
+  el.className = 'lap'; el.id = 'lap-' + L.id;
+  el.innerHTML =
+    '<div class="unit"><div class="lid"><div class="scr ' + L.cls + '">' +
+      '<div class="appbar"><span class="dot">' + L.icon + '</span>' +
+        '<span>' + L.who + '</span></div>' +
+      '<div class="tray" id="tray-' + L.id + '"></div>' +
+      '<div class="thread" id="th-' + L.id + '"></div>' +
+      '<div class="composer"><div class="field" id="fd-' + L.id + '">' +
+        '<span class="ph">Message</span></div>' +
+        '<span class="send">↑</span></div>' +
+      '<div class="pop" id="pop-' + L.id + '">' +
+        '<div class="ptop"><span class="mark"></span>' +
+        '<span class="pname">SilentHelp</span></div>' +
+        '<div class="ptitle hd" id="pt-' + L.id + '"></div>' +
+        '<div class="pbody" id="pb-' + L.id + '"></div>' +
+        '<div class="pacts"><span class="pbtn primary">Take a moment</span>' +
+        '<span class="pbtn">Not now</span></div>' +
+      '</div>' +
+      '<div class="quiet" id="q-' + L.id + '">stayed quiet</div>' +
+    '</div></div>' +
+    '<div class="base"></div></div>' +
+    '<div class="plate">' + L.app + '</div>';
+  wall.appendChild(el);
+  // Seed each thread so the screens already look lived-in on the wide shot.
+  var th = document.getElementById('th-' + L.id);
+  L.seed.forEach(function(m){
+    var b = document.createElement('div');
+    b.className = 'msg ' + (m.me ? 'me' : 'them');
+    b.style.animation = 'none'; b.textContent = m.t; th.appendChild(b);
+  });
+});
+
+/* ── Camera ───────────────────────────────────────────────────────────
+   One transform on #wall. To push in on a laptop we translate its centre to
+   the wall's centre, then scale about that point. Because it's a single
+   composited transform the move stays smooth while messages animate.     */
+var W = 1560, H = 880;   // the fixed design surface #fit scales to the viewport
+
+/* Fit the fixed design surface into the actual viewport, with margin so the
+   caption and name plates stay inside frame. Recomputed on resize so the
+   framing is the same whether recording at 1080p or on a laptop screen. */
+var fit = document.getElementById('fit');
+function refit(){
+  // Measure what the wall ACTUALLY occupies (scrollWidth/Height ignore the
+  // current scale because #fit is the scaled element, not #wall) rather than
+  // trusting the design constants — content can exceed them.
+  var w = Math.max(W, wall.scrollWidth), h = Math.max(H, wall.scrollHeight);
+  var s = Math.min(window.innerWidth / (w + 80), window.innerHeight / (h + 190));
+  fit.style.transform = 'scale(' + Math.min(s, 1) + ')';
+}
+refit(); window.addEventListener('resize', refit);
+// Fonts load after first paint and change laptop metrics; refit once they land
+// so the wall isn't sized against a fallback-font layout.
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
+window.addEventListener('load', refit);
+
+/* Laptop centres measured ONCE at rest, in #wall's own untransformed
+   coordinate space. offsetLeft/offsetTop are layout values — unlike
+   getBoundingClientRect() they ignore the CSS transform, so they stay valid
+   no matter what zoom is currently applied. */
+function centreOf(idx){
+  var lid = document.querySelector('#lap-' + LAPTOPS[idx].id + ' .lid');
+  var x = 0, y = 0, n = lid;
+  while (n && n !== wall){ x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
+  return { x: x + lid.offsetWidth / 2, y: y + lid.offsetHeight / 2 };
+}
+
+function pushIn(idx, scale){
+  scale = scale || 2.62;
+  var c = centreOf(idx);
+  var dx = (wall.offsetWidth / 2 - c.x), dy = (wall.offsetHeight / 2 - c.y);
+  wall.classList.add('zoomed');
+  wall.style.transform = 'scale(' + scale + ') translate(' + dx + 'px,' + dy + 'px)';
+  LAPTOPS.forEach(function(L, i){
+    document.getElementById('lap-' + L.id).classList.toggle('dim', i !== idx);
+  });
+}
+function pullOut(){
+  wall.classList.remove('zoomed');
+  wall.style.transform = 'scale(1) translate(0,0)';
+  LAPTOPS.forEach(function(L){ document.getElementById('lap-' + L.id).classList.remove('dim'); });
+}
+
+/* ── Helpers ──────────────────────────────────────────────────────────── */
+var wait = function(ms){ return new Promise(function(r){ setTimeout(r, ms); }); };
+var cap = document.getElementById('cap');
+function say(t){ cap.textContent = t || ''; cap.classList.toggle('in', !!t); }
+
+/* Type into a laptop's composer, character by character. */
+async function typeOn(id, text){
+  var fd = document.getElementById('fd-' + id);
+  fd.innerHTML = '<span class="caret"></span>';
+  for (var i = 0; i < text.length; i++){
+    fd.innerHTML = text.slice(0, i + 1).replace(/</g,'&lt;') + '<span class="caret"></span>';
+    await wait(38 + Math.random() * 34);            // human-irregular cadence
+  }
+  await wait(520);                                   // the hesitation before sending
+}
+/* Send it: bubble appears in the thread, composer resets. */
+async function sendOn(id, text){
+  var th = document.getElementById('th-' + id);
+  var b = document.createElement('div'); b.className = 'msg me'; b.textContent = text;
+  th.appendChild(b);
+  while (th.children.length > 5) th.removeChild(th.firstChild);
+  document.getElementById('fd-' + id).innerHTML = '<span class="ph">Message</span>';
+  await wait(240);
+}
+
+/* Ask the REAL pipeline what this message is. Falls back to a neutral
+   result if the server is unreachable so a demo never hard-stops on stage. */
+async function classify(text){
+  try {
+    var r = await fetch('/classify', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ message: text })
+    });
+    if (!r.ok) throw new Error('http ' + r.status);
+    return await r.json();
+  } catch (e){
+    console.warn('[stage] classify failed, using quiet fallback:', e);
+    return { judgment:{ level:'none' }, action:{}, l1:{ level:0 } };
+  }
+}
+
+/* Map a real verdict onto popup copy. Level comes from detection, never
+   from this file — the copy is the only thing chosen here. */
+function copyFor(res){
+  // /classify returns judgment.risk_level: none | low | moderate | crisis.
+  // l1.level (0-4) is the local keyword tier and backs it up if the model
+  // layer is unavailable — never the other way round.
+  var j = res.judgment || {};
+  var lv = String(j.risk_level || j.level || 'none').toLowerCase();
+  var l1 = (res.l1 && res.l1.level) || 0;
+  var crisis = lv === 'crisis' || lv === 'high' || l1 >= 3;
+  var mod    = lv === 'moderate' || lv === 'medium' || l1 === 2;
+  if (crisis) return { fire:true, crisis:true,
+    title:'Something important is surfacing.',
+    body:'This looks heavy. You don’t have to carry it alone — one tap reaches someone real.' };
+  if (mod) return { fire:true, crisis:false,
+    title:'That sounded like a lot.',
+    body:'Noticed on this device. Nothing left it. Want to take sixty seconds?' };
+  if (l1 >= 1) return { fire:true, crisis:false,
+    title:'Checking in.',
+    body:'A small dip, noticed locally. No one else has seen this.' };
+  return { fire:false };
+}
+
+/* Show / hide the popup on one laptop. */
+function showPop(id, c){
+  document.getElementById('pt-' + id).textContent = c.title;
+  document.getElementById('pb-' + id).textContent = c.body;
+  var p = document.getElementById('pop-' + id);
+  p.classList.toggle('crisis', !!c.crisis); p.classList.add('in');
+  document.getElementById('tray-' + id).classList.add('live');
+}
+function hidePop(id){
+  document.getElementById('pop-' + id).classList.remove('in');
+  document.getElementById('tray-' + id).classList.remove('live');
+  document.getElementById('q-' + id).classList.remove('in');
+}
+
+/* One full beat: push in → type → send → real detection → popup → hold. */
+async function beat(idx, caption){
+  var L = LAPTOPS[idx];
+  say(caption);
+  pushIn(idx);
+  await wait(1500);                                  // let the camera settle
+  await typeOn(L.id, L.line);
+  await sendOn(L.id, L.line);
+
+  var res = await classify(L.line);
+  var c = copyFor(res);
+  console.log('[stage]', L.app, '|', L.line, '→ risk=',
+    (res.judgment || {}).risk_level, '| l1=', (res.l1 || {}).level);
+
+  await wait(500);
+  if (c.fire) { showPop(L.id, c); await wait(360); pushIn(idx, 2.9); await wait(3300); }
+  else {
+    // The joke guard. Silence is the feature — label it, or it reads as a miss.
+    document.getElementById('q-' + L.id).classList.add('in');
+    say('Same words, read as a joke. It stays quiet.');
+    await wait(3000);
+  }
+  hidePop(L.id);
+  await wait(500);
+}
+
+/* ── The run ──────────────────────────────────────────────────────────── */
+var running = false;
+async function run(){
+  if (running) return; running = true;
+  document.getElementById('title').classList.add('out');
+  document.getElementById('hint').style.display = 'none';
+  await wait(1400);
+
+  say('Every place you talk. One quiet layer underneath.');
+  await wait(3200);
+  say('');
+  await wait(600);
+
+  await beat(0, 'Layer 1 · Keyword — matched on-device, in a millisecond.');
+  pullOut(); await wait(1100);
+  await beat(1, 'Layer 1 · the everyday vocabulary of running out.');
+  pullOut(); await wait(1100);
+  await beat(2, 'Context — it knows a joke from a cry for help.');
+  pullOut(); await wait(1100);
+  await beat(3, 'Layer 2 · Semantic — the meaning behind the words.');
+  pullOut(); await wait(1100);
+  await beat(4, 'Layer 2 · what a keyword list would miss.');
+  pullOut(); await wait(1100);
+  await beat(5, 'A small dip, held quietly — no alarm, no one told.');
+  pullOut(); await wait(1500);
+
+  say('Nothing left any of these machines.');
+  await wait(3200);
+  say('SilentHelp — support that notices before you ask.');
+  await wait(4000);
+  say('');
+  running = false;
+}
+
+document.addEventListener('keydown', function(e){
+  if (e.code === 'Space'){ e.preventDefault(); run(); }
+  if (e.key === 'r' || e.key === 'R') location.reload();
+});
+document.getElementById('title').addEventListener('click', run);
+
+// ?auto=1 starts without a keypress (for unattended capture).
+if (new URLSearchParams(location.search).get('auto')) setTimeout(run, 1200);
+</script>
+</body>
+</html>

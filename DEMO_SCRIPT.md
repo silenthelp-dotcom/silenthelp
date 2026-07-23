@@ -13,6 +13,34 @@ about quiet, so let the visuals breathe — long holds, slow pushes.
 
 ---
 
+## THE LAPTOP WALL · `/stage`
+
+A purpose-built film set at **`/stage`** — six laptops in a 3×2 wall, each
+running a different chat app (Messages, Discord, Snapchat, Instagram, WhatsApp,
+Slack). Messages type themselves, are sent to the **real** `/classify`
+endpoint, and the laptop that fires raises a real SilentHelp popup — then the
+camera pushes in until the popup fills frame.
+
+Nothing here is a hardcoded verdict. If detection changes, the demo changes.
+
+**Run it:** open `/stage`, press **space** (or `/stage?auto=1` for unattended
+capture). **R** restarts. Record at 1920×1080; the wall auto-fits the viewport.
+
+| # | App | Phrase | Real verdict |
+|---|-----|--------|--------------|
+| 1 | Messages | *i'm so overwhelmed by everything* | moderate (L1 = 2) |
+| 2 | Discord | *i'm at my breaking point* | moderate (L1 = 2) |
+| 3 | Snapchat | *lol this homework is literally killing me haha* | **none** — joke guard |
+| 4 | Instagram | *i don't see the point anymore* | crisis (L1 = 4) |
+| 5 | WhatsApp | *everyone would be better off without me* | crisis (L1 = 4) |
+| 6 | Slack | *i'm completely burnt out* | low (L1 = 1) |
+
+Verified end-to-end against the live pipeline. The Snapchat beat shows a
+"stayed quiet" chip — silence is the feature, so it needs to be visible or it
+reads as a miss.
+
+---
+
 ## COLD OPEN · 0:00–0:08 · "the moment before"
 
 **Shot:** Real hands typing on a phone in Messages (or the Mac agent watching a
