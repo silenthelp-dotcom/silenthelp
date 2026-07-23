@@ -471,6 +471,11 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
             <div class="hd" style="font-size:clamp(2.4rem,4vw,3.2rem); color:#fff; letter-spacing:-.02em; line-height:1;">Your own quiet space.</div>
             <div style="font-size:16px; color:rgba(255,255,255,.6); margin-top:16px; font-weight:300; line-height:1.6;">Sign in so everything here — your battery, chat, and history — is yours alone. Nobody else can see it.</div>
 
+            <!-- Clerk sign-in mounts here when configured; the legacy form
+                 below is the fallback until the keys are set. -->
+            <div id="clerkSignIn" style="margin-top:34px; display:none;"></div>
+
+            <div id="legacyGate">
             <div style="margin-top:38px;">
               <label style="font-size:13px; color:rgba(255,255,255,.7); font-weight:400;">Your name</label>
               <input id="gateName" placeholder="What should SilentHelp call you?" style="width:100%; height:54px; margin-top:9px; border-radius:14px; padding:0 18px; font-size:15px; outline:none;" />
@@ -488,7 +493,9 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
             <button class="sh-primary" onclick="App.gateAuth('signup')" style="width:100%; margin-top:26px; height:56px; border:none; border-radius:9999px; font-size:16px; font-weight:600; cursor:pointer;">Create my space</button>
             <button class="sh-glass" onclick="App.gateAuth('login')" style="width:100%; margin-top:12px; height:52px; border:none; border-radius:9999px; font-size:15px; font-weight:500; cursor:pointer;">I already have an account — sign in</button>
 
-            <div style="font-size:13px; color:rgba(255,255,255,.45); margin-top:22px; text-align:center; font-weight:300;">By creating an account you agree to the <a href="/terms" target="_blank" style="color:rgba(255,255,255,.7);">Terms of Use</a> · <a href="/privacy" target="_blank" style="color:rgba(255,255,255,.7);">Privacy Policy</a></div>
+            </div><!-- /legacyGate -->
+
+            <div style="font-size:13px; color:rgba(255,255,255,.45); margin-top:22px; text-align:center; font-weight:300; line-height:1.6;">Sign-in is handled securely by Clerk. Your detection, chat, and history still stay on your device — only your login does not.<br/>By continuing you agree to the <a href="/terms" target="_blank" style="color:rgba(255,255,255,.7);">Terms of Use</a> · <a href="/privacy" target="_blank" style="color:rgba(255,255,255,.7);">Privacy Policy</a></div>
           </div>
         </div>
 
@@ -1700,6 +1707,53 @@ App.init();
   var _go = App.go && App.go.bind(App);
   if (_go) App.go = function(s){ _go(s); requestAnimationFrame(mark); };
   requestAnimationFrame(mark);
+})();
+</script>
+
+<!-- ── Clerk sign-in ──────────────────────────────────────────────────────
+   When a publishable key is present (server injects it), load Clerk.js and
+   mount its sign-in into #clerkSignIn, hiding the legacy form. Clerk handles
+   Google login, verified emails, and password reset — configured in the Clerk
+   dashboard. On sign-in, Clerk sets the __session cookie the Flask backend
+   verifies. With no key this does nothing and the legacy form stays. -->
+<script>
+(function(){
+  var PK = "{{ clerk_pk }}";
+  if (!PK) return;
+  var legacy = document.getElementById('legacyGate');
+  var mount = document.getElementById('clerkSignIn');
+  if (!mount) return;
+  if (legacy) legacy.style.display = 'none';
+  mount.style.display = 'block';
+  mount.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:14px">Loading sign-in…</div>';
+
+  var host = '';
+  try { host = atob(PK.split('_')[2] + '==').replace(/\$$/, ''); } catch(e){}
+  var s = document.createElement('script');
+  s.setAttribute('data-clerk-publishable-key', PK);
+  s.async = true; s.crossOrigin = 'anonymous';
+  s.src = 'https://' + host + '/npm/@clerk/clerk-js@5/dist/clerk.browser.js';
+  s.addEventListener('load', async function(){
+    try {
+      await window.Clerk.load({
+        appearance: { variables: {
+          colorPrimary:'#ffffff', colorText:'#ffffff',
+          colorInputBackground:'rgba(255,255,255,.05)', colorInputText:'#fff',
+          borderRadius:'14px', fontFamily:'Barlow, sans-serif' } }
+      });
+      if (window.Clerk.user){ location.reload(); return; }
+      window.Clerk.mountSignIn(mount);
+      window.Clerk.addListener(function(e){ if (e.user) location.reload(); });
+    } catch(err){
+      mount.innerHTML = '<div style="color:#f0a58a;font-size:14px">Sign-in failed to load. '+
+        '<a href="#" onclick="location.reload()" style="color:#fff">Retry</a></div>';
+    }
+  });
+  s.addEventListener('error', function(){
+    if (legacy) legacy.style.display = 'block';
+    mount.style.display = 'none';
+  });
+  document.head.appendChild(s);
 })();
 </script>
 </body>

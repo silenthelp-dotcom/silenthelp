@@ -64,6 +64,7 @@ def _load_local_env(filename: str = ".env") -> None:
 _load_local_env()  # must run before detection builds its Groq client
 
 import auth
+import clerk_auth
 import behavioral
 import chat
 import detection
@@ -143,6 +144,14 @@ def _bind_user_store():
     """Bind the store to the right per-user file, and refuse to serve personal
     data to anonymous REMOTE visitors (each friend must sign in — nobody ever
     sees anyone else's data)."""
+    # Clerk first: a verified Clerk session becomes the uid, and its user file
+    # is clerk_<sub>.json — kept distinct from the legacy user_<uid>.json so the
+    # two schemes never collide during the switch-over.
+    clerk_uid = _clerk_uid_from_request()
+    if clerk_uid:
+        store.set_data_file(os.path.join(USERDATA_DIR, f"clerk_{clerk_uid}.json"))
+        return None
+
     uid = session.get("uid")
     if not (uid and auth.get_user(uid)):
         uid = None
@@ -167,6 +176,17 @@ def _bind_user_store():
 
 @app.route("/api/me")
 def api_me():
+    # Clerk session wins when present.
+    clerk_uid = _clerk_uid_from_request()
+    if clerk_uid:
+        cu = clerk_auth.get_user(clerk_uid)
+        if cu:
+            # First sight of a Clerk user: seed their profile name into the store.
+            store.set_data_file(os.path.join(USERDATA_DIR, f"clerk_{clerk_uid}.json"))
+            if not (store.get_settings().get("name") or "").strip():
+                store.update_settings({"name": cu["name"]})
+            cu["via"] = "clerk"
+            return jsonify({"signedIn": True, "user": cu})
     u = auth.get_user(session.get("uid"))
     if not u and _is_local_request():
         # On the owner's own Mac, an anonymous browser is the owner — the agent
@@ -256,7 +276,25 @@ def _common():
     return {
         "model": detection.MODEL,
         "key_set": bool(os.environ.get("GROQ_API_KEY") or os.environ.get("NVIDIA_API_KEY")),
+        # Public — the browser needs it to boot Clerk.js. Empty string until the
+        # key is set, which the template uses to fall back to the legacy form.
+        "clerk_pk": clerk_auth.publishable_key(),
+        "clerk_on": clerk_auth.configured(),
     }
+
+
+def _clerk_uid_from_request():
+    """If Clerk is configured and the request carries a valid Clerk session
+    token, return the Clerk user id. Clerk.js sends it as the `__session`
+    cookie; the frontend also sends it as a Bearer token on API calls."""
+    if not clerk_auth.configured():
+        return None
+    token = request.cookies.get("__session", "")
+    if not token:
+        auth_h = request.headers.get("Authorization", "")
+        if auth_h.startswith("Bearer "):
+            token = auth_h[7:]
+    return clerk_auth.verify_session(token) if token else None
 
 
 _ORDER = {"none": 0, "low": 1, "moderate": 2, "high": 3, "crisis": 4}

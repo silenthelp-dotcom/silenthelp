@@ -4,3 +4,4 @@ python-dotenv>=1.0
 gunicorn>=21.2
 psycopg[binary]>=3.1
 psycopg-pool>=3.2
+PyJWT[crypto]>=2.8
