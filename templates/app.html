@@ -158,6 +158,21 @@ button[style*="background:#fff"], [style*="background:#fff"][style*="color:#000"
   background:#fff !important; color:#000 !important; backdrop-filter:none !important;
 }
 
+/* ── Scale up for the full-width frame ─────────────────────────────────
+   The screens were sized for the design's narrow 1180px window; at full width
+   the type looked small and stranded in empty space. Cap the content column,
+   centre it, and give it room to breathe. */
+.appscreen > div {
+  max-width:1240px; margin:0 auto;
+  padding:44px 56px !important;
+}
+/* Bump the dashboard's key type so it fills the wider column. */
+#scr-dashboard #dashGreet { font-size:clamp(46px,3.6vw,60px) !important; }
+#scr-dashboard #battNum   { font-size:clamp(150px,12vw,190px) !important; }
+#scr-dashboard .hd[style*="font-size:36px"] { font-size:clamp(36px,2.6vw,44px) !important; }
+/* Reading rows a touch taller so they track the bigger battery. */
+#scr-dashboard [style*="padding:17px 0"] { padding:22px 0 !important; }
+
 /* Sign-in buttons. Primary is the design's white pill; secondary is liquid
    glass. (Placeholder until the button template is supplied — swap then.) */
 .sh-primary { background:#fff; color:#000; transition:transform .15s, filter .2s; }
@@ -412,9 +427,9 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
     <div id="scr-auth" class="screen-anim" style="display:none; position:relative; z-index:6; flex:1; min-height:0; overflow:hidden;">
       <div style="display:flex; height:100%; min-height:0;">
 
-        <!-- LEFT · the form -->
-        <div style="flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px 40px; overflow-y:auto;">
-          <div style="width:100%; max-width:440px;">
+        <!-- LEFT · the form (wider than the promo panel so the fields feel roomy) -->
+        <div style="flex:1.15; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:56px 64px; overflow-y:auto;">
+          <div style="width:100%; max-width:500px;">
             <img src="/static/img/badge-256.png" alt="SilentHelp" style="width:64px; height:64px; border-radius:50%; margin-bottom:24px;" />
             <div class="hd" style="font-size:clamp(2.4rem,4vw,3.2rem); color:#fff; letter-spacing:-.02em; line-height:1;">Your own quiet space.</div>
             <div style="font-size:16px; color:rgba(255,255,255,.6); margin-top:16px; font-weight:300; line-height:1.6;">Sign in so everything here — your battery, chat, and history — is yours alone. Nobody else can see it.</div>
@@ -440,8 +455,10 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
           </div>
         </div>
 
-        <!-- RIGHT · promo panel with the hero video (Moniveo's dark side) -->
-        <div class="l-desk" style="flex:1; min-width:0; position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; padding:56px;">
+        <!-- RIGHT · promo panel with the hero video (Moniveo's dark side).
+             A rounded, inset panel rather than a full-bleed half — the hard
+             vertical seam down the middle was the "annoying block". -->
+        <div class="l-desk" style="flex:1; min-width:0; position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; padding:56px; margin:24px 24px 24px 0; border-radius:28px;">
           <video autoplay muted playsinline loop preload="auto" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;"></video>
           <div style="position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.72));"></div>
           <div style="position:relative; z-index:2;">
