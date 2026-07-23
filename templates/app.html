@@ -315,6 +315,11 @@ button[style*="color:#0a6dff"] { color:#000 !important; }
 #popup-urgent[style*="radial-gradient(120% 90% at 50%"] {
   background:radial-gradient(120% 90% at 50% 24%, #0a0a0a, #050505 62%, #000) !important;
 }
+/* Escape the padded, max-width app frame. Both popups were position:absolute
+   inside #appview, so the takeover was boxed into the content column with the
+   desktop showing down both sides (see bug report). Pin them to the viewport
+   so the escalation actually covers the whole screen. */
+#popup-urgent, #popup-gentle { position:fixed !important; inset:0 !important; z-index:120 !important; }
 /* Kill the blue accents inside both popups: the eyebrow label and the ripple
    sweep lines were blue. White eyebrow, white ripples. */
 #popup-urgent [style*="color:#3d8bdb"] { color:rgba(255,255,255,.7) !important; }
