@@ -235,7 +235,16 @@ button[style*="color:#0a6dff"] { color:#000 !important; }
    turn light, and a missed one leaves white text on a white ground. The popups
    use a different focal point (at 50% 30%) than onboarding (at 50% 0%), so
    match on the shared prefix rather than the full string. */
-[style*="radial-gradient(120% 90% at 50%"] {
+/* The onboarding and auth screens shipped with their own pale radial
+   background. Do NOT repaint it navy (#0b1120) — that IS the blue wash the user
+   keeps seeing on the sign-in page. Make them transparent so the pure-black
+   body and the backdrop video show through, exactly like every other screen. */
+#scr-onboarding[style*="radial-gradient"], #scr-auth[style*="radial-gradient"] {
+  background:transparent !important;
+}
+/* The urgent popup's pale radial stays dark, since it is a full-screen takeover
+   that needs its own ground rather than the video behind it. */
+#popup-urgent[style*="radial-gradient(120% 90% at 50%"] {
   background:radial-gradient(120% 90% at 50% 24%, #0b1120, #05070d 62%, #000) !important;
 }
 /* Popup close buttons sit on that wash. */
