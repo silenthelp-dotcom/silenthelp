@@ -1725,7 +1725,7 @@ App.init();
   if (!mount) return;
   if (legacy) legacy.style.display = 'none';
   mount.style.display = 'block';
-  mount.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:14px">Loading sign-in…</div>';
+  mount.innerHTML = '';
 
   var host = '';
   try { host = atob(PK.split('_')[2] + '==').replace(/\$$/, ''); } catch(e){}
@@ -1736,10 +1736,24 @@ App.init();
   s.addEventListener('load', async function(){
     try {
       await window.Clerk.load({
-        appearance: { variables: {
-          colorPrimary:'#ffffff', colorText:'#ffffff',
-          colorInputBackground:'rgba(255,255,255,.05)', colorInputText:'#fff',
-          borderRadius:'14px', fontFamily:'Barlow, sans-serif' } }
+        appearance: {
+          variables: {
+            colorPrimary:'#ffffff', colorText:'#ffffff', colorTextSecondary:'rgba(255,255,255,.6)',
+            colorBackground:'rgba(255,255,255,.03)', colorInputBackground:'rgba(255,255,255,.06)',
+            colorInputText:'#ffffff', colorNeutral:'#ffffff',
+            borderRadius:'14px', fontFamily:'Barlow, sans-serif'
+          },
+          elements: {
+            rootBox:{ width:'100%' },
+            card:{ background:'transparent', boxShadow:'none', border:'none' },
+            headerTitle:{ display:'none' }, headerSubtitle:{ display:'none' },
+            footer:{ background:'transparent' },
+            formButtonPrimary:{ background:'#fff', color:'#000', fontWeight:'600' },
+            socialButtonsBlockButton:{ background:'rgba(255,255,255,.05)', color:'#fff', borderColor:'rgba(255,255,255,.16)' },
+            formFieldInput:{ background:'rgba(255,255,255,.06)', color:'#fff', borderColor:'rgba(255,255,255,.16)' },
+            dividerLine:{ background:'rgba(255,255,255,.14)' }, dividerText:{ color:'rgba(255,255,255,.5)' }
+          }
+        }
       });
       if (window.Clerk.user){ location.reload(); return; }
       window.Clerk.mountSignIn(mount);
