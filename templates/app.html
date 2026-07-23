@@ -1556,6 +1556,75 @@ const App = {
   }
 };
 App.init();
+
+/* ── Self-running demo (/app?demo=1) ────────────────────────────────────
+   Drives the real app through the flows for screen-recording. Each step is a
+   real navigation / real typing — this is footage of the actual product, not a
+   mockup. Add &scene=<name> to jump to one scene; default plays them in order.
+   A caption bar names each scene so the recording is self-explaining. */
+(function(){
+  var q = new URLSearchParams(location.search);
+  if (!q.get('demo')) return;
+  var only = q.get('scene');
+
+  var cap = document.createElement('div');
+  cap.style.cssText = 'position:fixed; left:50%; bottom:38px; transform:translateX(-50%);'+
+    'z-index:9999; padding:12px 26px; border-radius:9999px; font-family:Instrument Serif,serif;'+
+    'font-style:italic; font-size:22px; color:#fff; background:rgba(0,0,0,.5);'+
+    'backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); opacity:0;'+
+    'transition:opacity .6s; box-shadow:inset 0 1px 1px rgba(255,255,255,.12); pointer-events:none;';
+  document.body.appendChild(cap);
+  var say = function(t){ cap.textContent = t; cap.style.opacity = t?'1':'0'; };
+
+  var wait = function(ms){ return new Promise(function(r){ setTimeout(r, ms); }); };
+  // Type into an input, character by character, like a person.
+  var typeInto = async function(el, text){
+    if (!el) return; el.focus(); el.value = '';
+    for (var i=0;i<text.length;i++){ el.value += text[i];
+      el.dispatchEvent(new Event('input',{bubbles:true})); await wait(45); }
+  };
+
+  var scenes = {
+    detection: async function(){
+      say('Detected on your Mac — nothing sent anywhere.');
+      App.go('chat'); await wait(1400);
+      var inp = document.querySelector('#scr-chat input, .appscreen input');
+      await typeInto(inp, "i don't even know why i'm still trying");
+      await wait(900);
+      if (App.send) App.send();      // real detection + reply
+      await wait(3200);
+    },
+    dashboard: async function(){
+      say('Your focus, energy, and burnout — before you\u2019d think to ask.');
+      App.go('dashboard'); await wait(4200);
+    },
+    helper: async function(){
+      say('When it\u2019s someone else who\u2019s struggling.');
+      App.go('helper'); await wait(1400);
+      var inp = document.querySelector('#scr-helper input, #scr-helper textarea');
+      await typeInto(inp, 'my friend keeps saying everyone would be better off without them');
+      await wait(3000);
+    },
+    escalation: async function(){
+      say('You\u2019re always the one who presses send.');
+      if (App.openUrgent) App.openUrgent(true); await wait(4500);
+      if (App.closePopup) App.closePopup();
+    },
+    analytics: async function(){
+      say('A week of your own rhythm, on your terms.');
+      App.go('analytics'); await wait(4000);
+    }
+  };
+
+  var order = only ? [only] : ['detection','dashboard','analytics','helper','escalation'];
+  (async function run(){
+    // Skip onboarding/auth so the demo lands straight in the product.
+    App.go('dashboard'); await wait(800);
+    for (var i=0;i<order.length;i++){ var fn = scenes[order[i]]; if (fn) await fn(); }
+    say('SilentHelp — support that notices before you ask.');
+    await wait(3500); say('');
+  })();
+})();
 </script>
 
 <!-- Liquid-glass refraction (deepika-builds/liquid-glass), self-hosted. Applies
