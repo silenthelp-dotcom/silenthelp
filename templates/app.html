@@ -175,12 +175,28 @@ button[style*="background:#fff"], [style*="background:#fff"][style*="color:#000"
   box-shadow:inset 0 1px 1px rgba(255,255,255,.1) !important;
   border:none !important; border-radius:9999px !important; color:#fff !important;
 }
-/* The auth card itself: glass, not an opaque slab with a visible edge. */
+/* The auth card. It sits over a nearly-black region of the backdrop, so
+   backdrop-filter has almost nothing to blur and a 1%-white fill just reads as
+   a flat slab with a hard edge. The design's .liquid-glass solves this with a
+   gradient BORDER (its ::before), which is what actually makes glass read on
+   black — so the card gets that same treatment rather than more transparency. */
 #scr-auth [style*="border-radius:18px"], #scr-auth [style*="border-radius:20px"] {
-  background:rgba(255,255,255,0.012) !important;
-  backdrop-filter:blur(6px) !important; -webkit-backdrop-filter:blur(6px) !important;
-  box-shadow:inset 0 1px 1px rgba(255,255,255,.1) !important;
+  position:relative;
+  background:rgba(255,255,255,0.02) !important;
+  backdrop-filter:blur(14px) !important; -webkit-backdrop-filter:blur(14px) !important;
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.12), 0 24px 70px rgba(0,0,0,.5) !important;
   border:none !important;
+  overflow:hidden;
+}
+#scr-auth [style*="border-radius:18px"]::before,
+#scr-auth [style*="border-radius:20px"]::before {
+  content:""; position:absolute; inset:0; border-radius:inherit; padding:1.4px;
+  background:linear-gradient(180deg,
+    rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.15) 20%,
+    rgba(255,255,255,0) 40%,  rgba(255,255,255,0) 60%,
+    rgba(255,255,255,0.15) 80%, rgba(255,255,255,0.45) 100%);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none;
 }
 /* The onboarding step numerals were pale-blue chips. */
 #scr-onboarding [style*="background:#eef5ff"] {
@@ -248,10 +264,16 @@ button[style*="color:#0a6dff"] { color:#000 !important; }
 }
 
 /* Inputs ---------------------------------------------------------------- */
+/* A hairline border, not just a fill: over black, a translucent fill alone
+   has no edge and the field reads as a floating grey block. */
 input, textarea, select {
-  background:rgba(255,255,255,.04) !important;
+  background:rgba(255,255,255,.045) !important;
   color:#f2f5fb !important;
-  border-color:rgba(150,175,235,.18) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+}
+input:focus, textarea:focus, select:focus {
+  border-color:rgba(255,255,255,.34) !important;
+  background:rgba(255,255,255,.07) !important;
 }
 input::placeholder, textarea::placeholder { color:#7b879d !important; }
 
