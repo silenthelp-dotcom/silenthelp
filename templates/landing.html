@@ -53,11 +53,11 @@
   /* One continuous ground for the whole page AND the app — the hero's wash
      runs unbroken behind every section, so no band starts on a seam and
      opening /app is visually the same surface. */
-  html, body { background:#05070d; }
+  /* Pure black, matching the app — the navy wash was the blue the user did not
+     want. The hero video supplies the depth. */
+  html, body { background:#000; }
   body {
     margin:0; font-family:'Barlow',sans-serif; -webkit-font-smoothing:antialiased;
-    background-image:radial-gradient(120% 80% at 50% -10%, #101a33 0%, #070c18 45%, #03050b 100%);
-    background-attachment:fixed;
   }
   /* Sections must be transparent or they'd paint over that shared wash. */
   section, footer { background:transparent !important; }
@@ -321,6 +321,11 @@ function Navbar() {
             </a>
           ))}
         </div>
+        <a href="/download/agent"
+           className="liquid-glass rounded-full px-4 py-2 text-sm font-medium font-body text-white
+                      whitespace-nowrap flex items-center gap-1.5 hover:opacity-90">
+          Download for Mac
+        </a>
         <a href="/app"
            className="bg-white text-black rounded-full px-4 py-2 text-sm font-medium font-body
                       whitespace-nowrap flex items-center gap-1.5 hover:opacity-90">
@@ -399,10 +404,15 @@ function Hero() {
           </motion.p>
 
           <motion.div {...rise(1.1)} className="flex items-center gap-6 mt-6">
-            <a href="/app"
+            <a href="/download/agent"
                className="liquid-glass-strong rounded-full px-5 py-2.5 text-sm font-medium
                           text-white font-body flex items-center gap-2">
-              Start free — for Mac <ArrowUpRight className="h-5 w-5" />
+              Download for Mac <ArrowUpRight className="h-5 w-5" />
+            </a>
+            <a href="/app"
+               className="bg-white text-black rounded-full px-5 py-2.5 text-sm font-medium
+                          font-body flex items-center gap-2 hover:opacity-90">
+              Open the app <ArrowUpRight className="h-5 w-5" />
             </a>
             <a href="#how" onClick={(e)=>{e.preventDefault();document.getElementById('how').scrollIntoView({behavior:'smooth'});}}
                className="text-sm font-medium text-white font-body flex items-center gap-2">

@@ -158,6 +158,28 @@ button[style*="background:#fff"], [style*="background:#fff"][style*="color:#000"
   background:#fff !important; color:#000 !important; backdrop-filter:none !important;
 }
 
+/* Sign-in buttons. Primary is the design's white pill; secondary is liquid
+   glass. (Placeholder until the button template is supplied — swap then.) */
+.sh-primary { background:#fff; color:#000; transition:transform .15s, filter .2s; }
+.sh-primary:hover { filter:brightness(.94); transform:translateY(-1px); }
+.sh-primary:active { transform:scale(.98); }
+.sh-glass {
+  background:rgba(255,255,255,0.02); color:#fff;
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.12);
+  transition:background .2s;
+}
+.sh-glass:hover { background:rgba(255,255,255,.07); }
+/* Sign-in inputs: glass with a hairline that reads on black. */
+#scr-auth input {
+  background:rgba(255,255,255,.045) !important; color:#fff !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+}
+#scr-auth input:focus { border-color:rgba(255,255,255,.34) !important; background:rgba(255,255,255,.07) !important; }
+#scr-auth input::placeholder { color:rgba(255,255,255,.4) !important; }
+/* On phones the promo panel is hidden (.l-desk); the form fills the screen. */
+@media (max-width:900px){ #scr-auth .l-desk { display:none !important; } }
+
 /* ── No blue anywhere ───────────────────────────────────────────────────
    The blue glow under the onboarding/auth buttons reads as a coloured border
    ring against the dark backdrop. The design has no blue and no glow — kill
@@ -386,23 +408,53 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
      </div>
     </div>
 
-    <!-- ════ SIGN IN (gate) ════ -->
-    <div id="scr-auth" class="screen-anim" style="display:none; position:relative; z-index:6; flex:1; min-height:0; overflow-y:auto; background:radial-gradient(120% 90% at 50% 0%, #f2f8ff, #f6f9fc 60%, #eef3f9);">
-      <div style="min-height:100%; width:100%; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:56px 40px;">
-        <img src="/static/img/badge-256.png" alt="SilentHelp" style="width:88px; height:88px; border-radius:50%; margin-bottom:26px; box-shadow:0 14px 40px rgba(20,30,60,.28); animation:emBreath 6s ease-in-out infinite;" />
-        <div style="font-size:12px; letter-spacing:.32em; text-transform:uppercase; color:#7a93ad;">SilentHelp</div>
-        <div class="pf" style="font-size:clamp(2rem,5vw,2.7rem); color:#0e1822; margin-top:12px; letter-spacing:-.01em; text-align:center;">Your own quiet space.</div>
-        <div style="font-size:14px; color:#5e6f7e; margin-top:12px; font-weight:300; text-align:center; max-width:400px; line-height:1.65;">Sign in so everything here — your battery, chat, and history — is yours alone. Nobody else can see it.</div>
-        <div style="width:100%; max-width:400px; margin-top:30px; background:#fff; border:1px solid #eef2f6; border-radius:18px; padding:24px; box-shadow:0 20px 60px rgba(20,40,80,.08);">
-          <input id="gateName" placeholder="Your name (for sign up)" style="width:100%; height:46px; border:1px solid #dde6ef; border-radius:11px; padding:0 15px; font-size:13.5px; outline:none; color:#16202b; background:#fff; margin-bottom:10px;" />
-          <input id="gateEmail" type="email" placeholder="you@email.com" style="width:100%; height:46px; border:1px solid #dde6ef; border-radius:11px; padding:0 15px; font-size:13.5px; outline:none; color:#16202b; background:#fff; margin-bottom:10px;" />
-          <input id="gatePass" type="password" placeholder="Password (6+ characters)" style="width:100%; height:46px; border:1px solid #dde6ef; border-radius:11px; padding:0 15px; font-size:13.5px; outline:none; color:#16202b; background:#fff;" />
-          <div id="gateErr" style="font-size:12.5px; color:#d2381f; margin-top:10px; display:none;"></div>
-          <button class="glass" onclick="App.gateAuth('signup')" style="width:100%; margin-top:16px; border-radius:12px; padding:14px; font-size:14.5px; font-weight:600; background:#fff !important; color:#000 !important;">Create my space</button>
-          <button class="glass ghost" onclick="App.gateAuth('login')" style="width:100%; margin-top:10px; border-radius:12px; padding:13px; font-size:14px; font-weight:600;">I already have an account — sign in</button>
-          <div style="font-size:11.5px; color:#9aa7b3; margin-top:14px; text-align:center; font-weight:300; line-height:1.6;">By creating an account you agree to the<br/><a href="/terms" target="_blank" style="color:#0a6dff; text-decoration:none;">Terms of Use</a> &nbsp;·&nbsp; <a href="/privacy" target="_blank" style="color:#0a6dff; text-decoration:none;">Privacy Policy</a></div>
+    <!-- ════ SIGN IN (gate) — split-screen, Moniveo-style, all glass ════ -->
+    <div id="scr-auth" class="screen-anim" style="display:none; position:relative; z-index:6; flex:1; min-height:0; overflow:hidden;">
+      <div style="display:flex; height:100%; min-height:0;">
+
+        <!-- LEFT · the form -->
+        <div style="flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px 40px; overflow-y:auto;">
+          <div style="width:100%; max-width:440px;">
+            <img src="/static/img/badge-256.png" alt="SilentHelp" style="width:64px; height:64px; border-radius:50%; margin-bottom:24px;" />
+            <div class="hd" style="font-size:clamp(2.4rem,4vw,3.2rem); color:#fff; letter-spacing:-.02em; line-height:1;">Your own quiet space.</div>
+            <div style="font-size:16px; color:rgba(255,255,255,.6); margin-top:16px; font-weight:300; line-height:1.6;">Sign in so everything here — your battery, chat, and history — is yours alone. Nobody else can see it.</div>
+
+            <div style="margin-top:38px;">
+              <label style="font-size:13px; color:rgba(255,255,255,.7); font-weight:400;">Your name</label>
+              <input id="gateName" placeholder="What should SilentHelp call you?" style="width:100%; height:54px; margin-top:9px; border-radius:14px; padding:0 18px; font-size:15px; outline:none;" />
+            </div>
+            <div style="margin-top:20px;">
+              <label style="font-size:13px; color:rgba(255,255,255,.7); font-weight:400;">Email address</label>
+              <input id="gateEmail" type="email" placeholder="you@email.com" style="width:100%; height:54px; margin-top:9px; border-radius:14px; padding:0 18px; font-size:15px; outline:none;" />
+            </div>
+            <div style="margin-top:20px;">
+              <label style="font-size:13px; color:rgba(255,255,255,.7); font-weight:400;">Password</label>
+              <input id="gatePass" type="password" placeholder="6+ characters" style="width:100%; height:54px; margin-top:9px; border-radius:14px; padding:0 18px; font-size:15px; outline:none;" />
+            </div>
+            <div id="gateErr" style="font-size:13px; color:#f0a58a; margin-top:14px; display:none;"></div>
+
+            <button class="sh-primary" onclick="App.gateAuth('signup')" style="width:100%; margin-top:26px; height:56px; border:none; border-radius:9999px; font-size:16px; font-weight:600; cursor:pointer;">Create my space</button>
+            <button class="sh-glass" onclick="App.gateAuth('login')" style="width:100%; margin-top:12px; height:52px; border:none; border-radius:9999px; font-size:15px; font-weight:500; cursor:pointer;">I already have an account — sign in</button>
+
+            <div style="font-size:13px; color:rgba(255,255,255,.45); margin-top:22px; text-align:center; font-weight:300;">By creating an account you agree to the <a href="/terms" target="_blank" style="color:rgba(255,255,255,.7);">Terms of Use</a> · <a href="/privacy" target="_blank" style="color:rgba(255,255,255,.7);">Privacy Policy</a></div>
+          </div>
         </div>
-        <div style="font-size:11.5px; color:#9aa7b3; margin-top:24px; font-weight:300; text-align:center; max-width:380px; line-height:1.6;">Private by design · your data is stored only in your own account file · nothing is shared with other people who use this link</div>
+
+        <!-- RIGHT · promo panel with the hero video (Moniveo's dark side) -->
+        <div class="l-desk" style="flex:1; min-width:0; position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; padding:56px;">
+          <video autoplay muted playsinline loop preload="auto" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;"></video>
+          <div style="position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.72));"></div>
+          <div style="position:relative; z-index:2;">
+            <div class="liquid-glass" style="display:inline-flex; align-items:center; gap:8px; border-radius:9999px; padding:7px 15px; font-size:12px; color:#fff; margin-bottom:22px;"><span style="width:6px;height:6px;border-radius:50%;background:#fff;"></span>ON-DEVICE · PRIVATE BY DESIGN</div>
+            <div class="hd" style="font-size:clamp(2rem,3.4vw,3rem); color:#fff; line-height:1.02; letter-spacing:-.02em; max-width:460px;">Support that notices before you ask.</div>
+            <div style="font-size:15px; color:rgba(255,255,255,.8); margin-top:18px; font-weight:300; line-height:1.65; max-width:440px;">Four quiet layers read your own rhythm — never your diary — and point you toward real human support the moment it matters.</div>
+            <div style="display:flex; gap:26px; margin-top:30px; flex-wrap:wrap;">
+              <div><div class="hd" style="font-size:26px; color:#fff;">&lt; 1 ms</div><div style="font-size:12px; color:rgba(255,255,255,.6); margin-top:4px; font-weight:300;">On-device scan</div></div>
+              <div><div class="hd" style="font-size:26px; color:#fff;">0 bytes</div><div style="font-size:12px; color:rgba(255,255,255,.6); margin-top:4px; font-weight:300;">Raw text stored</div></div>
+              <div><div class="hd" style="font-size:26px; color:#fff;">4</div><div style="font-size:12px; color:rgba(255,255,255,.6); margin-top:4px; font-weight:300;">Detection layers</div></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1458,6 +1510,39 @@ const App = {
   }
 };
 App.init();
+</script>
+
+<!-- Liquid-glass refraction (deepika-builds/liquid-glass), self-hosted. Applies
+     Apple-style edge refraction to elements marked .lg-refract. Chromium gets
+     real refraction; Safari/Firefox fall back to frosted blur automatically. -->
+<script src="/static/liquid-glass.js"></script>
+<script>
+(function(){
+  if (typeof liquidGlass !== 'function') return;
+  var live = [];
+  // Apply to the material-glass surfaces: sign-in buttons and card, the
+  // topbar ON-DEVICE chip, and the insight/analytics panels. Re-scanned on
+  // screen change since screens mount lazily.
+  function apply(){
+    document.querySelectorAll('.lg-refract:not([data-lg])').forEach(function(el){
+      var r = el.getBoundingClientRect();
+      if (r.width < 20 || r.width > 800 || r.height < 20) return; // lib's size guard
+      el.setAttribute('data-lg','1');
+      try { live.push(liquidGlass(el, { scale:-90, chroma:5, blur:4, radius:null })); } catch(e){}
+    });
+  }
+  // Mark the surfaces that should refract.
+  function mark(){
+    ['.sh-primary','.sh-glass','#scr-auth input',
+     '.liquid-glass'].forEach(function(sel){
+      document.querySelectorAll(sel).forEach(function(el){ el.classList.add('lg-refract'); });
+    });
+    apply();
+  }
+  var _go = App.go && App.go.bind(App);
+  if (_go) App.go = function(s){ _go(s); requestAnimationFrame(mark); };
+  requestAnimationFrame(mark);
+})();
 </script>
 </body>
 </html>
