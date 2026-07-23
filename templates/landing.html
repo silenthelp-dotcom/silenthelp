@@ -640,6 +640,66 @@ function Band({ id, kicker, title, children }) {
   );
 }
 
+/* Live demo, embedded. The /stage page runs the real detector, so this is the
+   product working inside the marketing page rather than a video of it. The
+   iframe is lazy — it only loads once scrolled near, so the landing page's
+   first paint never waits on it. */
+function LiveDemo() {
+  const [live, setLive] = React.useState(false);
+  const boxRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const el = boxRef.current;
+    if (!el || live) return;
+    const io = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setLive(true); io.disconnect(); } },
+      { rootMargin: "300px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [live]);
+
+  return (
+    <Band id="demo" kicker="See it run"
+          title={<>Six screens.<br/>One quiet layer.</>}>
+      <p className="mt-8 max-w-2xl text-white/70 font-body font-light leading-relaxed">
+        Real messages, typed live into Messages, Discord, Snapchat, Instagram,
+        WhatsApp and Slack — each one scored by the same detector that ships in
+        the app. Including the one it deliberately ignores.
+      </p>
+
+      <div ref={boxRef}
+           className="mt-12 liquid-glass rounded-[1.5rem] overflow-hidden relative"
+           style={{ aspectRatio: "16 / 10" }}>
+        {live ? (
+          <iframe
+            src="/stage?auto=1&embed=1"
+            title="SilentHelp live detection demo"
+            loading="lazy"
+            className="absolute inset-0 w-full h-full"
+            style={{ border: "none" }}
+          />
+        ) : (
+          <div className="absolute inset-0 grid place-items-center text-white/40 font-body text-sm">
+            Loading the demo…
+          </div>
+        )}
+      </div>
+
+      <div className="mt-6 flex flex-wrap items-center gap-4">
+        <a href="/stage" target="_blank" rel="noopener"
+           className="liquid-glass rounded-full px-5 py-2.5 text-sm text-white/90 font-body
+                      hover:text-white transition-colors">
+          Open full screen
+        </a>
+        <span className="text-xs text-white/40 font-body">
+          Runs the live pipeline — nothing here is pre-recorded.
+        </span>
+      </div>
+    </Band>
+  );
+}
+
 function Science() {
   const rows = [
     ["Layer 1 · Keyword", "Tens of thousands of phrases matched locally in under a millisecond. No AI, no network."],
@@ -751,7 +811,7 @@ window.Pricing = Pricing; window.Footer = Footer;
 const { Hero, Capabilities, Science, Privacy, Pricing, Footer } = window;
 function App(){
   return (<>
-    <Hero/><Capabilities/><Science/><Privacy/><Pricing/><Footer/>
+    <Hero/><Capabilities/><LiveDemo/><Science/><Privacy/><Pricing/><Footer/>
   </>);
 }
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);

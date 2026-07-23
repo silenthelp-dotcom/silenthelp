@@ -26,16 +26,26 @@ html, body {
 }
 .hd { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; }
 
-/* Room: a dark studio with a soft pool of light so the laptops read as
-   objects in space rather than flat divs. */
-#room {
-  position: fixed; inset: 0; overflow: hidden;
-  background:
-    radial-gradient(120% 80% at 50% 18%, rgba(70,80,110,.20), transparent 60%),
-    radial-gradient(90% 60% at 50% 100%, rgba(40,50,80,.16), transparent 65%),
-    #000;
-  perspective: 2200px;
+/* Room: the landing page's hero footage, same source and framing, so the demo
+   sits on the same ground as the product's front door. */
+#room { position: fixed; inset: 0; overflow: hidden; background: #000; perspective: 2200px; }
+#bg {
+  position: absolute; left: 50%; top: 0; width: 120%; height: 120%;
+  transform: translateX(-50%); object-fit: cover; object-position: top;
+  z-index: 0; opacity: 0; transition: opacity 1.4s ease; pointer-events: none;
 }
+/* The footage is bright in places and the laptops must stay the subject, so
+   it is held back further here than on the landing page (dominance: the wall
+   is what the eye should land on, not the wash behind it). */
+#bg.on { opacity: .40; }
+#veil {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    radial-gradient(120% 80% at 50% 18%, rgba(0,0,0,.28), transparent 62%),
+    radial-gradient(100% 70% at 50% 100%, rgba(0,0,0,.55), transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,.42), rgba(0,0,0,.18) 40%, rgba(0,0,0,.6));
+}
+#fit { z-index: 2; }
 
 /* The camera target. Every push-in animates THIS element's transform.
    The wall is a fixed 1560x880 design surface; #fit scales it to whatever
@@ -245,6 +255,71 @@ html, body {
 }
 #wall.zoomed .plate { opacity: 0; }
 
+/* ── Help a Friend ────────────────────────────────────────────────────
+   A phone, not a laptop: this beat is the user helping someone ELSE, and the
+   change of object is what tells the viewer the subject changed. It sits over
+   the (blurred, dimmed) wall so the wall stays the established world.      */
+#friend {
+  position: fixed; inset: 0; z-index: 40; display: grid; place-items: center;
+  opacity: 0; pointer-events: none; transition: opacity .9s ease;
+}
+#friend.in { opacity: 1; }
+#wall.blurred { filter: blur(9px) brightness(.34); }
+#wall { transition: transform 1.65s cubic-bezier(.66,.02,.24,1), filter 1s ease; }
+
+.phone {
+  width: 372px; height: 762px; border-radius: 46px; padding: 11px;
+  background: linear-gradient(165deg, #43464d, #232529 45%, #16171a);
+  box-shadow: 0 50px 90px -24px rgba(0,0,0,.95), 0 0 0 1px rgba(255,255,255,.10),
+              inset 0 1px 0 rgba(255,255,255,.20);
+  position: relative;
+}
+.phone::before {  /* dynamic-island */
+  content: ''; position: absolute; top: 22px; left: 50%; transform: translateX(-50%);
+  width: 92px; height: 25px; border-radius: 999px; background: #000; z-index: 5;
+}
+.pscr {
+  width: 100%; height: 100%; border-radius: 36px; overflow: hidden; background: #000;
+  display: flex; flex-direction: column;
+}
+.pbar {
+  flex: none; padding: 40px 16px 10px; font-size: 13px; font-weight: 600;
+  border-bottom: 1px solid rgba(255,255,255,.08); display: flex; align-items: center; gap: 8px;
+}
+.pbar .av { width: 24px; height: 24px; border-radius: 50%;
+            background: linear-gradient(140deg,#6f7f9e,#3b4761); flex: none; }
+.pthread { flex: 1; padding: 12px 13px; display: flex; flex-direction: column;
+           gap: 8px; overflow: hidden; justify-content: flex-end; }
+.pmsg { max-width: 84%; padding: 9px 13px; border-radius: 17px; font-size: 14px;
+        line-height: 1.38; animation: pop .34s cubic-bezier(.2,.9,.3,1.3); }
+.pmsg.them { align-self: flex-start; border-bottom-left-radius: 5px;
+             background: rgba(255,255,255,.13); color: rgba(255,255,255,.93); }
+.pmsg.me { align-self: flex-end; border-bottom-right-radius: 5px;
+           background: linear-gradient(180deg,#2a8cff,#0a6cf1); color: #fff; }
+
+/* The coach card — SilentHelp talking to the FRIEND'S friend, not the person
+   in crisis. Visually distinct from the popups so the roles never blur. */
+.coach {
+  margin: 0 11px 11px; padding: 12px 13px 13px; border-radius: 17px;
+  background: rgba(14,14,16,.80);
+  backdrop-filter: blur(22px) saturate(1.5); -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.15), 0 0 0 1px rgba(255,255,255,.11),
+              0 16px 34px -12px rgba(0,0,0,.9);
+  opacity: 0; transform: translateY(14px); transition: all .7s cubic-bezier(.2,.9,.3,1.05);
+}
+.coach.in { opacity: 1; transform: none; }
+.coach .ctop { display: flex; align-items: center; gap: 6px; margin-bottom: 7px; }
+.coach .mark { width: 13px; height: 13px; border-radius: 50%; flex: none;
+               background: radial-gradient(circle at 33% 30%, #fff, #9fb4d8 45%, #45557a);
+               box-shadow: 0 0 9px rgba(180,205,255,.6); }
+.coach .cname { font-size: 8.5px; font-weight: 600; letter-spacing: .11em;
+                text-transform: uppercase; color: rgba(255,255,255,.55); }
+.coach .clabel { font-size: 9px; letter-spacing: .05em; color: rgba(255,255,255,.42);
+                 margin-bottom: 3px; text-transform: uppercase; }
+.coach .csay { font-size: 13.5px; line-height: 1.42; color: #fff; margin-bottom: 9px; }
+.coach .cwhy { font-size: 11px; line-height: 1.45; color: rgba(255,255,255,.62);
+               padding-top: 8px; border-top: 1px solid rgba(255,255,255,.10); }
+
 /* ── Caption + title card ────────────────────────────────────────────── */
 #cap {
   position: fixed; left: 50%; bottom: 46px; transform: translateX(-50%);
@@ -263,12 +338,39 @@ html, body {
 #title p { font-size: 17px; color: rgba(255,255,255,.5); margin: 0; letter-spacing: .04em; }
 #hint { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 80;
         font-size: 12px; color: rgba(255,255,255,.3); letter-spacing: .05em; }
+
+/* ── Embedded in the landing page's demo window ───────────────────────
+   The frame is roughly a third the size, so type that reads at full screen
+   is unreadable here. Scale the chrome, not the wall — #fit already sizes
+   the laptops to whatever viewport it is given. */
+.embed #title h1 { font-size: 34px; }
+.embed #title p { font-size: 13px; }
+.embed #cap { font-size: 15px; bottom: 22px; padding: 9px 20px; }
+.embed .phone { transform: scale(.62); }
 </style>
 </head>
 <body>
 
 <div id="room">
+  <!-- Same hero footage as the landing page. Decorative: muted, looping,
+       aria-hidden, and it never gates the demo if it fails to load. -->
+  <video id="bg" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
+  <div id="veil"></div>
   <div id="fit"><div id="wall"><!-- laptops injected --></div></div>
+
+  <!-- Help a Friend. Hidden until its beat. -->
+  <div id="friend">
+    <div class="phone"><div class="pscr">
+      <div class="pbar"><span class="av"></span><span>Alex</span></div>
+      <div class="pthread" id="pth"></div>
+      <div class="coach" id="coach">
+        <div class="ctop"><span class="mark"></span><span class="cname">SilentHelp</span></div>
+        <div class="clabel">Try saying</div>
+        <div class="csay" id="csay"></div>
+        <div class="cwhy" id="cwhy"></div>
+      </div>
+    </div></div>
+  </div>
 </div>
 
 <div id="cap" class="hd"></div>
@@ -319,6 +421,17 @@ var LAPTOPS = [
 ];
 
 /* ── Build the wall ─────────────────────────────────────────────────── */
+/* The landing page's hero footage, same CloudFront source, so the demo and the
+   front door share one ground. Decorative only — if it never loads the stage
+   runs unchanged on black. */
+(function(){
+  var bg = document.getElementById('bg');
+  bg.src = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4";
+  bg.addEventListener('loadeddata', function(){ bg.classList.add('on'); });
+  bg.addEventListener('error', function(){ console.warn('[stage] hero video unavailable; running on black'); });
+  var p = bg.play(); if (p && p.catch) p.catch(function(){});   // autoplay policy
+})();
+
 var wall = document.getElementById('wall');
 LAPTOPS.forEach(function(L){
   var el = document.createElement('div');
@@ -509,6 +622,71 @@ async function beat(idx, caption){
   await wait(500);
 }
 
+/* ── Help a Friend ────────────────────────────────────────────────────
+   The user's friend is the one struggling. SilentHelp coaches the USER on what
+   to say next — the words come from the real /api/helper endpoint, not from
+   this file, so the guidance shown is the guidance the product gives.      */
+var FRIEND_LINE = 'i don’t think anyone would even notice if i was gone';
+
+async function helperBeat(){
+  say('When it’s someone else who’s slipping.');
+  wall.classList.add('blurred');                 // keep the world, lose the focus
+  pullOut();
+  var stage = document.getElementById('friend');
+  stage.classList.add('in');
+  await wait(1100);
+
+  // The friend's message lands.
+  var th = document.getElementById('pth');
+  th.innerHTML = '';
+  var add = function(txt, me){
+    var b = document.createElement('div');
+    b.className = 'pmsg ' + (me ? 'me' : 'them'); b.textContent = txt;
+    th.appendChild(b); return b;
+  };
+  add('hey. sorry i’ve been off lately', false);
+  await wait(1500);
+  add(FRIEND_LINE, false);
+  await wait(1700);
+
+  // Ask the real coach what to say.
+  var g = { reply:'', guidance:'' };
+  try {
+    var r = await fetch('/api/helper', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ messages:[{ role:'friend', content: FRIEND_LINE }] })
+    });
+    if (r.ok) g = await r.json();
+  } catch (e){ console.warn('[stage] helper unavailable:', e); }
+  console.log('[stage] helper → danger=', g.danger, '| reply=', g.reply);
+
+  // Fall back to static copy only if the endpoint is down, so the beat still
+  // films — but log loudly, because filming the fallback would be a lie.
+  var sayLine = g.reply || 'I’m really glad you told me. That sounds heavy — are you safe right now?';
+  var why = g.guidance || 'Validate first, then ask directly about safety. You don’t have to fix it.';
+  if (!g.reply) console.warn('[stage] FILMING FALLBACK COPY — helper API did not answer');
+
+  document.getElementById('csay').textContent = sayLine;
+  document.getElementById('cwhy').textContent = why;
+  document.getElementById('coach').classList.add('in');
+  await wait(1000);
+  say('SilentHelp tells you what to say — and when to bring in a real person.');
+  await wait(4200);
+
+  // The user sends it. The coach card retires as the message lands — leaving
+  // both on screen reads as the same sentence duplicated rather than as advice
+  // that was taken.
+  document.getElementById('coach').classList.remove('in');
+  await wait(500);
+  add(sayLine, true);
+  say('You send it. In your words, on your call.');
+  await wait(3200);
+
+  stage.classList.remove('in');
+  wall.classList.remove('blurred');
+  await wait(900);
+}
+
 /* ── The run ──────────────────────────────────────────────────────────── */
 var running = false;
 async function run(){
@@ -535,6 +713,8 @@ async function run(){
   await beat(5, 'A small dip, held quietly — no alarm, no one told.');
   pullOut(); await wait(1500);
 
+  await helperBeat();
+
   say('Nothing left any of these machines.');
   await wait(3200);
   say('SilentHelp — support that notices before you ask.');
@@ -549,8 +729,22 @@ document.addEventListener('keydown', function(e){
 });
 document.getElementById('title').addEventListener('click', run);
 
-// ?auto=1 starts without a keypress (for unattended capture).
-if (new URLSearchParams(location.search).get('auto')) setTimeout(run, 1200);
+var Q = new URLSearchParams(location.search);
+
+/* ?embed=1 — running inside the landing page's demo window. Drop the
+   press-space affordance (there's no keyboard focus in an iframe), shrink the
+   caption for the smaller frame, and loop so the panel is never left dead. */
+if (Q.get('embed')){
+  document.documentElement.classList.add('embed');
+  document.getElementById('hint').style.display = 'none';
+}
+
+// ?auto=1 starts without a keypress (for unattended capture and the embed).
+if (Q.get('auto')) setTimeout(function(){
+  run().then(function(){
+    if (Q.get('embed')) setTimeout(function(){ location.reload(); }, 2500);
+  });
+}, 1200);
 </script>
 </body>
 </html>
