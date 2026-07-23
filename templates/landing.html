@@ -686,27 +686,36 @@ function Privacy() {
 }
 
 function Pricing() {
-  const tiers = [
-    ["Student", "Free", "Every detection layer, the coping chat, and escalation drafting. No card, no trial clock.", false],
-    ["Family", "$4.99", "Up to five people, shared trusted contacts, and a weekly summary for parents — signals only, never content.", true],
-    ["Schools", "Custom", "Counselor routing, district deployment, and aggregate wellbeing trends that identify no student.", false]
+  // One tier. SilentHelp is free for everyone — no student/family/school split.
+  const includes = [
+    "All four detection layers",
+    "Coping chat & Help a Friend",
+    "The Mac agent, watching quietly",
+    "Escalation drafting to someone you trust",
+    "Everything on-device, nothing sold",
   ];
   return (
-    <Band id="pricing" kicker="Pricing" title={<>Free for the people<br/>who need it most</>}>
-      <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-6">
-        {tiers.map(([name, price, body, feat]) => (
-          <div key={name} className={(feat ? "liquid-glass-strong" : "liquid-glass") + " rounded-[1.25rem] p-6 min-h-[300px] flex flex-col"}>
-            <p className="text-xs font-body text-white/70 uppercase tracking-[0.14em]">{name}</p>
-            <div className="font-heading italic text-white text-5xl tracking-[-2px] leading-none mt-3">
-              {price}{name === "Family" && <span className="text-sm not-italic font-body text-white/60 tracking-normal"> / mo</span>}
-            </div>
-            <p className="mt-4 text-sm text-white/90 font-body font-light leading-snug flex-1">{body}</p>
-            <a href="/app" className="mt-6 liquid-glass rounded-full px-5 py-2.5 text-sm font-medium
-                                      text-white font-body flex items-center justify-center gap-2">
-              {name === "Schools" ? "Talk to us" : "Get started"} <ArrowUpRight className="h-4 w-4" />
-            </a>
-          </div>
-        ))}
+    <Band id="pricing" kicker="Pricing" title={<>Free. For everyone.</>}>
+      <div className="mt-14 max-w-xl">
+        <div className="liquid-glass-strong rounded-[1.5rem] p-10 flex flex-col">
+          <div className="font-heading italic text-white text-7xl tracking-[-3px] leading-none">Free</div>
+          <p className="mt-4 text-base text-white/80 font-body font-light leading-relaxed">
+            No plans, no tiers, no paywall. The same SilentHelp for students, families,
+            and schools alike — because who gets support shouldn't depend on who can pay.
+          </p>
+          <ul className="mt-7 grid gap-3">
+            {includes.map((f) => (
+              <li key={f} className="flex gap-3 items-center text-white/85 font-body font-light text-[15px]">
+                <span className="h-5 w-5 rounded-full liquid-glass flex items-center justify-center text-white text-[11px] shrink-0">✓</span>
+                {f}
+              </li>
+            ))}
+          </ul>
+          <a href="/app" className="mt-9 bg-white text-black rounded-full px-6 py-3 text-[15px] font-medium
+                                    font-body flex items-center justify-center gap-2 hover:opacity-90">
+            Get started — free <ArrowUpRight className="h-4 w-4" />
+          </a>
+        </div>
       </div>
     </Band>
   );

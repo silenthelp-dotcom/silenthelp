@@ -47,19 +47,40 @@ and notices the moment something's wrong."*
 
 ---
 
-## SCENE 2 · 0:20–0:36 · The four layers
+## SCENE 2 · 0:20–0:46 · The four layers, one at a time
 
-**Shot:** Cut to the landing page `#science` / `#how` section. Slow scroll down
-the four-layer list. Push in on each as the VO names it. The Lithos rock behind
-"Support that notices first" reveals under the cursor spotlight — move the
-cursor slowly so the moss-and-flowers layer blooms through.
+Each layer gets its own beat with **two real phrases**, so the viewer sees the
+detector actually working — not a bullet list. The self-running demo
+(`/app?demo=1`) plays these in order and types them into the live coping chat.
+
+**Layer 1 · Keyword** — `/app?demo=1&scene=layer1`
+*(phrases verified to fire at the labeled level)*
+- *"i'm so overwhelmed by everything"* → moderate
+- *"i'm at my breaking point"* → moderate
+- VO: *"Layer one catches the obvious, on your device, in a millisecond."*
+
+**Layer 2 · Semantic** — `&scene=layer2`
+- *"i don't see the point anymore"* → crisis
+- *"everyone would be better off without me"* → crisis
+- VO: *"Layer two reads the meaning behind the words — the sentences a keyword
+  list would miss."*
+
+**Context · the joke guard** — `&scene=context`
+- *"lol this homework is literally killing me haha"* → **stays quiet**
+- VO: *"And it knows a joke from a cry for help. Same words — read as banter,
+  it says nothing."*
+
+**Layer 3 · Behavioral** — `&scene=layer3` (dashboard)
+- No text. VO: *"Layer three reads only your rhythm — typing pace, late nights,
+  restless switching — and never a single word."*
+
+**Layer 4 · Trend gate** — `&scene=layer4` (findings)
+- VO: *"And layer four holds everything back until a real pattern forms — so a
+  single hard night is never mistaken for a crisis. Crisis, though, always
+  bypasses the wait."*
 
 **On-screen text (each appears as its layer is named):**
 > Keyword · Semantic · Behavioral · Trend
-
-**VO:** *"Four quiet layers. Keywords catch the obvious. A model reads the
-meaning behind a joke. Behavior tracks your rhythm without reading a word. And
-nothing surfaces until a real pattern forms."*
 
 ---
 

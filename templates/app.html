@@ -206,6 +206,12 @@ button[style*="background:#fff"], [style*="background:#fff"][style*="color:#000"
   max-width:none !important; width:100vw !important; height:100vh !important; margin:0 !important;
 }
 #appouter:has(.frame-fullbleed) { padding:0 !important; display:block !important; }
+/* On the sign-in screen the orb should live ONLY in the right promo panel, not
+   bleed across the form. Hide the page-wide backdrop video/scrim while auth is
+   showing, and give the form side a plain black ground. */
+body:has(.frame-fullbleed) > video[data-backdrop],
+body:has(.frame-fullbleed) > div[data-backdrop] { display:none !important; }
+.frame-fullbleed #scr-auth > div > div:first-child { background:#000; }
 #scr-auth { height:100vh; }
 #scr-auth > div { height:100vh; width:100%; max-width:none; }
 
@@ -535,7 +541,7 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
           <button onclick="App.openUrgent(true)" style="text-align:left; background:#fff; color:#000; border:none; border-radius:9999px; padding:9px 16px; font-size:12px; font-weight:600; cursor:pointer; margin-bottom:12px;">Something surfacing</button>
           <div id="snoozeChip" onclick="App.clearSnooze()" style="display:none; margin:0 2px 8px; padding:9px 12px; border-radius:9px; background:#fff8ea; border:1px solid #f0e2c0; font-size:11.5px; color:#a4701f; cursor:pointer; font-weight:600;"></div>
           <div id="sideUser" onclick="App.go('account')" style="display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; background:#fff; border:1px solid #e6ecf2; cursor:pointer;">
-            <div id="sideAvatar" style="width:26px; height:26px; border-radius:50%; background:radial-gradient(circle at 50% 38%, #7cc4ff, #007aff 60%, #0049c4); color:#fff; font-size:11px; font-weight:700; display:grid; place-items:center;">·</div>
+            <div id="sideAvatar" style="width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,.12); color:#fff; font-size:11px; font-weight:700; display:grid; place-items:center; box-shadow:inset 0 1px 1px rgba(255,255,255,.2);">·</div>
             <div style="min-width:0;"><div id="sideName" style="font-size:12.5px; font-weight:600; color:#1a2632; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Not signed in</div>
             <div style="font-size:10.5px; color:#9aa7b3; font-weight:300;">Your private space</div></div>
           </div>
@@ -1584,15 +1590,45 @@ App.init();
       el.dispatchEvent(new Event('input',{bubbles:true})); await wait(45); }
   };
 
+  // Send one message through the coping chat and let real detection respond.
+  var sendChat = async function(text){
+    var inp = document.querySelector('#scr-chat input, .appscreen input');
+    await typeInto(inp, text);
+    await wait(700);
+    if (App.send) App.send();
+    await wait(2600);
+  };
+
   var scenes = {
-    detection: async function(){
-      say('Detected on your Mac — nothing sent anywhere.');
-      App.go('chat'); await wait(1400);
-      var inp = document.querySelector('#scr-chat input, .appscreen input');
-      await typeInto(inp, "i don't even know why i'm still trying");
-      await wait(900);
-      if (App.send) App.send();      // real detection + reply
-      await wait(3200);
+    // LAYER 1 · Keyword — everyday-stress vocabulary, matched locally, instant.
+    // (Phrases verified to fire: see DEMO_SCRIPT.md.)
+    layer1: async function(){
+      say('Layer 1 · Keyword — matched on-device, instantly.');
+      App.go('chat'); await wait(1200);
+      await sendChat('i’m so overwhelmed by everything');
+      await sendChat('i’m at my breaking point');
+    },
+    // LAYER 2 · Semantic — deeper phrasing that means distress.
+    layer2: async function(){
+      say('Layer 2 · Semantic — reads the meaning, not just the words.');
+      await sendChat('i don’t see the point anymore');
+      await sendChat('everyone would be better off without me');
+    },
+    // CONTEXT · the joke guard — same words, read as banter, stays quiet.
+    context: async function(){
+      say('Context — a joke reads as a joke. It stays quiet.');
+      await sendChat('lol this homework is literally killing me haha');
+      await wait(1200);
+    },
+    // LAYER 3 · Behavioral — rhythm, not text (shown on the dashboard readings).
+    layer3: async function(){
+      say('Layer 3 · Behavioral — your rhythm, reading no text at all.');
+      App.go('dashboard'); await wait(4200);
+    },
+    // LAYER 4 · Trend gate — nothing surfaces until a pattern holds; crisis bypasses.
+    layer4: async function(){
+      say('Layer 4 · Trend gate — a pattern, not a single bad night.');
+      App.go('reports'); await wait(3800);
     },
     dashboard: async function(){
       say('Your focus, energy, and burnout — before you\u2019d think to ask.');
@@ -1616,7 +1652,8 @@ App.init();
     }
   };
 
-  var order = only ? [only] : ['detection','dashboard','analytics','helper','escalation'];
+  var order = only ? [only]
+    : ['layer1','layer2','context','layer3','layer4','helper','escalation','dashboard'];
   (async function run(){
     // Skip onboarding/auth so the demo lands straight in the product.
     App.go('dashboard'); await wait(800);
