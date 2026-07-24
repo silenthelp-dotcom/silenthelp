@@ -76,7 +76,7 @@ html, body { background:#000; color:#f2f5fb; }
   background:transparent !important;
   backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
   box-shadow:none !important;
-  border-right:1px solid rgba(255,255,255,.10) !important;
+  border-right:none !important;
 }
 
 /* The backdrop video and its scrim are inserted at z-index 0/1, so everything
@@ -143,6 +143,12 @@ body > *:not([data-backdrop]) { position:relative; z-index:2; }
 .appscreen .liquid-glass-strong::before { display:none !important; }
 .appscreen .liquid-glass, .appscreen .liquid-glass-strong {
   border:none !important; box-shadow:none !important;
+}
+/* BUTTONS keep the glass edge — that rim is what makes them read as pressable.
+   Only panels/cards go edgeless. */
+.appscreen button.liquid-glass::before { display:block !important; }
+.appscreen button.liquid-glass {
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.1) !important;
 }
 /* The sidebar is the app's persistent chrome — heavier blur, like the
    landing page's primary CTA. */
@@ -229,10 +235,16 @@ body:has(.frame-fullbleed) > div[data-backdrop] { display:none !important; }
    ring against the dark backdrop. The design has no blue and no glow — kill
    every blue shadow and blue-tinted edge. */
 [style*="rgba(0,122,255"], [style*="rgba(0, 122, 255"] { box-shadow:none !important; }
-[style*="border:1px solid #d3e4fb"], [style*="border:1px solid #dde6ef"],
-[style*="border:1px solid #e6ecf2"], [style*="border:1px solid #d6e4f7"] {
-  border-color:rgba(255,255,255,.14) !important;
+/* Cards with these light borders lose the edge entirely; inputs are handled
+   by the input rule below and keep a usable hairline. */
+[style*="border:1px solid #d3e4fb"], [style*="border:1px solid #e6ecf2"],
+[style*="border:1px solid #d6e4f7"] {
+  border-color:transparent !important;
 }
+input[style*="border:1px solid #dde6ef"], textarea[style*="border:1px solid #dde6ef"] {
+  border-color:rgba(255,255,255,.16) !important;
+}
+div[style*="border:1px solid #dde6ef"] { border-color:transparent !important; }
 /* Secondary actions become liquid glass rather than a flat panel. */
 #scr-auth button:not([style*="background:#fff"]),
 #scr-onboarding button:not([style*="background:#fff"]) {
@@ -380,14 +392,19 @@ button[style*="color:#0a6dff"] { color:#000 !important; }
 [style*="color:#a8b4c0"] { color:#8b97ad !important; }
 
 /* Borders and rules ----------------------------------------------------- */
+/* NO card/panel outlines anywhere — crystal clear, no mask. Panels read as a
+   faint fill only. (Input fields keep their edge below; a text field with no
+   border is unusable.) */
 [style*="border:1px solid #e9eef4"], [style*="border:1px solid #eef2f6"],
 [style*="border:1px solid #e6ecf3"], [style*="border:1px solid #dfe7ef"],
 [style*="border:1px solid #e3eaf2"], [style*="border:1px solid #edf1f6"] {
-  border-color:rgba(150,175,235,.14) !important;
+  border-color:transparent !important;
 }
+/* Horizontal rules between readings stay, but barely — they separate rows
+   without drawing a box. */
 [style*="border-bottom:1px solid #e9eef4"], [style*="border-bottom:1px solid #eef2f6"],
 [style*="border-top:1px solid #e9eef4"], [style*="border-top:1px solid #eef2f6"] {
-  border-color:rgba(150,175,235,.12) !important;
+  border-color:rgba(255,255,255,.07) !important;
 }
 
 /* Inputs ---------------------------------------------------------------- */
@@ -457,14 +474,14 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
 <!-- The design's shell paints #000, but its video is a SIBLING behind it. Here
      the video is appended to <body> at z-index 0, so an opaque shell would
      cover it — the black lives on <body> instead and the shell stays clear. -->
-<!-- Fixed-height shell so ONLY the content column scrolls, not the whole page
-     (sidebar + topbar stay put). overflow:hidden here; the inner content area
-     owns the scroll. -->
+<!-- Full-height shell. The content column owns the scroll (see below) and the
+     sidebar is sticky, so content scrolls while the sidebar stays put. Never
+     overflow:hidden here — that clipped content with nowhere to scroll. -->
 <div id="appouter" style="height:100vh; background:transparent; display:flex; position:relative; z-index:2; overflow:hidden; padding:0;">
   <!-- The design's fixed 1180x760 window is a mock frame; at full size it left
        a hard-edged card floating on the backdrop. Fills the viewport instead,
        capped so it never stretches absurdly wide on large displays. -->
-  <div id="appframe" style="position:relative; z-index:5; width:100%; max-width:1680px; height:100vh; flex-shrink:1; margin:auto; display:flex; flex-direction:column; box-sizing:border-box;">
+  <div id="appframe" style="position:relative; z-index:5; width:100%; max-width:1680px; height:100%; min-height:0; flex-shrink:1; margin:auto; display:flex; flex-direction:column; box-sizing:border-box;">
 
     <!-- ════ ONBOARDING ════ -->
     <div id="scr-onboarding" class="screen-anim" style="position:relative; z-index:5; flex:1; min-height:0; overflow-y:auto; background:radial-gradient(120% 90% at 50% 0%, #f2f8ff, #f6f9fc 60%, #eef3f9);">
@@ -593,7 +610,8 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
       <div style="display:flex; flex:1; min-height:0;">
 
         <!-- SIDEBAR -->
-        <div style="width:218px; flex-shrink:0; padding:8px 14px 18px; display:flex; flex-direction:column; background:#f8fafc; border-right:1px solid #eef2f6;">
+        <!-- Sidebar stays put; scrolls only within itself on short screens. -->
+        <div style="width:218px; flex-shrink:0; padding:8px 14px 18px; display:flex; flex-direction:column; min-height:0; overflow-y:auto; background:transparent;">
           <a href="/" title="Back to silenthelp.org" style="display:flex; align-items:center; gap:11px; padding:6px 10px 22px; text-decoration:none;">
             <img src="/static/img/badge-64.png" alt="SilentHelp" style="width:26px; height:26px; border-radius:50%;" />
             <span style="font-size:15px; font-weight:700; color:#1a2632; letter-spacing:.01em;">SilentHelp</span>
@@ -613,7 +631,7 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
                the real popups fire, not mockups. -->
           <div style="font-size:9.5px; font-weight:600; letter-spacing:.16em; color:rgba(255,255,255,.45); margin:0 12px 10px;">DEMO THE MOMENTS</div>
           <button class="liquid-glass" onclick="App.openGentle(true)" style="text-align:left; background:transparent; color:rgba(255,255,255,.85); border:none; border-radius:9999px; padding:9px 16px; font-size:12px; font-weight:500; cursor:pointer; margin-bottom:7px;">Quiet check-in</button>
-          <button onclick="App.openUrgent(true)" style="text-align:left; background:#fff; color:#000; border:none; border-radius:9999px; padding:9px 16px; font-size:12px; font-weight:600; cursor:pointer; margin-bottom:12px;">Something surfacing</button>
+          <button class="liquid-glass" onclick="App.openUrgent(true)" style="text-align:left; background:transparent; color:rgba(255,255,255,.85); border:none; border-radius:9999px; padding:9px 16px; font-size:12px; font-weight:500; cursor:pointer; margin-bottom:12px;">Something surfacing</button>
           <div id="snoozeChip" onclick="App.clearSnooze()" style="display:none; margin:0 2px 8px; padding:9px 12px; border-radius:9px; background:#fff8ea; border:1px solid #f0e2c0; font-size:11.5px; color:#a4701f; cursor:pointer; font-weight:600;"></div>
           <div id="sideUser" onclick="App.go('account')" style="display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; background:#fff; border:1px solid #e6ecf2; cursor:pointer;">
             <div id="sideAvatar" style="width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,.12); color:#fff; font-size:11px; font-weight:700; display:grid; place-items:center; box-shadow:inset 0 1px 1px rgba(255,255,255,.2);">·</div>
@@ -623,7 +641,10 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
         </div>
 
         <!-- CONTENT -->
-        <div style="flex:1; min-width:0; overflow:auto; background:#f6f8fb;">
+        <!-- The scrolling area. min-height:0 is required — without it a flex
+             child sizes to its content and never scrolls (the sidebar stayed
+             put but the content was simply clipped). -->
+        <div style="flex:1; min-width:0; min-height:0; overflow-y:auto; background:#f6f8fb;">
 
           <!-- DASHBOARD — 1:1 with SilentHelp App.dc.html -->
           <div class="appscreen" id="scr-dashboard" style="display:none;">
@@ -883,8 +904,8 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
                 <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
                   <div><div style="font-size:14px; font-weight:600; color:#16202b;">Preview a check-in</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">See what a moment looks like before one ever happens for real.</div></div>
                   <div style="display:flex; gap:10px;">
-                    <button class="hov" onclick="App.openGentle(true)" style="background:#fff; color:#5a6b7a; border:1px solid #e6ecf2; border-radius:9px; padding:9px 14px; font-size:12px; font-weight:600; cursor:pointer;">Quiet check-in</button>
-                    <button class="hov" onclick="App.openUrgent(true)" style="background:#eef5ff; color:#0a6dff; border:1px solid #d3e4fb; border-radius:9px; padding:9px 14px; font-size:12px; font-weight:600; cursor:pointer;">Something surfacing</button>
+                    <button class="liquid-glass hov" onclick="App.openGentle(true)" style="background:transparent; color:rgba(255,255,255,.85); border:none; border-radius:9999px; padding:10px 18px; font-size:12px; font-weight:500; cursor:pointer;">Quiet check-in</button>
+                    <button class="liquid-glass hov" onclick="App.openUrgent(true)" style="background:transparent; color:rgba(255,255,255,.85); border:none; border-radius:9999px; padding:10px 18px; font-size:12px; font-weight:500; cursor:pointer;">Something surfacing</button>
                   </div>
                 </div>
               </div>
@@ -1082,7 +1103,10 @@ const App = {
     const gate = screen === 'auth', onb = screen === 'onboarding';
     document.getElementById('scr-auth').style.display = gate ? 'flex' : 'none';
     document.getElementById('scr-onboarding').style.display = onb ? 'flex' : 'none';
-    document.getElementById('appview').style.display = (gate || onb) ? 'none' : 'block';
+    // MUST be 'flex' — #appview declares flex-direction:column, so as 'block'
+    // the flex chain breaks and the content column never gets a bounded height
+    // (it then can't scroll and content gets clipped instead).
+    document.getElementById('appview').style.display = (gate || onb) ? 'none' : 'flex';
     // The sign-in split screen is full-bleed, so let the frame break its cap.
     document.getElementById('appframe').classList.toggle('frame-fullbleed', gate);
     if (gate) return;
