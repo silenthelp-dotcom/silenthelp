@@ -1732,8 +1732,17 @@ App.init();
   mount.style.display = 'block';
   mount.innerHTML = '';
 
+  // Decode the Frontend API host that Clerk base64-encodes into the key. The
+  // encoded part is already correctly padded; blindly appending "=="  makes the
+  // length not a multiple of 4, and the browser's (strict) atob throws — which
+  // left host = "" and built the bogus URL https://npm/... (ERR_NAME_NOT_RESOLVED).
+  // Pad to the right length instead.
   var host = '';
-  try { host = atob(PK.split('_')[2] + '==').replace(/\$$/, ''); } catch(e){}
+  try {
+    var enc = PK.split('_')[2] || '';
+    while (enc.length % 4) enc += '=';
+    host = atob(enc).replace(/\$+$/, '');
+  } catch(e){}
   var s = document.createElement('script');
   s.setAttribute('data-clerk-publishable-key', PK);
   s.async = true; s.crossOrigin = 'anonymous';
