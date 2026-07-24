@@ -1732,6 +1732,21 @@ App.init();
   mount.style.display = 'block';
   mount.innerHTML = '';
 
+  // If Clerk can't render for ANY reason — script blocked, load() throws, a dev
+  // key that rejects this origin — restore the working email/password form
+  // instead of leaving the middle of the sign-in screen blank (the reported
+  // bug: no Clerk widget AND no legacy form).
+  var fellBack = false;
+  function fallbackToLegacy(){
+    if (fellBack) return; fellBack = true;
+    mount.style.display = 'none'; mount.innerHTML = '';
+    if (legacy) legacy.style.display = 'block';
+  }
+  // Safety net: if Clerk hasn't mounted anything after a few seconds, fall back.
+  var mountWatch = setTimeout(function(){
+    if (!mount.querySelector('*')) fallbackToLegacy();
+  }, 6000);
+
   // Decode the Frontend API host that Clerk base64-encodes into the key. The
   // encoded part is already correctly padded; blindly appending "=="  makes the
   // length not a multiple of 4, and the browser's (strict) atob throws — which
@@ -1795,15 +1810,18 @@ App.init();
       // Not signed in yet — show the sign-in and bridge once when it completes.
       sessionStorage.removeItem(RELOAD_ONCE);   // fresh sign-in may need one bridge
       window.Clerk.mountSignIn(mount);
+      clearTimeout(mountWatch);
       window.Clerk.addListener(function(e){ if (e.user) bridgeOnce(); });
     } catch(err){
-      mount.innerHTML = '<div style="color:#f0a58a;font-size:14px">Sign-in failed to load. '+
-        '<a href="#" onclick="location.reload()" style="color:#fff">Retry</a></div>';
+      // load()/mount failed (e.g. a dev key rejecting this origin) — don't
+      // strand the user on a blank panel; give them the working form.
+      clearTimeout(mountWatch);
+      fallbackToLegacy();
     }
   });
   s.addEventListener('error', function(){
-    if (legacy) legacy.style.display = 'block';
-    mount.style.display = 'none';
+    clearTimeout(mountWatch);
+    fallbackToLegacy();
   });
   document.head.appendChild(s);
 })();
