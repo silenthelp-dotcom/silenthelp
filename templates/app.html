@@ -1360,13 +1360,18 @@ const App = {
       // Real email actually delivered via the server.
       s.textContent = `✓ Email sent to ${r.to || to}.`;
     } else {
-      // No SMTP configured — fall back to opening the user's mail app.
+      // No SMTP configured — open Gmail's compose window (not the desktop Mail
+      // app) prefilled with the draft, in a new tab.
       const m = to.match(/[\w.+-]+@[\w-]+\.[\w.-]+/);
       const addr = m ? m[0] : '';
-      window.location.href = `mailto:${encodeURIComponent(addr)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+      const gmail = 'https://mail.google.com/mail/?view=cm&fs=1'
+        + '&to=' + encodeURIComponent(addr)
+        + '&su=' + encodeURIComponent(subj)
+        + '&body=' + encodeURIComponent(body);
+      window.open(gmail, '_blank', 'noopener');
       s.textContent = addr
-        ? `Opening your mail app to ${addr} — press send there. (Set up SMTP to auto-send.)`
-        : 'Opening your mail app — add a recipient and press send.';
+        ? `Opening Gmail to ${addr} — press send there. (Set up SMTP to auto-send.)`
+        : 'Opening Gmail — add a recipient and press send.';
     }
   },
   closePopup(){ clearTimeout(this._t);

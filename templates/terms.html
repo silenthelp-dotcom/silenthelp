@@ -4,27 +4,36 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Terms of Use — SilentHelp</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500;1,600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <style>
   * { box-sizing:border-box; font-family:'Inter',-apple-system,sans-serif; }
-  body { margin:0; background:#f6f8fb; color:#3c4a57; }
-  .pf { font-family:'Playfair Display',serif; font-style:italic; font-weight:500; }
-  .wrap { max-width:720px; margin:0 auto; padding:56px 28px 80px; }
-  h2 { font-size:15px; color:#16202b; margin:34px 0 8px; }
-  p, li { font-size:14px; line-height:1.75; font-weight:300; color:#5e6f7e; }
-  a { color:#0a6dff; }
-  .card { background:#fff6ec; border:1px solid #f6e0c4; border-radius:16px; padding:24px 28px; margin-top:28px; }
+  html, body { margin:0; background:#000; color:rgba(255,255,255,.75); }
+  .pf { font-family:'Instrument Serif',serif; font-style:italic; font-weight:400; }
+  #bg { position:fixed; left:50%; top:0; width:120%; height:120%; transform:translateX(-50%);
+        object-fit:cover; object-position:top; z-index:0; opacity:.28; pointer-events:none; }
+  #veil { position:fixed; inset:0; z-index:1; pointer-events:none;
+          background:radial-gradient(100% 70% at 50% 0%, rgba(0,0,0,.35), transparent 55%),
+                     linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.82)); }
+  .wrap { position:relative; z-index:2; max-width:720px; margin:0 auto; padding:56px 28px 90px; }
+  h2 { font-size:16px; color:#fff; margin:38px 0 8px; }
+  p, li { font-size:14.5px; line-height:1.8; font-weight:300; color:rgba(255,255,255,.68); }
+  a { color:#fff; }
+  b { color:rgba(255,255,255,.92); }
+  .card { position:relative; background:rgba(255,255,255,.03); border-radius:18px;
+          padding:24px 28px; margin-top:28px; box-shadow:inset 0 1px 1px rgba(255,255,255,.08); }
 </style>
 </head>
 <body>
+<video id="bg" autoplay muted loop playsinline src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4"></video>
+<div id="veil"></div>
 <div class="wrap">
-  <a href="/app" style="font-size:13px; text-decoration:none;">← Back to SilentHelp</a>
-  <div style="font-size:12px; letter-spacing:.28em; text-transform:uppercase; color:#7a93ad; margin-top:28px;">SilentHelp</div>
-  <div class="pf" style="font-size:40px; color:#0e1822; margin-top:8px;">Terms of Use</div>
+  <a href="/" style="font-size:13px; text-decoration:none; color:rgba(255,255,255,.7);">← Back to SilentHelp</a>
+  <div style="font-size:12px; letter-spacing:.28em; text-transform:uppercase; color:rgba(255,255,255,.5); margin-top:28px;">SilentHelp</div>
+  <div class="pf" style="font-size:44px; color:#fff; margin-top:8px;">Terms of Use</div>
   <p style="margin-top:10px;">Last updated: July 5, 2026</p>
 
   <div class="card">
-    <p style="margin:0; color:#a4701f;"><b style="color:#8a5d18; font-weight:600;">The most important term:</b> SilentHelp is a supportive tool, not a medical service, therapist, or emergency system. If you or someone you know is in danger, call or text <b>988</b>, text <b>HOME to 741741</b>, or call 911. Do not rely on SilentHelp in an emergency.</p>
+    <p style="margin:0; color:rgba(255,210,150,.85);"><b style="color:#ffd79a; font-weight:600;">The most important term:</b> SilentHelp is a supportive tool, not a medical service, therapist, or emergency system. If you or someone you know is in danger, call or text <b>988</b>, text <b>HOME to 741741</b>, or call 911. Do not rely on SilentHelp in an emergency.</p>
   </div>
 
   <h2>1. What SilentHelp is</h2>
@@ -49,7 +58,7 @@
   <p>These terms and the <a href="/privacy">Privacy Policy</a> may be updated as the project evolves; the "last updated" date will change when they do. Continuing to use SilentHelp after a change means you accept it.</p>
 
   <h2>Contact</h2>
-  <p>Questions: open an issue on the <a href="https://github.com/abhinavallani02-cyber/silenthelp">GitHub repository</a>.</p>
+  <p>Questions: email us at <a href="mailto:silenthelp@silenthelp.org">silenthelp@silenthelp.org</a>.</p>
 </div>
 </body>
 </html>
