@@ -162,5 +162,61 @@ def delete_user(uid: str) -> bool:
         if not u:
             return False
         data["by_email"].pop(u.get("email", ""), None)
+        if "device_tokens" in data:
+            data["device_tokens"] = {t: v for t, v in data["device_tokens"].items() if v != uid}
         _save(data)
         return True
+
+
+# --- Device pairing (Mac agent -> account) ----------------------------------
+#
+# The hosted server can't treat "request came from 127.0.0.1" as "this is the
+# owner" — that only works when the agent and server run on the SAME machine.
+# On a real deployment (silenthelp.org) the agent is just another remote
+# client, so without a credential its posts were being silently discarded as
+# anonymous (this is why "installed but no data" happened). A device token is
+# a long random string the signed-in user generates once in Settings, pastes
+# into the agent, and the agent then sends on every request to prove which
+# account it's reporting for.
+
+def create_device_token(uid: str) -> Optional[str]:
+    """Issue a new pairing token for uid, invalidating any previous one for it
+    (only one active device token per account, to keep this simple)."""
+    if not uid:
+        return None
+    with _LOCK:
+        data = _load()
+        if uid not in data["users"]:
+            return None
+        tokens = data.setdefault("device_tokens", {})
+        # Drop any existing token(s) for this uid first.
+        for t in [t for t, v in tokens.items() if v == uid]:
+            tokens.pop(t, None)
+        token = secrets.token_urlsafe(24)
+        tokens[token] = uid
+        _save(data)
+        return token
+
+
+def uid_for_device_token(token: str) -> Optional[str]:
+    if not token:
+        return None
+    with _LOCK:
+        return _load().get("device_tokens", {}).get(token)
+
+
+def revoke_device_token(uid: str) -> bool:
+    with _LOCK:
+        data = _load()
+        tokens = data.get("device_tokens", {})
+        remaining = {t: v for t, v in tokens.items() if v != uid}
+        changed = len(remaining) != len(tokens)
+        data["device_tokens"] = remaining
+        if changed:
+            _save(data)
+        return changed
+
+
+def has_device_token(uid: str) -> bool:
+    with _LOCK:
+        return uid in _load().get("device_tokens", {}).values()

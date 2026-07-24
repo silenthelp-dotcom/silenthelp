@@ -170,6 +170,17 @@ def _bind_user_store():
         uid = None
     if uid is None and _is_local_request():
         uid = _owner_uid()  # the Mac agent / local browser = the owner's data
+    if uid is None:
+        # A hosted deployment's agent isn't "local" — request.remote_addr is a
+        # real IP, not 127.0.0.1 — so without this it always fell through to
+        # anonymous and its behavioral data was silently discarded (agent
+        # installed, dashboard/analytics stayed empty forever). The agent
+        # proves which account it belongs to with a paired device token.
+        token = request.headers.get("X-Device-Token", "")
+        if token:
+            paired_uid = auth.uid_for_device_token(token)
+            if paired_uid and auth.get_user(paired_uid):
+                uid = paired_uid
 
     if uid:
         store.set_data_file(os.path.join(USERDATA_DIR, f"user_{uid}.json"))
@@ -304,6 +315,43 @@ def api_account_delete():
     if os.path.exists(data_file):
         os.remove(data_file)
     session.pop("uid", None)
+    return jsonify({"ok": True})
+
+
+# --- Mac agent pairing -------------------------------------------------
+#
+# On a hosted deployment (silenthelp.org) the agent is a remote client, not
+# "the same machine as the server" — so it needs a credential to prove which
+# account its behavioral data belongs to. This token is that credential:
+# generated here, pasted into the agent once, sent back on every request.
+
+@app.route("/api/device/pair", methods=["POST"])
+def api_device_pair():
+    """Issue a fresh pairing token for the signed-in user. Generating a new one
+    invalidates any previous token (one active device per account)."""
+    uid = session.get("uid")
+    if not (uid and auth.get_user(uid)):
+        return jsonify({"error": "not signed in"}), 401
+    token = auth.create_device_token(uid)
+    if not token:
+        return jsonify({"error": "could not create token"}), 500
+    return jsonify({"token": token})
+
+
+@app.route("/api/device/status")
+def api_device_status():
+    uid = session.get("uid")
+    if not (uid and auth.get_user(uid)):
+        return jsonify({"error": "not signed in"}), 401
+    return jsonify({"paired": auth.has_device_token(uid)})
+
+
+@app.route("/api/device/unpair", methods=["POST"])
+def api_device_unpair():
+    uid = session.get("uid")
+    if not (uid and auth.get_user(uid)):
+        return jsonify({"error": "not signed in"}), 401
+    auth.revoke_device_token(uid)
     return jsonify({"ok": True})
 
 
@@ -1049,9 +1097,13 @@ def api_monitor():
         return jsonify({"error": "empty"}), 400
     # Anonymous callers (a friend's agent) get the full context-checked verdict
     # but we record NOTHING for them — no events, no shared-store writes. Their
-    # popup decision comes from judgment.surface alone.
+    # popup decision comes from judgment.surface alone. A paired device token
+    # (see _bind_user_store) counts as authed too — that's how the Mac agent
+    # gets attributed on a hosted deployment, where it's never "local".
     uid = session.get("uid")
-    authed = bool(uid and auth.get_user(uid)) or (_is_local_request() and _owner_uid())
+    token_uid = auth.uid_for_device_token(request.headers.get("X-Device-Token", ""))
+    authed = bool(uid and auth.get_user(uid)) or bool(token_uid and auth.get_user(token_uid)) \
+        or bool(_is_local_request() and _owner_uid())
     # Anonymous callers (a friend's agent) must not inherit the owner's toggles —
     # give them the default all-layers-on config, and record nothing.
     default_toggles = {"keyword": True, "semantic": True, "behavioral": True, "trend": True}

@@ -110,6 +110,46 @@ struct Decision {
     let level: String
 }
 
+// MARK: - Device pairing
+//
+// The hosted backend (silenthelp.org) can't tell "this Mac" from any other
+// remote client, so without a credential its /api/monitor calls were being
+// recorded as anonymous and discarded — the agent could run forever and the
+// dashboard would stay empty. The pairing code from Settings -> Mac Agent is
+// that credential: paste it once, it's stored here, and every request after
+// that carries it so the backend can attribute behavioral data to the account.
+enum DeviceAuth {
+    private static let key = "SilentHelpDeviceToken"
+
+    static var token: String? {
+        get { UserDefaults.standard.string(forKey: key) }
+        set { UserDefaults.standard.set(newValue, forKey: key) }
+    }
+
+    static var isPaired: Bool { !(token ?? "").isEmpty }
+
+    /// Prompts for the pairing code shown in Settings -> Mac Agent -> Generate
+    /// pairing code, and stores it. Called from the menu-bar "Connect account…"
+    /// item.
+    static func promptAndStore() {
+        let alert = NSAlert()
+        alert.messageText = "Connect SilentHelp Account"
+        alert.informativeText = "Paste the pairing code from Settings → Mac Agent → Generate pairing code."
+        alert.addButton(withTitle: "Connect")
+        alert.addButton(withTitle: "Cancel")
+        let input = NSTextField(frame: NSRect(x: 0, y: 0, width: 280, height: 24))
+        input.placeholderString = "Pairing code"
+        alert.accessoryView = input
+        alert.window.initialFirstResponder = input
+        if alert.runModal() == .alertFirstButtonReturn {
+            let code = input.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !code.isEmpty { token = code }
+        }
+    }
+
+    static func disconnect() { token = nil }
+}
+
 enum Backend {
     /// One call: runs L1+L2, RECORDS the event for trend gating, returns the
     /// gating decision. The running SilentHelp app polls /api/gating and surfaces
@@ -134,6 +174,7 @@ enum Backend {
         guard let url = URL(string: Config.backend + path) else { done(nil); return }
         var req = URLRequest(url: url)
         req.timeoutInterval = 8
+        if let t = DeviceAuth.token { req.setValue(t, forHTTPHeaderField: "X-Device-Token") }
         URLSession.shared.dataTask(with: req) { d, _, _ in
             guard let d, let json = try? JSONSerialization.jsonObject(with: d) as? [String: Any] else { done(nil); return }
             done(json)
@@ -146,6 +187,10 @@ enum Backend {
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        // Proves which account this device belongs to on a hosted deployment,
+        // where "request came from this Mac" (127.0.0.1) doesn't hold — see
+        // DeviceAuth above. A no-op when running fully local / unpaired.
+        if let t = DeviceAuth.token { req.setValue(t, forHTTPHeaderField: "X-Device-Token") }
         req.httpBody = data
         req.timeoutInterval = 8
         URLSession.shared.dataTask(with: req) { d, _, _ in
@@ -688,6 +733,7 @@ final class Behavioral {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var statusMenuItem: NSMenuItem!
+    private var connectMenuItem: NSMenuItem!
     private let monitor = Monitor()
     private let behavioral = Behavioral()
     private let screenReader = ScreenReader()
@@ -768,6 +814,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem(title: "Send test alert", action: #selector(testAlert), keyEquivalent: "t"))
         menu.addItem(NSMenuItem(title: "Open dashboard", action: #selector(openDash), keyEquivalent: "d"))
         menu.addItem(NSMenuItem(title: "Re-check permission", action: #selector(checkPerm), keyEquivalent: "p"))
+        menu.addItem(.separator())
+        connectMenuItem = NSMenuItem(title: DeviceAuth.isPaired ? "Disconnect account" : "Connect account…",
+                                      action: #selector(toggleConnect), keyEquivalent: "c")
+        menu.addItem(connectMenuItem)
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Ignore for 1 hour", action: #selector(snooze1h), keyEquivalent: "1"))
         menu.addItem(NSMenuItem(title: "Ignore for 2 hours", action: #selector(snooze2h), keyEquivalent: "2"))
@@ -878,6 +928,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func openDash() {
         if let url = URL(string: Config.backend + "/") { NSWorkspace.shared.open(url) }
+    }
+    @objc private func toggleConnect() {
+        if DeviceAuth.isPaired {
+            DeviceAuth.disconnect()
+        } else {
+            DeviceAuth.promptAndStore()
+        }
+        connectMenuItem.title = DeviceAuth.isPaired ? "Disconnect account" : "Connect account…"
     }
     @objc private func snooze1h() { Snooze.set(hours: 1) }
     @objc private func snooze2h() { Snooze.set(hours: 2) }
