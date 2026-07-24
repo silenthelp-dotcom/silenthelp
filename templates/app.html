@@ -765,11 +765,20 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
               <div style="display:flex; align-items:flex-start; justify-content:space-between;">
                 <div>
                   <div style="font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:#7a93ad;" id="fRange">This week</div>
-                  <div class="pf" style="font-size:40px; color:#0e1822; margin-top:8px; line-height:1;">Surface Findings <span id="fPreview" style="display:none; vertical-align:middle; font-family:'Inter',sans-serif; font-style:normal; font-size:10.5px; font-weight:700; letter-spacing:.08em; color:#a4701f; background:#fff6ec; border:1px solid #f6e0c4; border-radius:999px; padding:5px 12px; margin-left:10px;">SAMPLE PREVIEW</span></div>
+                  <div class="pf" style="font-size:40px; color:#0e1822; margin-top:8px; line-height:1;">Surface Findings</div>
                 </div>
                 <button class="hov" onclick="App.exportData()" style="font-size:12px; color:#0a6dff; background:#eef5ff; border:1px solid #d3e4fb; border-radius:999px; padding:9px 16px; font-weight:600; cursor:pointer;">Export data</button>
               </div>
 
+              <!-- Empty state: no real week tracked yet (no invented "SAMPLE
+                   PREVIEW" numbers/narrative — those read as made-up data). -->
+              <div id="fEmpty" style="display:none; margin-top:44px; text-align:center; padding:56px 24px; max-width:460px; margin-left:auto; margin-right:auto;">
+                <div class="hd" style="font-size:26px; color:#fff; line-height:1.15;">Nothing to find yet.</div>
+                <div style="font-size:14px; color:rgba(255,255,255,.6); margin-top:14px; line-height:1.7; font-weight:300;">Your weekly findings fill in once SilentHelp has tracked a few days of your rhythm. Install and pair the Mac agent to start.</div>
+                <button class="hovup glass" onclick="location.href='/download/agent'" style="margin-top:26px; background:#fff; color:#000; border:none; border-radius:999px; padding:13px 30px; font-size:14px; font-weight:600; cursor:pointer;">Download for Mac</button>
+              </div>
+
+              <div id="fCharts">
               <div style="display:flex; gap:40px; margin-top:36px;">
                 <div><div style="font-size:34px; font-weight:300; color:#16202b;"><span id="fAvgBatt">73</span><span style="font-size:16px; color:#9aa7b3;">%</span></div><div style="font-size:11.5px; color:#8b99a6; margin-top:4px;">avg battery</div></div>
                 <div><div style="font-size:34px; font-weight:300; color:#16202b;" id="fAvgFocus">81</div><div style="font-size:11.5px; color:#8b99a6; margin-top:4px;">avg focus</div></div>
@@ -782,6 +791,7 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
 
               <div style="margin-top:40px; font-size:11px; letter-spacing:.2em; color:#7a93ad;">GENTLE SUGGESTIONS</div>
               <div style="margin-top:18px;" id="fSugg"></div>
+              </div><!-- /fCharts -->
             </div>
           </div>
 
@@ -1574,12 +1584,20 @@ const App = {
   },
   async loadFindings(){
     const f = await this.api('/api/findings').catch(()=>null); if (!f) return;
-    const fp = document.getElementById('fPreview');
-    if (fp) fp.style.display = f.seeded ? 'inline-block' : 'none';
+    const empty = document.getElementById('fEmpty');
+    const charts = document.getElementById('fCharts');
     const fr = document.getElementById('fRange');
     if (fr){ const end = new Date(), start = new Date(Date.now() - 6*864e5);
       const fmt = d => d.toLocaleDateString(undefined, {month:'short', day:'numeric'});
       fr.textContent = fmt(start) + ' – ' + fmt(end) + ' · your last seven days'; }
+    if (f.empty){
+      // No real week tracked yet — show an empty state, not an invented one.
+      if (empty) empty.style.display = 'block';
+      if (charts) charts.style.display = 'none';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    if (charts) charts.style.display = '';
     document.getElementById('fAvgBatt').textContent = f.avg_battery;
     document.getElementById('fAvgFocus').textContent = f.avg_focus;
     document.getElementById('fDeep').textContent = f.deep_focus_h;

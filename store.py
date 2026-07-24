@@ -247,18 +247,14 @@ def findings() -> Dict[str, Any]:
             k = (date.today() - timedelta(days=i)).isoformat()
             if k in days:
                 last7.append(days[k]["metrics"])
-        if not last7:  # seed to the design
+        if not last7:
+            # No real week tracked yet -> an honest empty state, not an
+            # invented week (this used to seed a fake "Your focus climbed nine
+            # percent..." narrative with made-up numbers and a "SAMPLE PREVIEW"
+            # badge — the same class of bug fixed in analytics()).
             return {
-                "avg_battery": 73, "avg_focus": 81, "deep_focus_h": 27, "late_nights": 3,
-                "narrative": ("Your focus climbed nine percent — the steadiest stretch in "
-                              "three weeks. A few late nights gathered midweek, then dissolved, "
-                              "and by Friday your tab-switching had settled below its usual line."),
-                "suggestions": [
-                    {"title": "Protect your mornings", "body": "10–12 is your peak — guard it for deep work."},
-                    {"title": "Wind down by eleven", "body": "A softer cutoff would steady your battery."},
-                    {"title": "One screen at a time", "body": "Single-tasking kept your interruptions low."},
-                ],
-                "seeded": True,
+                "avg_battery": None, "avg_focus": None, "deep_focus_h": None, "late_nights": None,
+                "narrative": "", "suggestions": [], "empty": True, "seeded": False,
             }
         avg_b = round(sum(m["mental_battery"] for m in last7) / len(last7))
         avg_f = round(sum(m["focus_score"] for m in last7) / len(last7))
@@ -277,7 +273,8 @@ def findings() -> Dict[str, Any]:
         worst = min(last7, key=lambda m: m["mental_battery"])
         sugg = [{"title": s.split(" — ")[0][:40], "body": s} for s in worst["suggestions"][:3]]
         return {"avg_battery": avg_b, "avg_focus": avg_f, "deep_focus_h": len(last7) * 4,
-                "late_nights": late, "narrative": narrative, "suggestions": sugg, "seeded": False}
+                "late_nights": late, "narrative": narrative, "suggestions": sugg,
+                "empty": False, "seeded": False}
 
 
 # ---------------------------------------------------------------------------
