@@ -165,8 +165,11 @@ body > *:not([data-backdrop]) { position:relative; z-index:2; }
 [style*="background:#f2f8ff"], [style*="background:#eef4fb"],
 [style*="background:#f4f7fb"], [style*="background:#fafcfe"],
 [style*="background:#f6f8fb"] {
+  /* No blur — a page-wide backdrop-filter here blurred the video ONLY inside
+     this box's bounds, and stayed sharp outside it, which is exactly the
+     rectangular "mask" seam cutting through the orb that kept getting flagged.
+     Crystal clear: just a near-transparent fill, no blur layer. */
   background:rgba(255,255,255,0.022) !important;
-  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
 }
 /* Solid white, per the design: primary buttons and the user's chat bubbles. */
 button[style*="background:#fff"], [style*="background:#fff"][style*="color:#000"] {
@@ -654,10 +657,13 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
 
               <div style="display:flex; gap:40px; margin-top:32px; align-items:center;">
                 <!-- battery -->
-                <div style="flex-shrink:0; display:flex; flex-direction:column; align-items:center; width:290px;">
-                  <div style="display:flex; align-items:flex-start; justify-content:center;">
+                <!-- min-width, not a fixed width: at 100% the number is 3 digits
+                     and a fixed 290px box let the "%" overlap it. Sizes to
+                     content instead, so 76% and 100% both lay out cleanly. -->
+                <div style="flex-shrink:0; display:flex; flex-direction:column; align-items:center; min-width:290px;">
+                  <div style="display:flex; align-items:flex-start; justify-content:center; white-space:nowrap;">
                     <div class="hd" id="battNum" style="font-size:150px; color:#fff; line-height:.9; letter-spacing:-4px;">76</div>
-                    <div class="hd" style="font-size:44px; color:rgba(255,255,255,.6); line-height:1; margin-top:14px;">%</div>
+                    <div class="hd" style="font-size:44px; color:rgba(255,255,255,.6); line-height:1; margin-top:14px; margin-left:2px;">%</div>
                   </div>
                   <div id="battLabel" style="font-size:10px; font-weight:600; letter-spacing:.24em; color:rgba(255,255,255,.75); margin-top:6px;">CHARGED</div>
                   <div style="font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.6); margin-top:20px; font-weight:300; display:flex; align-items:center; justify-content:center; gap:7px;">
