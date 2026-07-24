@@ -7,9 +7,12 @@
 <link rel="icon" type="image/png" sizes="180x180" href="/static/img/badge-180.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/static/img/badge-32.png">
 <link rel="apple-touch-icon" href="/static/img/badge-180.png">
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <style>
-  * { box-sizing: border-box; font-family: 'Barlow', -apple-system, BlinkMacSystemFont, sans-serif; }
+  /* Body: Inter — a clean, professional UI sans. Display headings: Fraunces
+     (a refined high-contrast serif) with Instrument Serif kept for the italic
+     greeting. Elegant, editorial, and legible at every size. */
+  * { box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
   html, body { margin: 0; padding: 0; }
   /* Exactly as SilentHelp App.dc.html declares it:
        .hd { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; }
@@ -123,17 +126,23 @@ body > *:not([data-backdrop]) { position:relative; z-index:2; }
 
 /* Give the app's cards the glass edge. ::before needs a positioned parent and
    a radius to inherit, which these panels already have. */
-/* Glass is OPT-IN via class="liquid-glass", the way the design does it — not
-   applied automatically to anything with a border-radius. The blanket rule
-   that used to live here frosted every rounded element on every screen, which
-   is a blur layer the design never asks for. Panels that should be glass get
-   a faint fill so they still read as surfaces. */
+/* No card outlines anywhere in the app — the user wants it crystal clear, no
+   mask/border boxing content. Panels read as surfaces via a faint fill only,
+   with no visible edge. */
 .appscreen [style*="border-radius:18px"],
 .appscreen [style*="border-radius:16px"],
 .appscreen [style*="border-radius:14px"],
 .appscreen [style*="border-radius:20px"]{
-  background:rgba(255,255,255,0.014) !important;
-  border-color:rgba(150,175,235,.10) !important;
+  background:rgba(255,255,255,0.02) !important;
+  border-color:transparent !important;
+}
+/* Kill the liquid-glass gradient-border ::before inside the app — that hairline
+   edge IS the "mask" the user keeps flagging. Content stays on the faint fill,
+   no ring around it. (Landing/auth glass buttons keep their edge.) */
+.appscreen .liquid-glass::before,
+.appscreen .liquid-glass-strong::before { display:none !important; }
+.appscreen .liquid-glass, .appscreen .liquid-glass-strong {
+  border:none !important; box-shadow:none !important;
 }
 /* The sidebar is the app's persistent chrome — heavier blur, like the
    landing page's primary CTA. */
@@ -628,8 +637,12 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
                     <div class="hd" style="font-size:44px; color:rgba(255,255,255,.6); line-height:1; margin-top:14px;">%</div>
                   </div>
                   <div id="battLabel" style="font-size:10px; font-weight:600; letter-spacing:.24em; color:rgba(255,255,255,.75); margin-top:6px;">CHARGED</div>
-                  <div style="font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.6); margin-top:20px; font-weight:300;">Mental Battery</div>
+                  <div style="font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.6); margin-top:20px; font-weight:300; display:flex; align-items:center; justify-content:center; gap:7px;">
+                    Mental Battery
+                    <span class="hov" title="How this works" onclick="App.explainBattery()" style="width:16px; height:16px; border-radius:50%; border:1px solid rgba(255,255,255,.3); font-size:10px; line-height:14px; text-align:center; color:rgba(255,255,255,.6); cursor:pointer;">i</span>
+                  </div>
                   <div id="battDelta" style="font-size:13px; color:rgba(255,255,255,.8); margin-top:8px; text-align:center; line-height:1.6; font-weight:300;">Learning your rhythm.</div>
+                  <div id="battExplain" style="display:none; font-size:12px; color:rgba(255,255,255,.55); margin-top:12px; max-width:300px; text-align:center; line-height:1.65; font-weight:300;">Your Mental Battery estimates remaining energy from how you use your device today — focus stability, tab-switching, late-night activity, and typing rhythm, all measured against your own baseline. Nothing you type is read; only the rhythm. It settles once there's enough activity to measure.</div>
                 </div>
 
                 <!-- readings -->
@@ -668,14 +681,22 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
               <div class="pf" style="font-size:40px; color:#0e1822; margin-top:8px; line-height:1;">Analytics <span id="anPreview" style="display:none; vertical-align:middle; font-family:'Inter',sans-serif; font-style:normal; font-size:10.5px; font-weight:700; letter-spacing:.08em; color:#a4701f; background:#fff6ec; border:1px solid #f6e0c4; border-radius:999px; padding:5px 12px; margin-left:10px;">SAMPLE PREVIEW</span></div>
               <div id="anPreviewNote" style="display:none; font-size:12.5px; color:#8b99a6; margin-top:10px; font-weight:300;">This is what your analytics will look like — the real chart fills in as SilentHelp learns your days.</div>
 
+              <!-- Empty state: shown when there's no real tracked data (no invented curve). -->
+              <div id="anEmpty" style="display:none; margin-top:44px; text-align:center; padding:56px 24px; max-width:460px; margin-left:auto; margin-right:auto;">
+                <div class="hd" style="font-size:26px; color:#fff; line-height:1.15;">Nothing to chart yet.</div>
+                <div style="font-size:14px; color:rgba(255,255,255,.6); margin-top:14px; line-height:1.7; font-weight:300;">Your weekly focus and tab-switching trends fill in once SilentHelp has tracked a few days of your rhythm. Install the Mac agent to start.</div>
+                <button class="hovup glass" onclick="location.href='/download/agent'" style="margin-top:26px; background:#fff; color:#000; border:none; border-radius:999px; padding:13px 30px; font-size:14px; font-weight:600; cursor:pointer;">Download for Mac</button>
+              </div>
+
+              <div id="anCharts">
               <div style="margin-top:34px; background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:22px;">
                 <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:6px;"><div style="font-size:13px; color:#3c4a57; font-weight:600;">Focus trend</div><div style="font-size:12px; color:#1f9d55; font-weight:600;" id="weekChange">+9% vs last week</div></div>
                 <svg viewBox="0 0 880 200" style="width:100%; height:180px;">
-                  <defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#007aff" stop-opacity=".22"/><stop offset="1" stop-color="#007aff" stop-opacity="0"/></linearGradient></defs>
+                  <defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".18"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient></defs>
                   <line x1="0" y1="60" x2="880" y2="60" stroke="#eef2f6"/><line x1="0" y1="120" x2="880" y2="120" stroke="#eef2f6"/>
                   <path id="trendArea" d="M20,128 L160,100 L300,116 L440,72 L580,84 L720,50 L860,60 L860,200 L20,200 Z" fill="url(#ga)"/>
-                  <path id="trendLine" d="M20,128 L160,100 L300,116 L440,72 L580,84 L720,50 L860,60" fill="none" stroke="#007aff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                  <circle id="trendDot" cx="720" cy="50" r="4.5" fill="#007aff"/>
+                  <path id="trendLine" d="M20,128 L160,100 L300,116 L440,72 L580,84 L720,50 L860,60" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle id="trendDot" cx="720" cy="50" r="4.5" fill="#fff"/>
                 </svg>
                 <div style="display:flex; justify-content:space-between; font-size:11px; color:#9aa7b3; margin-top:4px;"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
               </div>
@@ -685,14 +706,14 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
                   <div style="font-size:13px; color:#3c4a57; font-weight:600; margin-bottom:4px;">Tab-switching</div>
                   <div style="font-size:12px; color:#8b99a6; margin-bottom:18px; font-weight:300;">Lower is calmer · baseline ≈ 45/day</div>
                   <div id="tabBars" style="display:flex; align-items:flex-end; gap:11px; height:96px; position:relative;">
-                    <div style="position:absolute; left:0; right:0; top:28%; border-top:1px dashed #c2d4e8;"></div>
-                    <div style="flex:1; height:52%; background:#bcd9ff; border-radius:4px;"></div><div style="flex:1; height:60%; background:#bcd9ff; border-radius:4px;"></div><div style="flex:1; height:48%; background:#bcd9ff; border-radius:4px;"></div><div style="flex:1; height:70%; background:#9cc7ff; border-radius:4px;"></div><div style="flex:1; height:58%; background:#bcd9ff; border-radius:4px;"></div><div style="flex:1; height:40%; background:#007aff; border-radius:4px;"></div><div style="flex:1; height:36%; background:#007aff; border-radius:4px;"></div>
+                    <div style="position:absolute; left:0; right:0; top:28%; border-top:1px dashed rgba(255,255,255,.25);"></div>
+                    <div style="flex:1; height:52%; background:rgba(255,255,255,.4); border-radius:4px;"></div><div style="flex:1; height:60%; background:rgba(255,255,255,.4); border-radius:4px;"></div><div style="flex:1; height:48%; background:rgba(255,255,255,.4); border-radius:4px;"></div><div style="flex:1; height:70%; background:rgba(255,255,255,.6); border-radius:4px;"></div><div style="flex:1; height:58%; background:rgba(255,255,255,.4); border-radius:4px;"></div><div style="flex:1; height:40%; background:rgba(255,255,255,.85); border-radius:4px;"></div><div style="flex:1; height:36%; background:rgba(255,255,255,.85); border-radius:4px;"></div>
                   </div>
                   <div style="font-size:11.5px; color:#9aa7b3; margin-top:10px; font-weight:300;">Dashed line is your usual. You're beneath it.</div>
                 </div>
                 <div style="width:280px; flex-shrink:0; background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:22px;">
                   <div style="font-size:13px; color:#3c4a57; font-weight:600; margin-bottom:14px;">Productive hours</div>
-                  <div style="display:flex; align-items:center; justify-content:space-between; padding:13px 0; border-bottom:1px solid #eef2f6;"><span style="font-size:12.5px; color:#5e6f7e;">Most productive</span><span style="font-size:14px; color:#007aff; font-weight:600;">10–12 AM</span></div>
+                  <div style="display:flex; align-items:center; justify-content:space-between; padding:13px 0; border-bottom:1px solid #eef2f6;"><span style="font-size:12.5px; color:#5e6f7e;">Most productive</span><span style="font-size:14px; color:#fff; font-weight:600;">10–12 AM</span></div>
                   <div style="display:flex; align-items:center; justify-content:space-between; padding:13px 0; border-bottom:1px solid #eef2f6;"><span style="font-size:12.5px; color:#5e6f7e;">Second wind</span><span style="font-size:14px; color:#16202b; font-weight:600;">4–5 PM</span></div>
                   <div style="display:flex; align-items:center; justify-content:space-between; padding:13px 0;"><span style="font-size:12.5px; color:#5e6f7e;">Watch-out window</span><span style="font-size:14px; color:#e8862a; font-weight:600;">11 PM–1 AM</span></div>
                 </div>
@@ -702,9 +723,11 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
                 <div style="font-size:13px; color:#3c4a57; font-weight:600; margin-bottom:2px;">Typical day rhythm</div>
                 <div style="font-size:11.5px; color:#9aa7b3; font-weight:300; margin-bottom:14px;">Illustrative — fills in with your real hours as SilentHelp learns your week.</div>
                 <div style="display:flex; flex-direction:column; gap:5px;" id="heatmap"></div>
-                <div style="display:flex; align-items:center; gap:8px; margin-top:12px; font-size:11px; color:#9aa7b3;">Less<div style="width:16px; height:11px; border-radius:3px; background:#eef4fb;"></div><div style="width:16px; height:11px; border-radius:3px; background:#9cc7ff;"></div><div style="width:16px; height:11px; border-radius:3px; background:#007aff;"></div><div style="width:16px; height:11px; border-radius:3px; background:#0049c4;"></div>More</div>
+                <div style="display:flex; align-items:center; gap:8px; margin-top:12px; font-size:11px; color:#9aa7b3;">Less<div style="width:16px; height:11px; border-radius:3px; background:rgba(255,255,255,.12);"></div><div style="width:16px; height:11px; border-radius:3px; background:rgba(255,255,255,.4);"></div><div style="width:16px; height:11px; border-radius:3px; background:rgba(255,255,255,.7);"></div><div style="width:16px; height:11px; border-radius:3px; background:rgba(255,255,255,.95);"></div>More</div>
               </div>
             </div>
+            </div><!-- /anCharts -->
+          </div>
           </div>
 
           <!-- FINDINGS -->
@@ -1403,6 +1426,10 @@ const App = {
   },
 
   // ---- live screens ----
+  explainBattery(){
+    const e = document.getElementById('battExplain');
+    if (e) e.style.display = e.style.display === 'none' ? 'block' : 'none';
+  },
   async loadDashboard(){
     const d = await this.api('/api/dashboard').catch(()=>null); if (!d) return;
     this.paintGreeting();
@@ -1423,10 +1450,18 @@ const App = {
   },
   async loadAnalytics(){
     const a = await this.api('/api/analytics').catch(()=>null); if (!a) return;
-    const pv = document.getElementById('anPreview'), pn = document.getElementById('anPreviewNote');
-    if (pv) pv.style.display = a.seeded ? 'inline-block' : 'none';
-    if (pn) pn.style.display = a.seeded ? 'block' : 'none';
-    document.getElementById('weekChange').textContent = a.seeded ? 'sample data' : (a.week_change>=0?'+':'') + a.week_change + '% vs last week';
+    const empty = document.getElementById('anEmpty');
+    const charts = document.getElementById('anCharts');
+    if (a.empty){
+      // No real tracked data yet — show an empty state, not an invented curve.
+      if (empty) empty.style.display = 'block';
+      if (charts) charts.style.display = 'none';
+      document.getElementById('weekChange').textContent = 'no data yet';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    if (charts) charts.style.display = '';
+    document.getElementById('weekChange').textContent = (a.week_change>=0?'+':'') + a.week_change + '% vs last week';
     const t = a.trend.map(v => typeof v==='number'?v:0);
     const xs = t.map((_,i)=> 20 + i*(840/6));
     const ys = t.map(v => 180 - Math.max(0,Math.min(100,v))/100*150);
@@ -1436,9 +1471,10 @@ const App = {
     document.getElementById('trendDot').setAttribute('cx', xs[xs.length-1]);
     document.getElementById('trendDot').setAttribute('cy', ys[ys.length-1]);
     const bars = a.bars.map(v=>typeof v==='number'?v:0); const max = Math.max(a.baseline_tabs*1.6, ...bars, 1);
-    const dash = `<div style="position:absolute; left:0; right:0; top:${(1-a.baseline_tabs/max)*100}%; border-top:1px dashed #c2d4e8;"></div>`;
+    // Neutral white/grey, not blue — bars above baseline read brighter.
+    const dash = `<div style="position:absolute; left:0; right:0; top:${(1-a.baseline_tabs/max)*100}%; border-top:1px dashed rgba(255,255,255,.25);"></div>`;
     document.getElementById('tabBars').innerHTML = dash + bars.map(v=>{
-      const below = v < a.baseline_tabs; return `<div style="flex:1; height:${Math.max(6, v/max*100)}%; background:${below?'#007aff':'#bcd9ff'}; border-radius:4px;"></div>`;
+      const below = v < a.baseline_tabs; return `<div style="flex:1; height:${Math.max(6, v/max*100)}%; background:${below?'rgba(255,255,255,.85)':'rgba(255,255,255,.4)'}; border-radius:4px;"></div>`;
     }).join('');
   },
   async loadFindings(){
@@ -1455,7 +1491,7 @@ const App = {
     document.getElementById('fLate').textContent = f.late_nights;
     document.getElementById('fNarrative').textContent = f.narrative;
     document.getElementById('fSugg').innerHTML = (f.suggestions||[]).map((s,i,arr)=>
-      `<div style="display:flex; gap:16px; padding:16px 0; ${i<arr.length-1?'border-bottom:1px solid #e9eef4;':''}"><div style="width:6px; height:6px; border-radius:50%; background:#007aff; margin-top:7px;"></div><div><div style="font-size:14px; color:#16202b;">${this.esc(s.title)}</div><div style="font-size:12.5px; color:#8b99a6; margin-top:3px; font-weight:300;">${this.esc(s.body)}</div></div></div>`
+      `<div style="display:flex; gap:16px; padding:16px 0; ${i<arr.length-1?'border-bottom:1px solid #e9eef4;':''}"><div style="width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.6); margin-top:7px;"></div><div><div style="font-size:14px; color:#16202b;">${this.esc(s.title)}</div><div style="font-size:12.5px; color:#8b99a6; margin-top:3px; font-weight:300;">${this.esc(s.body)}</div></div></div>`
     ).join('');
   },
 

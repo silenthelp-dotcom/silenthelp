@@ -163,6 +163,27 @@ def dashboard() -> Dict[str, Any]:
             }
         m = today["metrics"]
         sig = today["signals"]
+
+        # The battery is only meaningful once there's enough real activity to
+        # measure. With just a few minutes logged, the extrapolated rates (a
+        # couple of tab-switches over a tiny window) swing wildly, so the number
+        # jumped up and down. Below a real threshold, hold the stable "learning"
+        # state instead of showing a volatile computed value.
+        MIN_ACTIVE_MIN = 20
+        active_min = float(sig.get("active_minutes", 0))
+        if active_min < MIN_ACTIVE_MIN:
+            base = behavioral.compute_metrics(behavioral.BASELINE)
+            return {
+                "mental_battery": base["mental_battery"], "focus_score": base["focus_score"],
+                "tab_switches": round(behavioral.BASELINE["tab_switches"]),
+                "active_minutes": round(active_min), "late_night_min": round(float(sig.get("late_night_min", 0))),
+                "corrections": round(behavioral.BASELINE["backspace_rate"] * 100),
+                "status": "Charged", "delta": 0, "burnout_risk": base["burnout_risk"],
+                "suggestions": [f"Still learning your rhythm — about {round(active_min)} of {MIN_ACTIVE_MIN} "
+                                "minutes of activity measured today. Your reading settles once there's enough."],
+                "learning": True, "seeded": False,
+            }
+
         # delta vs the most recent previous day
         prev_keys = sorted(k for k in days if k < _today())
         delta = 0
@@ -195,22 +216,25 @@ def analytics() -> Dict[str, Any]:
             k = (date.today() - timedelta(days=i)).isoformat()
             trend.append(days[k]["metrics"]["focus_score"] if k in days else None)
         present = [v for v in trend if isinstance(v, (int, float))]
-        if not present:  # seed to the design's curve
-            trend = [64, 70, 66, 78, 75, 88, 84]
-        # tab-switching bars (last 7 days; seed if empty)
+        # tab-switching bars (last 7 days)
         bars: List[Any] = []
         for i in range(6, -1, -1):
             k = (date.today() - timedelta(days=i)).isoformat()
             bars.append(round(float(days[k]["signals"].get("tab_switches", 0))) if k in days else None)
-        if not any(isinstance(b, (int, float)) for b in bars):
-            bars = [40, 46, 37, 54, 45, 31, 28]
+
+        # No real data yet → return an EMPTY state, not an invented curve. The
+        # old code seeded a fake week (e.g. a Saturday trend) even when nothing
+        # had been tracked, which read as made-up data. The UI shows an empty
+        # state instead ("install the agent to start tracking").
+        if not present:
+            return {"trend": [], "bars": [], "baseline_tabs": 45,
+                    "week_change": 0, "empty": True, "seeded": False}
+
         week_change = 0
         if len(present) >= 2:
             week_change = round((present[-1] - present[0]) / max(present[0], 1) * 100)
-        # seeded = showing the illustrative sample because there's no real data
-        # yet — the UI labels it as a preview instead of passing it off as real.
         return {"trend": trend, "bars": bars, "baseline_tabs": 45,
-                "week_change": week_change or 9, "seeded": not present}
+                "week_change": week_change, "empty": False, "seeded": False}
 
 
 def findings() -> Dict[str, Any]:
