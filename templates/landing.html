@@ -172,7 +172,6 @@
       email: "abhinavallani02@gmail.com",
       linkedin: "https://www.linkedin.com/in/abhinav-allani-1a9207389/",
       photo: "/static/img/team/abhinav.jpg",
-      pos: "50% 28%",
       short: "Co-founder. Leads the AI/ML and layered detection systems.",
       long: "Abhinav leads SilentHelp's AI/ML and detection-systems engineering. He established the layered detection framework that combines deterministic signal matching, semantic context classification, behavioral indicators, and time-based trend analysis. His work focuses on making detection more accurate, context-aware, and resilient — helping the system distinguish casual language, humor, stress, burnout, and potentially urgent signals without relying on one-word triggers alone. Abhinav is responsible for improving model integration, classifier behavior, evaluation scenarios, routing logic, and the technical safeguards that ensure AI provides semantic insight while deterministic code retains control over every response."
     },
@@ -843,7 +842,7 @@ function Avatar({ member, size = 88 }) {
     return <img src={member.photo} alt={member.name}
                 onError={() => setFailed(true)}
                 className="rounded-full object-cover shrink-0"
-                style={{ width: size, height: size, objectPosition: member.pos || "center 22%" }} />;
+                style={{ width: size, height: size, objectPosition: member.pos || "center" }} />;
   }
   return (
     <div className="rounded-full grid place-items-center font-heading italic text-white/90 shrink-0"

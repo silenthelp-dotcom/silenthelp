@@ -53,7 +53,7 @@
   section.team{ padding:40px 0 30px; display:flex; flex-direction:column; gap:26px; }
   .member{ padding:34px; display:flex; gap:30px; align-items:flex-start; scroll-margin-top:90px; }
   .avatar{ width:120px; height:120px; border-radius:50%; flex:none; object-fit:cover;
-           object-position:center 22%;  /* portraits are tall; bias toward the face, not the chin */
+           object-position:center;  /* square, face-centred crops — no offset needed */
            display:grid; place-items:center; font-size:41px;
            background:linear-gradient(140deg, rgba(120,132,160,.5), rgba(50,60,86,.5));
            box-shadow:inset 0 1px 1px rgba(255,255,255,.2); }
@@ -165,7 +165,6 @@ var TEAM = [
     email: "abhinavallani02@gmail.com",
     linkedin: "https://www.linkedin.com/in/abhinav-allani-1a9207389/",
     photo: "/static/img/team/abhinav.jpg",
-    pos: "50% 28%",
     bio: "Abhinav leads SilentHelp's AI/ML and detection-systems engineering. He established the layered detection framework that combines deterministic signal matching, semantic context classification, behavioral indicators, and time-based trend analysis. His work focuses on making detection more accurate, context-aware, and resilient — helping the system distinguish casual language, humor, stress, burnout, and potentially urgent signals without relying on one-word triggers alone. Abhinav is responsible for improving model integration, classifier behavior, evaluation scenarios, routing logic, and the technical safeguards that ensure AI provides semantic insight while deterministic code retains control over every response."
   },
   {
