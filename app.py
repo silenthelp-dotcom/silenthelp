@@ -1079,6 +1079,37 @@ def api_chat_clear():
     return jsonify({"ok": True})
 
 
+# --- Chat threads (ChatGPT-style history) ---------------------------------
+
+@app.route("/api/chat/threads")
+def api_chat_threads():
+    return jsonify({"threads": store.list_threads()})
+
+
+@app.route("/api/chat/new", methods=["POST"])
+def api_chat_new():
+    """Archive the current conversation and start a fresh one."""
+    store.new_thread()
+    return jsonify({"ok": True, "chat": store.get_chat()})
+
+
+@app.route("/api/chat/open", methods=["POST"])
+def api_chat_open():
+    """Reopen an archived conversation as the active one."""
+    d = request.get_json(silent=True) or {}
+    if not store.open_thread((d.get("id") or "").strip()):
+        return jsonify({"error": "not found"}), 404
+    return jsonify({"ok": True, "chat": store.get_chat()})
+
+
+@app.route("/api/chat/thread/delete", methods=["POST"])
+def api_chat_thread_delete():
+    d = request.get_json(silent=True) or {}
+    if not store.delete_thread((d.get("id") or "").strip()):
+        return jsonify({"error": "not found"}), 404
+    return jsonify({"ok": True})
+
+
 @app.route("/api/export")
 def api_export():
     payload = json.dumps(store.export(), ensure_ascii=False, indent=2)

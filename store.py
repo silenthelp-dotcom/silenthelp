@@ -57,7 +57,8 @@ DEFAULTS: Dict[str, Any] = {
     },
     "days": {},        # "YYYY-MM-DD" -> {signals, metrics}
     "events": [],      # {ts, layer:int, level:str, category:str}  (no raw text)
-    "chat": [],        # {role, content, ts}
+    "chat": [],        # active conversation: {role, content, ts}
+    "chat_threads": [],  # archived conversations: {id, title, messages, ts}
     "trend_streak": 0,
 }
 
@@ -410,6 +411,85 @@ def clear_chat() -> None:
         data = _load()
         data["chat"] = []
         _save(data)
+
+
+# --- Multiple chat threads (ChatGPT-style history) -------------------------
+#
+# `data["chat"]` stays the ACTIVE conversation, so every existing caller keeps
+# working unchanged. Past conversations are archived in `data["chat_threads"]`
+# as {id, title, messages, ts}. Starting a new chat archives the current one.
+
+def _thread_title(messages: List[Dict[str, Any]]) -> str:
+    """Name a thread after its first user message, trimmed."""
+    for m in messages:
+        if m.get("role") == "user":
+            t = " ".join((m.get("content") or "").split())
+            return (t[:44] + "…") if len(t) > 44 else (t or "New conversation")
+    return "New conversation"
+
+
+def list_threads() -> List[Dict[str, Any]]:
+    """Archived threads, newest first, plus whether the active chat has content."""
+    with _LOCK:
+        data = _load()
+        out = []
+        for t in reversed(data.get("chat_threads", [])):
+            out.append({"id": t.get("id"), "title": t.get("title") or "Conversation",
+                        "ts": t.get("ts"), "count": len(t.get("messages") or [])})
+        return out
+
+
+def new_thread() -> None:
+    """Archive the current conversation and start an empty one."""
+    with _LOCK:
+        data = _load()
+        cur = data.get("chat") or []
+        # Only archive if there's a real exchange (not just the greeting).
+        if any(m.get("role") == "user" for m in cur):
+            data.setdefault("chat_threads", []).append({
+                "id": datetime.now().strftime("%Y%m%d%H%M%S%f"),
+                "title": _thread_title(cur),
+                "messages": cur,
+                "ts": datetime.now().isoformat(timespec="seconds"),
+            })
+            data["chat_threads"] = data["chat_threads"][-50:]   # keep the last 50
+        data["chat"] = []
+        _save(data)
+
+
+def open_thread(thread_id: str) -> bool:
+    """Make an archived thread the active one (archiving whatever's open)."""
+    with _LOCK:
+        data = _load()
+        threads = data.get("chat_threads", [])
+        idx = next((i for i, t in enumerate(threads) if t.get("id") == thread_id), None)
+        if idx is None:
+            return False
+        cur = data.get("chat") or []
+        if any(m.get("role") == "user" for m in cur):
+            threads.append({
+                "id": datetime.now().strftime("%Y%m%d%H%M%S%f"),
+                "title": _thread_title(cur), "messages": cur,
+                "ts": datetime.now().isoformat(timespec="seconds"),
+            })
+            idx = next((i for i, t in enumerate(threads) if t.get("id") == thread_id), None)
+        picked = threads.pop(idx)
+        data["chat"] = picked.get("messages") or []
+        data["chat_threads"] = threads
+        _save(data)
+        return True
+
+
+def delete_thread(thread_id: str) -> bool:
+    with _LOCK:
+        data = _load()
+        threads = data.get("chat_threads", [])
+        n = len(threads)
+        data["chat_threads"] = [t for t in threads if t.get("id") != thread_id]
+        if len(data["chat_threads"]) == n:
+            return False
+        _save(data)
+        return True
 
 
 # ---------------------------------------------------------------------------

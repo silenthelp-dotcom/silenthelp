@@ -783,8 +783,18 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
           <div class="appscreen" id="scr-chat" style="display:none; height:100%;">
             <div style="height:100%; display:flex; flex-direction:column;">
               <div style="padding:28px 40px 18px; flex-shrink:0;">
-                <div class="pf" style="font-size:30px; color:#0e1822; line-height:1;">Coping Chat</div>
-                <div style="font-size:12.5px; color:#8b99a6; margin-top:8px; font-weight:300;">A supportive space — not a therapist. You opened this; you can close it anytime.</div>
+                <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px;">
+                  <div>
+                    <div class="pf" style="font-size:30px; color:#0e1822; line-height:1;">Coping Chat</div>
+                    <div style="font-size:12.5px; color:#8b99a6; margin-top:8px; font-weight:300;">A supportive space — not a therapist. You opened this; you can close it anytime.</div>
+                  </div>
+                  <div style="display:flex; gap:9px; flex-shrink:0;">
+                    <button class="liquid-glass hov" onclick="App.toggleThreads()" style="background:transparent; color:rgba(255,255,255,.85); border:none; border-radius:9999px; padding:9px 16px; font-size:12px; font-weight:500; cursor:pointer;">History</button>
+                    <button class="liquid-glass hov" onclick="App.newChat()" style="background:transparent; color:rgba(255,255,255,.85); border:none; border-radius:9999px; padding:9px 16px; font-size:12px; font-weight:500; cursor:pointer;">New chat</button>
+                  </div>
+                </div>
+                <!-- Past conversations (toggled by History) -->
+                <div id="threadList" style="display:none; margin-top:14px; max-height:210px; overflow-y:auto;"></div>
                 <div style="margin-top:16px; padding:11px 15px; border-radius:11px; background:#fff6ec; border:1px solid #f6e0c4; font-size:12px; color:#a4701f; line-height:1.5; font-weight:300;"><strong style="color:#8a5d18; font-weight:600;">If you're in crisis:</strong> call or text <strong style="font-weight:600;">988</strong>, or text <strong style="font-weight:600;">HOME to 741741</strong>. Real people, any time.</div>
               </div>
               <div id="chatThread" style="flex:1; overflow:auto; padding:8px 40px 18px; display:flex; flex-direction:column; gap:18px;"></div>
@@ -1524,6 +1534,50 @@ const App = {
     document.getElementById('fSugg').innerHTML = (f.suggestions||[]).map((s,i,arr)=>
       `<div style="display:flex; gap:16px; padding:16px 0; ${i<arr.length-1?'border-bottom:1px solid #e9eef4;':''}"><div style="width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.6); margin-top:7px;"></div><div><div style="font-size:14px; color:#16202b;">${this.esc(s.title)}</div><div style="font-size:12.5px; color:#8b99a6; margin-top:3px; font-weight:300;">${this.esc(s.body)}</div></div></div>`
     ).join('');
+  },
+
+  // ---- chat threads (ChatGPT-style history) ----
+  async newChat(){
+    // Archives the current conversation server-side and starts an empty one.
+    const r = await this.api('/api/chat/new', {}).catch(()=>null);
+    this.history = [{ role:'assistant', content:"Hi — I'm really glad you opened this. How are you feeling today?" }];
+    this.renderChat(false);
+    const tl = document.getElementById('threadList');
+    if (tl && tl.style.display !== 'none') this.loadThreads();
+  },
+  async toggleThreads(){
+    const tl = document.getElementById('threadList');
+    if (!tl) return;
+    if (tl.style.display === 'none'){ tl.style.display = 'block'; await this.loadThreads(); }
+    else tl.style.display = 'none';
+  },
+  async loadThreads(){
+    const tl = document.getElementById('threadList'); if (!tl) return;
+    const d = await this.api('/api/chat/threads').catch(()=>null);
+    const list = (d && d.threads) || [];
+    if (!list.length){
+      tl.innerHTML = '<div style="font-size:12.5px; color:rgba(255,255,255,.45); padding:10px 2px; font-weight:300;">No past conversations yet. Starting a new chat saves this one here.</div>';
+      return;
+    }
+    tl.innerHTML = list.map(t => {
+      const when = t.ts ? new Date(t.ts).toLocaleDateString(undefined,{month:'short', day:'numeric'}) : '';
+      return `<div class="hov" style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; cursor:pointer; background:rgba(255,255,255,.03); margin-bottom:6px;">
+        <div style="flex:1; min-width:0;" onclick="App.openThread('${t.id}')">
+          <div style="font-size:13px; color:rgba(255,255,255,.9); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${this.esc(t.title)}</div>
+          <div style="font-size:11px; color:rgba(255,255,255,.4); margin-top:2px;">${when} · ${t.count} messages</div>
+        </div>
+        <span onclick="event.stopPropagation(); App.deleteThread('${t.id}')" title="Delete" style="color:rgba(255,255,255,.35); font-size:15px; padding:0 4px; cursor:pointer;">×</span>
+      </div>`;
+    }).join('');
+  },
+  async openThread(id){
+    const d = await this.api('/api/chat/open', { id }).catch(()=>null);
+    if (d && d.chat){ this.history = d.chat.map(m => ({ role:m.role, content:m.content })); this.renderChat(false); }
+    await this.loadThreads();
+  },
+  async deleteThread(id){
+    await this.api('/api/chat/thread/delete', { id }).catch(()=>{});
+    await this.loadThreads();
   },
 
   // ---- chat ----
