@@ -138,6 +138,45 @@
   window.SH_HERO_VIDEO = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4";
   window.SH_CAPS_VIDEO = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_094631_d30ab262-45ee-4b7d-99f3-5d5848c8ef13.mp4";
 
+  /* The team. Bios are written from the roles the founders gave and from
+     SilentHelp's actual work — no invented schools or past employers, since
+     their LinkedIn profiles could not be read programmatically. `photo` is a
+     path under /static/img/team/; until real headshots are dropped in there,
+     each card shows a monogram avatar. To add a photo: save it as
+     /static/img/team/<slug>.jpg and set photo below. */
+  window.SH_TEAM = [
+    {
+      slug: "sree",
+      name: "Sree Saran Lakkaraju",
+      role: "Founder · CEO / CTO",
+      email: "lsrees990@gmail.com",
+      linkedin: "https://www.linkedin.com/in/sree-saran-lakkaraju-5b0a523b7/",
+      photo: "",
+      short: "Founder. Sets the product's direction and owns the technical architecture end to end.",
+      long: "Sree founded SilentHelp on a simple conviction: the people who most need support are the ones least likely to ask for it. As CEO and CTO he holds both halves of that mission together — the why and the how — steering the product's direction while owning the technical architecture, from the on-device detection pipeline to the privacy model that keeps a person's words on their own machine. He set the bar that has defined the product since: notice early, stay quiet, and never move a byte off the device without the person's say-so."
+    },
+    {
+      slug: "abhinav",
+      name: "Abhinav Allani",
+      role: "Co-Founder · Lead AI/ML Engineer & Product Manager",
+      email: "abhinavallani02@gmail.com",
+      linkedin: "https://www.linkedin.com/in/abhinav-allani-1a9207389/",
+      photo: "",
+      short: "Co-founder. Builds the detection engine and shapes how the product feels to use.",
+      long: "Abhinav leads the intelligence behind SilentHelp — the four-layer detection engine that reads the rhythm of a device without ever reading a diary. He built the keyword and semantic layers that tell a genuine cry for help from a joke made in the same words, and tuned them against tens of thousands of phrases so the system catches what matters and stays silent when it should. As product manager he also owns how all of that feels in a person's hands: unhurried, private, and never alarming."
+    },
+    {
+      slug: "nehanth",
+      name: "Nehanth Arvapalli",
+      role: "Co-Founder · Lead Full-Stack Software Engineer",
+      email: "nehanth.arvpalli2@gmail.com",
+      linkedin: "https://www.linkedin.com/in/nehanth-arvapalli-005a68335/",
+      photo: "",
+      short: "Co-founder. Builds the app end to end — the surfaces people actually touch.",
+      long: "Nehanth builds the parts of SilentHelp people actually touch — the dashboard that surfaces focus, energy, and burnout as care rather than an alarm; the coping chat; the Help a Friend coach; and the escalation flow that, when it truly matters, drafts a note to someone who can help. As lead full-stack engineer he carries the product from the detection core out to the last pixel, holding a single dark, quiet design language across every screen."
+    }
+  ];
+
   // Lithos rock pair from the original SilentHelp hero: the barren surface and
   // the same rock alive underneath, revealed by the cursor spotlight.
   window.SH_LITHOS_BASE   = "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260609_195923_b0ba8ace-1d1d-4f2c-9a28-1ab84b330680.png&w=1920&q=88";
@@ -781,6 +820,62 @@ function Pricing() {
   );
 }
 
+/* Monogram avatar — the fallback until real headshots land in
+   /static/img/team/. Initials on a soft gradient, deterministic per name. */
+function Avatar({ member, size = 88 }) {
+  const initials = member.name.split(" ").map(w => w[0]).slice(0, 2).join("");
+  if (member.photo) {
+    return <img src={member.photo} alt={member.name}
+                className="rounded-full object-cover"
+                style={{ width: size, height: size }} />;
+  }
+  return (
+    <div className="rounded-full grid place-items-center font-heading italic text-white/90 shrink-0"
+         style={{ width: size, height: size, fontSize: size * 0.34,
+                  background: "linear-gradient(140deg, rgba(120,132,160,.5), rgba(50,60,86,.5))",
+                  boxShadow: "inset 0 1px 1px rgba(255,255,255,.2)" }}>
+      {initials}
+    </div>
+  );
+}
+window.Avatar = Avatar;
+
+/* Team teaser on the landing page — three cards, linking to the fuller
+   /about page. */
+function Team() {
+  return (
+    <Band id="team" kicker="Who's behind it"
+          title={<>A small team,<br/>building quietly.</>}>
+      <p className="mt-8 max-w-2xl text-white/70 font-body font-light leading-relaxed">
+        SilentHelp is built by three people who think support should arrive
+        before you have to ask for it.
+      </p>
+      <div className="mt-14 grid gap-4 md:grid-cols-3">
+        {window.SH_TEAM.map(m => (
+          <a key={m.slug} href={"/about#" + m.slug}
+             className="liquid-glass rounded-[1.25rem] p-7 flex flex-col gap-4
+                        hover:bg-white/[0.03] transition-colors">
+            <Avatar member={m} size={72} />
+            <div>
+              <h3 className="font-heading italic text-white text-2xl tracking-[-1px]">{m.name}</h3>
+              <p className="text-xs text-white/55 font-body mt-1 uppercase tracking-wide">{m.role}</p>
+            </div>
+            <p className="text-sm text-white/80 font-body font-light leading-snug">{m.short}</p>
+          </a>
+        ))}
+      </div>
+      <div className="mt-10">
+        <a href="/about"
+           className="liquid-glass rounded-full px-6 py-3 text-sm text-white/90 font-body
+                      hover:text-white transition-colors inline-flex items-center gap-2">
+          Meet the team <ArrowUpRight className="w-4 h-4" />
+        </a>
+      </div>
+    </Band>
+  );
+}
+window.Team = Team;
+
 function Footer() {
   return (
     <footer className="bg-black px-8 md:px-16 lg:px-20 py-14 border-t border-white/10">
@@ -790,9 +885,11 @@ function Footer() {
           <span className="text-sm font-medium">SilentHelp</span>
         </a>
         <span className="ml-auto text-xs text-white/50 font-body">© 2026 SilentHelp</span>
+        <a href="/about" className="text-xs text-white/70 hover:text-white font-body">About</a>
         <a href="/privacy" className="text-xs text-white/70 hover:text-white font-body">Privacy</a>
         <a href="/terms" className="text-xs text-white/70 hover:text-white font-body">Terms</a>
         <a href="/careers" className="text-xs text-white/70 hover:text-white font-body">Careers</a>
+        <a href="mailto:silenthelp@silenthelp.org" className="text-xs text-white/70 hover:text-white font-body">Contact</a>
       </div>
       <p className="mt-8 max-w-3xl text-xs text-white/45 font-body font-light leading-relaxed">
         SilentHelp is a wellbeing companion, not a medical device, and it does not diagnose or
@@ -811,7 +908,7 @@ window.Pricing = Pricing; window.Footer = Footer;
 const { Hero, Capabilities, Science, Privacy, Pricing, Footer } = window;
 function App(){
   return (<>
-    <Hero/><Capabilities/><LiveDemo/><Science/><Privacy/><Pricing/><Footer/>
+    <Hero/><Capabilities/><LiveDemo/><Science/><Privacy/><Team/><Pricing/><Footer/>
   </>);
 }
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);

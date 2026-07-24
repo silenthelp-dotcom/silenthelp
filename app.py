@@ -549,6 +549,13 @@ def hero_lithos():
     return render_template("hero.html")
 
 
+@app.route("/about")
+def about():
+    # Public about / team page. Self-contained static HTML (no Jinja vars),
+    # served like the landing page.
+    return send_from_directory(app.template_folder, "about.html")
+
+
 @app.route("/stage")
 def stage():
     # Demo film set: a wall of six laptops running Messages/Discord/Snapchat/

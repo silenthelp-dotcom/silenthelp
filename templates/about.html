@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>About · SilentHelp</title>
+<meta name="description" content="The people behind SilentHelp — support that notices before you ask." />
+<link rel="icon" href="/static/img/badge-64.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *,*::before,*::after{ box-sizing:border-box; }
+  html,body{ margin:0; background:#000; color:#fff; font-family:'Barlow',sans-serif;
+             -webkit-font-smoothing:antialiased; }
+  .hd{ font-family:'Instrument Serif',serif; font-style:italic; font-weight:400; }
+  a{ color:inherit; }
+  .wrap{ max-width:1080px; margin:0 auto; padding:0 28px; }
+
+  /* Nav */
+  nav{ position:sticky; top:0; z-index:20; backdrop-filter:blur(14px);
+       -webkit-backdrop-filter:blur(14px); background:rgba(0,0,0,.5);
+       border-bottom:1px solid rgba(255,255,255,.08); }
+  nav .wrap{ display:flex; align-items:center; gap:18px; height:66px; }
+  nav .brand{ display:flex; align-items:center; gap:11px; text-decoration:none; font-weight:500; }
+  nav .brand img{ width:28px; height:28px; border-radius:50%; }
+  nav .sp{ margin-left:auto; }
+  nav a.lnk{ text-decoration:none; color:rgba(255,255,255,.7); font-size:14px; }
+  nav a.lnk:hover{ color:#fff; }
+
+  /* Hero */
+  header.top{ padding:96px 0 40px; text-align:center; }
+  header.top .eyebrow{ font-size:13px; letter-spacing:.16em; text-transform:uppercase;
+                       color:rgba(255,255,255,.5); margin-bottom:22px; }
+  header.top h1{ font-size:clamp(44px,7vw,78px); line-height:1.02; margin:0 0 24px;
+                 letter-spacing:-2px; }
+  header.top p{ max-width:620px; margin:0 auto; color:rgba(255,255,255,.72);
+                font-weight:300; line-height:1.7; font-size:17px; }
+
+  /* Liquid glass card */
+  .glass{ position:relative; background:rgba(255,255,255,.01);
+          backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+          box-shadow:inset 0 1px 1px rgba(255,255,255,.1); border-radius:24px;
+          overflow:hidden; }
+  .glass::before{ content:""; position:absolute; inset:0; border-radius:inherit; padding:1.4px;
+    background:linear-gradient(180deg, rgba(255,255,255,.45) 0%, rgba(255,255,255,.15) 20%,
+      rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%, rgba(255,255,255,.15) 80%,
+      rgba(255,255,255,.45) 100%);
+    -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none; }
+
+  /* Team */
+  section.team{ padding:40px 0 30px; display:flex; flex-direction:column; gap:26px; }
+  .member{ padding:34px; display:flex; gap:30px; align-items:flex-start; scroll-margin-top:90px; }
+  .avatar{ width:120px; height:120px; border-radius:50%; flex:none; object-fit:cover;
+           display:grid; place-items:center; font-size:41px;
+           background:linear-gradient(140deg, rgba(120,132,160,.5), rgba(50,60,86,.5));
+           box-shadow:inset 0 1px 1px rgba(255,255,255,.2); }
+  .member .body{ flex:1; min-width:0; }
+  .member h2{ font-size:30px; margin:0 0 4px; letter-spacing:-1px; }
+  .member .role{ font-size:13px; letter-spacing:.06em; text-transform:uppercase;
+                 color:rgba(255,255,255,.55); margin-bottom:16px; }
+  .member .bio{ color:rgba(255,255,255,.82); font-weight:300; line-height:1.72;
+                font-size:15.5px; }
+  .member .links{ margin-top:18px; display:flex; flex-wrap:wrap; gap:10px; }
+  .chip{ display:inline-flex; align-items:center; gap:7px; text-decoration:none;
+         padding:8px 15px; border-radius:999px; font-size:13px; color:rgba(255,255,255,.85);
+         background:rgba(255,255,255,.05); box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+         transition:color .2s, background .2s; }
+  .chip:hover{ color:#fff; background:rgba(255,255,255,.09); }
+  .chip svg{ width:15px; height:15px; }
+
+  @media (max-width:640px){
+    .member{ flex-direction:column; align-items:center; text-align:center; }
+    .member .links{ justify-content:center; }
+  }
+
+  /* Contact + footer */
+  section.contact{ padding:30px 0; text-align:center; }
+  section.contact .glass{ padding:44px 30px; }
+  section.contact h3{ font-size:34px; margin:0 0 12px; }
+  section.contact p{ color:rgba(255,255,255,.7); font-weight:300; margin:0 0 22px; }
+  section.contact a.mail{ display:inline-block; text-decoration:none; padding:13px 26px;
+    border-radius:999px; background:#fff; color:#000; font-weight:600; font-size:15px; }
+
+  footer{ border-top:1px solid rgba(255,255,255,.1); margin-top:40px; padding:36px 0; }
+  footer .wrap{ display:flex; flex-wrap:wrap; align-items:center; gap:20px; }
+  footer .brand{ display:flex; align-items:center; gap:10px; text-decoration:none;
+                 font-size:14px; font-weight:500; }
+  footer .brand img{ width:26px; height:26px; border-radius:50%; }
+  footer .sp{ margin-left:auto; }
+  footer a.f{ text-decoration:none; color:rgba(255,255,255,.7); font-size:12px; }
+  footer a.f:hover{ color:#fff; }
+  footer .disc{ margin-top:22px; max-width:760px; font-size:12px; color:rgba(255,255,255,.45);
+                font-weight:300; line-height:1.7; }
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <a class="brand" href="/"><img src="/static/img/badge-128.png" alt="" /><span>SilentHelp</span></a>
+  <span class="sp"></span>
+  <a class="lnk" href="/#how">Product</a>
+  <a class="lnk" href="/about">About</a>
+  <a class="lnk" href="/app">Sign in</a>
+</div></nav>
+
+<header class="top"><div class="wrap">
+  <div class="eyebrow">About SilentHelp</div>
+  <h1 class="hd">The people behind<br/>the quiet layer.</h1>
+  <p>SilentHelp began with one conviction: the people who most need support are
+     often the last to ask. We build technology that notices first — on your own
+     device, private by design — so support can arrive before you have to.</p>
+</div></header>
+
+<div class="wrap">
+  <section class="team" id="team"><!-- members injected --></section>
+
+  <section class="contact">
+    <div class="glass">
+      <h3 class="hd">Get in touch</h3>
+      <p>Questions, press, or partnerships — we'd love to hear from you.</p>
+      <a class="mail" href="mailto:silenthelp@silenthelp.org">silenthelp@silenthelp.org</a>
+    </div>
+  </section>
+</div>
+
+<footer><div class="wrap">
+  <a class="brand" href="/"><img src="/static/img/badge-128.png" alt="" /><span>SilentHelp</span></a>
+  <span class="sp"></span>
+  <a class="f" href="/about">About</a>
+  <a class="f" href="/privacy">Privacy</a>
+  <a class="f" href="/terms">Terms</a>
+  <a class="f" href="/careers">Careers</a>
+  <a class="f" href="mailto:silenthelp@silenthelp.org">Contact</a>
+  <div class="disc">SilentHelp is a wellbeing companion, not a medical device, and it does not
+    diagnose or provide treatment. If you are in immediate danger, call or text
+    <strong style="color:rgba(255,255,255,.7)">988</strong> (US Suicide &amp; Crisis Lifeline)
+    or your local emergency number.</div>
+  <div style="flex-basis:100%"></div>
+  <span style="font-size:12px;color:rgba(255,255,255,.4)">© 2026 SilentHelp</span>
+</div></footer>
+
+<script>
+/* The team. Same source of truth as the landing page's teaser; kept inline so
+   /about is a self-contained static page. Bios reflect the founders' stated
+   roles and SilentHelp's real work — no invented credentials. To add a real
+   photo: drop it at /static/img/team/<slug>.jpg and set `photo` below; the
+   monogram avatar is the fallback until then. */
+var TEAM = [
+  {
+    slug: "sree",
+    name: "Sree Saran Lakkaraju",
+    role: "Founder · CEO / CTO",
+    email: "lsrees990@gmail.com",
+    linkedin: "https://www.linkedin.com/in/sree-saran-lakkaraju-5b0a523b7/",
+    photo: "",
+    bio: "Sree founded SilentHelp on a simple conviction: the people who most need support are the ones least likely to ask for it. As CEO and CTO he holds both halves of that mission together — the why and the how — steering the product's direction while owning the technical architecture, from the on-device detection pipeline to the privacy model that keeps a person's words on their own machine. He set the bar that has defined the product since: notice early, stay quiet, and never move a byte off the device without the person's say-so."
+  },
+  {
+    slug: "abhinav",
+    name: "Abhinav Allani",
+    role: "Co-Founder · Lead AI/ML Engineer & Product Manager",
+    email: "abhinavallani02@gmail.com",
+    linkedin: "https://www.linkedin.com/in/abhinav-allani-1a9207389/",
+    photo: "",
+    bio: "Abhinav leads the intelligence behind SilentHelp — the four-layer detection engine that reads the rhythm of a device without ever reading a diary. He built the keyword and semantic layers that tell a genuine cry for help from a joke made in the same words, and tuned them against tens of thousands of phrases so the system catches what matters and stays silent when it should. As product manager he also owns how all of that feels in a person's hands: unhurried, private, and never alarming."
+  },
+  {
+    slug: "nehanth",
+    name: "Nehanth Arvapalli",
+    role: "Co-Founder · Lead Full-Stack Software Engineer",
+    email: "nehanth.arvpalli2@gmail.com",
+    linkedin: "https://www.linkedin.com/in/nehanth-arvapalli-005a68335/",
+    photo: "",
+    bio: "Nehanth builds the parts of SilentHelp people actually touch — the dashboard that surfaces focus, energy, and burnout as care rather than an alarm; the coping chat; the Help a Friend coach; and the escalation flow that, when it truly matters, drafts a note to someone who can help. As lead full-stack engineer he carries the product from the detection core out to the last pixel, holding a single dark, quiet design language across every screen."
+  }
+];
+
+var liIcon = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.76-2.05 4.02 0 4.76 2.65 4.76 6.1V21h-4v-5.4c0-1.29-.02-2.95-1.8-2.95-1.8 0-2.07 1.4-2.07 2.85V21H9z"/></svg>';
+var mailIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>';
+
+function initials(name){ return name.split(" ").map(function(w){return w[0];}).slice(0,2).join(""); }
+
+var host = document.getElementById("team");
+TEAM.forEach(function(m){
+  var av = m.photo
+    ? '<img class="avatar" src="' + m.photo + '" alt="' + m.name + '" />'
+    : '<div class="avatar hd">' + initials(m.name) + '</div>';
+  var el = document.createElement("div");
+  el.className = "member glass";
+  el.id = m.slug;
+  el.innerHTML =
+    av +
+    '<div class="body">' +
+      '<h2 class="hd">' + m.name + '</h2>' +
+      '<div class="role">' + m.role + '</div>' +
+      '<div class="bio">' + m.bio + '</div>' +
+      '<div class="links">' +
+        '<a class="chip" href="' + m.linkedin + '" target="_blank" rel="noopener">' + liIcon + 'LinkedIn</a>' +
+        '<a class="chip" href="mailto:' + m.email + '">' + mailIcon + m.email + '</a>' +
+      '</div>' +
+    '</div>';
+  host.appendChild(el);
+});
+
+// Deep-link (/about#abhinav) → scroll to that member.
+if (location.hash){
+  var t = document.getElementById(location.hash.slice(1));
+  if (t) setTimeout(function(){ t.scrollIntoView({ behavior:"smooth", block:"center" }); }, 200);
+}
+</script>
+</body>
+</html>
