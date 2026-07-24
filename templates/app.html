@@ -326,6 +326,36 @@ button[style*="color:#0a6dff"] { color:#000 !important; }
 #popup-urgent [style*="rgba(0,122,255"] {
   background:linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent) !important;
 }
+/* The escalation email draft was light-themed (white inputs, dark text) — out
+   of step with the dark glass everywhere else. Restyle the whole draft as
+   liquid glass: translucent fields, hairline borders, white text. */
+#popup-urgent .pf { color:#fff !important; }
+#popup-urgent #urgentDesc { color:rgba(255,255,255,.62) !important; }
+#popup-urgent #urgentDraft > div[style*="letter-spacing"] { color:rgba(255,255,255,.42) !important; }
+#popup-urgent #escTo, #popup-urgent #escSubj, #popup-urgent #escBody {
+  background:rgba(255,255,255,.05) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+  color:#fff !important;
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.10) !important;
+}
+#popup-urgent #escTo:focus, #popup-urgent #escSubj:focus, #popup-urgent #escBody:focus {
+  border-color:rgba(255,255,255,.34) !important; background:rgba(255,255,255,.08) !important;
+}
+#popup-urgent #escTo::placeholder, #popup-urgent #escBody::placeholder { color:rgba(255,255,255,.38) !important; }
+/* "988" helper line and the settings/ignore links were warm/grey on white. */
+#popup-urgent [style*="color:#a4701f"] { color:rgba(255,210,150,.85) !important; }
+#popup-urgent [style*="color:#8a5d18"] { color:#ffd79a !important; }
+#popup-urgent [style*="color:#9aa7b3"] { color:rgba(255,255,255,.45) !important; }
+/* Send/Not-now buttons: primary white pill, secondary glass — matching sign-in. */
+#popup-urgent .glass:not(.ghost) {
+  background:#fff !important; color:#000 !important; border:none !important; font-weight:600;
+}
+#popup-urgent .glass.ghost {
+  background:rgba(255,255,255,.05) !important; color:#fff !important;
+  border:1px solid rgba(255,255,255,.16) !important;
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+}
 /* Popup close buttons sit on that wash. */
 #popup-urgent .hov, #popup-gentle .hov {
   background:rgba(255,255,255,.06) !important;
@@ -476,10 +506,6 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
             <div class="hd" style="font-size:clamp(2.4rem,4vw,3.2rem); color:#fff; letter-spacing:-.02em; line-height:1;">Your own quiet space.</div>
             <div style="font-size:16px; color:rgba(255,255,255,.6); margin-top:16px; font-weight:300; line-height:1.6;">Sign in so everything here — your battery, chat, and history — is yours alone. Nobody else can see it.</div>
 
-            <!-- Clerk sign-in mounts here when configured; the legacy form
-                 below is the fallback until the keys are set. -->
-            <div id="clerkSignIn" style="margin-top:34px; display:none;"></div>
-
             <div id="legacyGate">
             <div style="margin-top:38px;">
               <label style="font-size:13px; color:rgba(255,255,255,.7); font-weight:400;">Your name</label>
@@ -498,9 +524,29 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
             <button class="sh-primary" onclick="App.gateAuth('signup')" style="width:100%; margin-top:26px; height:56px; border:none; border-radius:9999px; font-size:16px; font-weight:600; cursor:pointer;">Create my space</button>
             <button class="sh-glass" onclick="App.gateAuth('login')" style="width:100%; margin-top:12px; height:52px; border:none; border-radius:9999px; font-size:15px; font-weight:500; cursor:pointer;">I already have an account — sign in</button>
 
+            <div style="text-align:center; margin-top:16px;">
+              <a href="#" onclick="event.preventDefault(); App.openForgot()" style="font-size:13px; color:rgba(255,255,255,.55); text-decoration:none;">Forgot your password?</a>
+            </div>
+
             </div><!-- /legacyGate -->
 
-            <div style="font-size:13px; color:rgba(255,255,255,.45); margin-top:22px; text-align:center; font-weight:300; line-height:1.6;">Sign-in is handled securely by Clerk. Your detection, chat, and history still stay on your device — only your login does not.<br/>By continuing you agree to the <a href="/terms" target="_blank" style="color:rgba(255,255,255,.7);">Terms of Use</a> · <a href="/privacy" target="_blank" style="color:rgba(255,255,255,.7);">Privacy Policy</a></div>
+            <!-- Forgot-password panel (hidden until "Forgot your password?"). -->
+            <div id="forgotGate" style="display:none; margin-top:38px;">
+              <div style="font-size:15px; color:rgba(255,255,255,.75); font-weight:300; line-height:1.6; margin-bottom:18px;">Enter your email and we'll send a reset code.</div>
+              <input id="fgEmail" type="email" placeholder="you@email.com" style="width:100%; height:54px; border-radius:14px; padding:0 18px; font-size:15px; outline:none;" />
+              <div id="fgCodeWrap" style="display:none; margin-top:14px;">
+                <input id="fgCode" inputmode="numeric" placeholder="6-digit code" style="width:100%; height:54px; border-radius:14px; padding:0 18px; font-size:15px; outline:none;" />
+                <input id="fgNewPass" type="password" placeholder="New password (6+ characters)" style="width:100%; height:54px; margin-top:12px; border-radius:14px; padding:0 18px; font-size:15px; outline:none;" />
+              </div>
+              <div id="fgMsg" style="font-size:13px; margin-top:14px; display:none; line-height:1.5;"></div>
+              <button id="fgSend" class="sh-primary" onclick="App.forgotSend()" style="width:100%; margin-top:20px; height:54px; border:none; border-radius:9999px; font-size:15px; font-weight:600; cursor:pointer;">Send reset code</button>
+              <button id="fgReset" class="sh-primary" onclick="App.forgotReset()" style="display:none; width:100%; margin-top:12px; height:54px; border:none; border-radius:9999px; font-size:15px; font-weight:600; cursor:pointer;">Set new password</button>
+              <div style="text-align:center; margin-top:16px;">
+                <a href="#" onclick="event.preventDefault(); App.closeForgot()" style="font-size:13px; color:rgba(255,255,255,.55); text-decoration:none;">← Back to sign in</a>
+              </div>
+            </div>
+
+            <div style="font-size:13px; color:rgba(255,255,255,.45); margin-top:22px; text-align:center; font-weight:300; line-height:1.6;">Your login, detection, chat, and history are yours alone — nobody else can see them.<br/>By continuing you agree to the <a href="/terms" target="_blank" style="color:rgba(255,255,255,.7);">Terms of Use</a> · <a href="/privacy" target="_blank" style="color:rgba(255,255,255,.7);">Privacy Policy</a></div>
           </div>
         </div>
 
@@ -849,6 +895,14 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
                 </div>
               </div>
 
+              <div id="pwSection" style="margin-top:30px; font-size:11px; letter-spacing:.2em; color:#7a93ad;">PASSWORD</div>
+              <div id="pwCard" style="margin-top:12px; background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:20px;">
+                <input id="pwCurrent" type="password" placeholder="Current password" style="width:100%; height:46px; border:1px solid #dde6ef; border-radius:11px; padding:0 16px; font-size:13.5px; outline:none; color:#16202b; background:#fff;" />
+                <input id="pwNew" type="password" placeholder="New password (6+ characters)" style="width:100%; height:46px; margin-top:10px; border:1px solid #dde6ef; border-radius:11px; padding:0 16px; font-size:13.5px; outline:none; color:#16202b; background:#fff;" />
+                <div id="pwMsg" style="font-size:12.5px; margin-top:10px; display:none; line-height:1.5;"></div>
+                <button class="hov" onclick="App.changePassword()" style="margin-top:14px; background:#16202b; color:#fff; border:none; border-radius:11px; padding:11px 20px; font-size:13px; font-weight:600; cursor:pointer;">Update password</button>
+              </div>
+
               <div style="margin-top:30px; font-size:11px; letter-spacing:.2em; color:#7a93ad;">BASELINE</div>
               <div style="font-size:12.5px; color:#8b99a6; line-height:1.6; margin:12px 0 14px; font-weight:300;">SilentHelp learns your normal rhythm over time. If your routine changed, you can have it start learning fresh.</div>
               <button class="hov" onclick="App.resetBaseline()" style="background:#fff; border:1px solid #f3d6d0; border-radius:11px; padding:13px 20px; font-size:13px; font-weight:600; color:#d2381f; cursor:pointer;">Reset my baseline</button>
@@ -1112,6 +1166,56 @@ const App = {
     } catch(e){ err.style.display='block'; err.textContent = 'Connection error — is the app reachable?'; }
   },
 
+  // ---- forgot password ----
+  openForgot(){
+    document.getElementById('legacyGate').style.display = 'none';
+    document.getElementById('forgotGate').style.display = 'block';
+    // Prefill the email if they typed it on the sign-in form.
+    document.getElementById('fgEmail').value = (document.getElementById('gateEmail').value || '').trim();
+  },
+  closeForgot(){
+    document.getElementById('forgotGate').style.display = 'none';
+    document.getElementById('legacyGate').style.display = 'block';
+  },
+  async forgotSend(){
+    const email = (document.getElementById('fgEmail').value || '').trim();
+    const msg = document.getElementById('fgMsg');
+    if (!email || email.indexOf('@') < 0){ msg.style.display='block'; msg.style.color='#f0a58a'; msg.textContent='Enter a valid email.'; return; }
+    try {
+      const r = await fetch('/api/password/forgot', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) });
+      const d = await r.json();
+      msg.style.display = 'block';
+      if (d.emailed){
+        msg.style.color = 'rgba(255,255,255,.7)';
+        msg.textContent = 'We sent a 6-digit code to ' + email + '. Enter it below with your new password.';
+        document.getElementById('fgCodeWrap').style.display = 'block';
+        document.getElementById('fgSend').style.display = 'none';
+        document.getElementById('fgReset').style.display = 'block';
+      } else {
+        // SMTP not configured, or email unknown (we don't reveal which).
+        msg.style.color = 'rgba(255,255,255,.7)';
+        msg.textContent = d.message || 'If that email has an account, a reset code is on its way.';
+      }
+    } catch(e){ msg.style.display='block'; msg.style.color='#f0a58a'; msg.textContent='Connection error.'; }
+  },
+  async forgotReset(){
+    const email = (document.getElementById('fgEmail').value || '').trim();
+    const code = (document.getElementById('fgCode').value || '').trim();
+    const new_password = document.getElementById('fgNewPass').value || '';
+    const msg = document.getElementById('fgMsg');
+    if (new_password.length < 6){ msg.style.display='block'; msg.style.color='#f0a58a'; msg.textContent='New password must be at least 6 characters.'; return; }
+    try {
+      const r = await fetch('/api/password/reset', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, code, new_password }) });
+      const d = await r.json();
+      if (!r.ok){ msg.style.display='block'; msg.style.color='#f0a58a'; msg.textContent = d.error || 'Could not reset.'; return; }
+      msg.style.display='block'; msg.style.color='rgba(120,220,150,.9)';
+      msg.textContent = 'Password updated. Signing you in…';
+      // Log straight in with the new password.
+      await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, password: new_password }) });
+      location.reload();
+    } catch(e){ msg.style.display='block'; msg.style.color='#f0a58a'; msg.textContent='Connection error.'; }
+  },
+
   // ---- snooze ("ignore for a while") ----
   snoozed(){ return Date.now() < (+localStorage.getItem('sh_snooze') || 0); },
   snooze(hours){
@@ -1139,6 +1243,20 @@ const App = {
     const sa = document.getElementById('sideAvatar'); if (sa && this.name) sa.textContent = this.name[0].toUpperCase();
     clearTimeout(this._nameT); this._nameT = setTimeout(() => this.api('/api/settings', { name: this.name }), 500); },
   toggleNotify(){ this.toggle('notify'); },
+  async changePassword(){
+    const current_password = document.getElementById('pwCurrent').value || '';
+    const new_password = document.getElementById('pwNew').value || '';
+    const msg = document.getElementById('pwMsg');
+    if (new_password.length < 6){ msg.style.display='block'; msg.style.color='#d2381f'; msg.textContent='New password must be at least 6 characters.'; return; }
+    try {
+      const r = await fetch('/api/account/password', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ current_password, new_password }) });
+      const d = await r.json();
+      msg.style.display = 'block';
+      if (!r.ok){ msg.style.color='#d2381f'; msg.textContent = d.error || 'Could not update.'; return; }
+      msg.style.color='#1a8a4a'; msg.textContent='Password updated.';
+      document.getElementById('pwCurrent').value=''; document.getElementById('pwNew').value='';
+    } catch(e){ msg.style.display='block'; msg.style.color='#d2381f'; msg.textContent='Connection error.'; }
+  },
   async resetBaseline(){ if (!confirm('Reset your learned baseline and history? Your settings and trusted contact stay.')) return; await this.api('/api/reset-baseline', {}); location.reload(); },
   async deleteAccount(){
     if (!confirm('Delete your account and ALL data permanently? This cannot be undone.')) return;
@@ -1715,116 +1833,5 @@ App.init();
 })();
 </script>
 
-<!-- ── Clerk sign-in ──────────────────────────────────────────────────────
-   When a publishable key is present (server injects it), load Clerk.js and
-   mount its sign-in into #clerkSignIn, hiding the legacy form. Clerk handles
-   Google login, verified emails, and password reset — configured in the Clerk
-   dashboard. On sign-in, Clerk sets the __session cookie the Flask backend
-   verifies. With no key this does nothing and the legacy form stays. -->
-<script>
-(function(){
-  var PK = "{{ clerk_pk }}";
-  if (!PK) return;
-  var legacy = document.getElementById('legacyGate');
-  var mount = document.getElementById('clerkSignIn');
-  if (!mount) return;
-  if (legacy) legacy.style.display = 'none';
-  mount.style.display = 'block';
-  mount.innerHTML = '';
-
-  // If Clerk can't render for ANY reason — script blocked, load() throws, a dev
-  // key that rejects this origin — restore the working email/password form
-  // instead of leaving the middle of the sign-in screen blank (the reported
-  // bug: no Clerk widget AND no legacy form).
-  var fellBack = false;
-  function fallbackToLegacy(){
-    if (fellBack) return; fellBack = true;
-    mount.style.display = 'none'; mount.innerHTML = '';
-    if (legacy) legacy.style.display = 'block';
-  }
-  // Safety net: if Clerk hasn't mounted anything after a few seconds, fall back.
-  var mountWatch = setTimeout(function(){
-    if (!mount.querySelector('*')) fallbackToLegacy();
-  }, 6000);
-
-  // Decode the Frontend API host that Clerk base64-encodes into the key. The
-  // encoded part is already correctly padded; blindly appending "=="  makes the
-  // length not a multiple of 4, and the browser's (strict) atob throws — which
-  // left host = "" and built the bogus URL https://npm/... (ERR_NAME_NOT_RESOLVED).
-  // Pad to the right length instead.
-  var host = '';
-  try {
-    var enc = PK.split('_')[2] || '';
-    while (enc.length % 4) enc += '=';
-    host = atob(enc).replace(/\$+$/, '');
-  } catch(e){}
-  var s = document.createElement('script');
-  s.setAttribute('data-clerk-publishable-key', PK);
-  s.async = true; s.crossOrigin = 'anonymous';
-  s.src = 'https://' + host + '/npm/@clerk/clerk-js@5/dist/clerk.browser.js';
-  s.addEventListener('load', async function(){
-    try {
-      await window.Clerk.load({
-        appearance: {
-          variables: {
-            colorPrimary:'#ffffff', colorText:'#ffffff', colorTextSecondary:'rgba(255,255,255,.6)',
-            colorBackground:'rgba(255,255,255,.03)', colorInputBackground:'rgba(255,255,255,.06)',
-            colorInputText:'#ffffff', colorNeutral:'#ffffff',
-            borderRadius:'14px', fontFamily:'Barlow, sans-serif'
-          },
-          elements: {
-            rootBox:{ width:'100%' },
-            card:{ background:'transparent', boxShadow:'none', border:'none' },
-            headerTitle:{ display:'none' }, headerSubtitle:{ display:'none' },
-            footer:{ background:'transparent' },
-            formButtonPrimary:{ background:'#fff', color:'#000', fontWeight:'600' },
-            socialButtonsBlockButton:{ background:'rgba(255,255,255,.05)', color:'#fff', borderColor:'rgba(255,255,255,.16)' },
-            formFieldInput:{ background:'rgba(255,255,255,.06)', color:'#fff', borderColor:'rgba(255,255,255,.16)' },
-            dividerLine:{ background:'rgba(255,255,255,.14)' }, dividerText:{ color:'rgba(255,255,255,.5)' }
-          }
-        }
-      });
-      // Bridge a Clerk sign-in to the Flask session ONCE. The old code called
-      // location.reload() whenever window.Clerk.user was truthy — but that is
-      // truthy on EVERY load once you're signed in, so it reloaded, saw the
-      // user again, reloaded again: an infinite refresh loop (the flickering).
-      //
-      // Guard it: reload at most once per browser session, and only to let the
-      // backend pick up the Clerk session cookie. After that the app's own
-      // /api/me routing takes over and never reloads again.
-      var RELOAD_ONCE = 'sh_clerk_bridged';
-      function bridgeOnce(){
-        if (sessionStorage.getItem(RELOAD_ONCE)) return;   // already did it this session
-        sessionStorage.setItem(RELOAD_ONCE, '1');
-        location.reload();
-      }
-      if (window.Clerk.user){
-        // Signed in with Clerk. If the backend already agrees, do nothing —
-        // App.init()'s /api/me check will route to the dashboard. Only reload
-        // (once) if the cookie hasn't reached the backend yet.
-        fetch('/api/me').then(function(r){ return r.json(); }).then(function(me){
-          if (!me.signedIn) bridgeOnce();
-        }).catch(function(){ /* leave routing to App.init */ });
-        return;
-      }
-      // Not signed in yet — show the sign-in and bridge once when it completes.
-      sessionStorage.removeItem(RELOAD_ONCE);   // fresh sign-in may need one bridge
-      window.Clerk.mountSignIn(mount);
-      clearTimeout(mountWatch);
-      window.Clerk.addListener(function(e){ if (e.user) bridgeOnce(); });
-    } catch(err){
-      // load()/mount failed (e.g. a dev key rejecting this origin) — don't
-      // strand the user on a blank panel; give them the working form.
-      clearTimeout(mountWatch);
-      fallbackToLegacy();
-    }
-  });
-  s.addEventListener('error', function(){
-    clearTimeout(mountWatch);
-    fallbackToLegacy();
-  });
-  document.head.appendChild(s);
-})();
-</script>
 </body>
 </html>
