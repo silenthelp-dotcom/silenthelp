@@ -22,6 +22,16 @@ services:
           property: connectionString
       - key: GROQ_API_KEY
         sync: false          # set this in the Render dashboard, never in git
+      - key: NVIDIA_API_KEY
+        sync: false          # detection model key — set in the dashboard
+      # Clerk auth. Use the PRODUCTION keys (pk_live_… / sk_live_…) here, since
+      # this service runs on the custom domain silenthelp.org. Both must be set
+      # or clerk_auth.configured() is False and sign-in falls back to the legacy
+      # form (that is the current symptom: the page serves var PK = "").
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false          # pk_live_… — set in the dashboard
+      - key: CLERK_SECRET_KEY
+        sync: false          # sk_live_… — set in the dashboard, never in git
       - key: SECRET_KEY
         generateValue: true  # random session-signing key (code default is public)
       - key: PYTHON_VERSION
