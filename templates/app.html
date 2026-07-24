@@ -165,11 +165,11 @@ body > *:not([data-backdrop]) { position:relative; z-index:2; }
 [style*="background:#f2f8ff"], [style*="background:#eef4fb"],
 [style*="background:#f4f7fb"], [style*="background:#fafcfe"],
 [style*="background:#f6f8fb"] {
-  /* No blur — a page-wide backdrop-filter here blurred the video ONLY inside
-     this box's bounds, and stayed sharp outside it, which is exactly the
-     rectangular "mask" seam cutting through the orb that kept getting flagged.
-     Crystal clear: just a near-transparent fill, no blur layer. */
-  background:rgba(255,255,255,0.022) !important;
+  /* Fully transparent — even a 2%-white tint here was a visible rectangle over
+     the dark video (the "mask" kept getting flagged: a lighter box sitting
+     behind the orb, exactly the bounds of this panel). No fill, no blur,
+     nothing between the video and the content. */
+  background:transparent !important;
 }
 /* Solid white, per the design: primary buttons and the user's chat bubbles. */
 button[style*="background:#fff"], [style*="background:#fff"][style*="color:#000"] {
