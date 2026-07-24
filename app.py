@@ -102,6 +102,26 @@ app.config.update(
 # redirects/url_for with the real public host + https (not 127.0.0.1/http).
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 
+
+@app.after_request
+def _no_stale_html(resp: Response) -> Response:
+    """Make browsers revalidate HTML pages so a new deploy is picked up at once.
+
+    Symptom this fixes: after a deploy, other machines kept showing an OLD copy
+    of /app — including the pre-Clerk-fix sign-in — because Flask sent no
+    Cache-Control on HTML, and browsers then cache heuristically and serve a
+    stale page for a long time ("it won't refresh", "can't sign in").
+
+    `no-cache` does NOT mean "don't store" — the browser may keep the copy but
+    must revalidate with the server before using it, so a fresh deploy shows up
+    on the next load. Only HTML is touched; static assets keep their own
+    caching (they're immutable enough, and versioned when it matters).
+    """
+    ctype = resp.headers.get("Content-Type", "")
+    if ctype.startswith("text/html"):
+        resp.headers["Cache-Control"] = "no-cache, must-revalidate"
+    return resp
+
 DEFAULT_CONTACT = "School Counselor <counselor@school.edu>"
 USERDATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "userdata")
 os.makedirs(USERDATA_DIR, exist_ok=True)
