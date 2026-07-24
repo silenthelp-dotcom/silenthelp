@@ -832,7 +832,7 @@ function Avatar({ member, size = 88 }) {
     return <img src={member.photo} alt={member.name}
                 onError={() => setFailed(true)}
                 className="rounded-full object-cover shrink-0"
-                style={{ width: size, height: size }} />;
+                style={{ width: size, height: size, objectPosition: "center 22%" }} />;
   }
   return (
     <div className="rounded-full grid place-items-center font-heading italic text-white/90 shrink-0"
