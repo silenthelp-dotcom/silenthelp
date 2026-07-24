@@ -42,12 +42,27 @@ except Exception:  # PyJWT not installed yet
     _HAVE_JWT = False
 
 
+def _env(*names: str) -> str:
+    """First non-empty value among several env var names.
+
+    Clerk's dashboard copy-buttons hand out the publishable key under the
+    Next.js name NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY. This is a Flask app, so we
+    also accept that spelling rather than silently failing when someone pastes
+    the value Render/Clerk suggested.
+    """
+    for n in names:
+        v = os.environ.get(n, "").strip()
+        if v:
+            return v
+    return ""
+
+
 def _secret() -> str:
-    return os.environ.get("CLERK_SECRET_KEY", "").strip()
+    return _env("CLERK_SECRET_KEY")
 
 
 def _publishable() -> str:
-    return os.environ.get("CLERK_PUBLISHABLE_KEY", "").strip()
+    return _env("CLERK_PUBLISHABLE_KEY", "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY")
 
 
 def configured() -> bool:
