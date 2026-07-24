@@ -151,9 +151,9 @@
       role: "Founder · CEO / CTO",
       email: "lsrees990@gmail.com",
       linkedin: "https://www.linkedin.com/in/sree-saran-lakkaraju-5b0a523b7/",
-      photo: "",
-      short: "Founder. Sets the product's direction and owns the technical architecture end to end.",
-      long: "Sree founded SilentHelp on a simple conviction: the people who most need support are the ones least likely to ask for it. As CEO and CTO he holds both halves of that mission together — the why and the how — steering the product's direction while owning the technical architecture, from the on-device detection pipeline to the privacy model that keeps a person's words on their own machine. He set the bar that has defined the product since: notice early, stay quiet, and never move a byte off the device without the person's say-so."
+      photo: "/static/img/team/sree.jpg",
+      short: "Founder. The idea behind SilentHelp, and the decisions that shape it.",
+      long: "SilentHelp is Sree's idea. A student at Metea Valley High School in Naperville with a strong interest in AI, information science, and business strategy, he founded it on a simple conviction — that the people who most need support are the ones least likely to ask. As CEO and CTO he owns the decisions that turn that conviction into a product: what it should detect, how far it should go, and where it must stay silent, setting the principles the whole team builds against — notice early, stay quiet, and never move a byte off a person's device without their say-so. He is also co-founder of Choose & Rise, a marketing analyst at Pulse, and was selected for Michigan State University's Entrepreneur Leadership Camp. With Abhinav, he presented SilentHelp to Naperville Mayor Scott Wehrli."
     },
     {
       slug: "abhinav",
@@ -161,19 +161,19 @@
       role: "Co-Founder · Lead AI/ML Engineer & Product Manager",
       email: "abhinavallani02@gmail.com",
       linkedin: "https://www.linkedin.com/in/abhinav-allani-1a9207389/",
-      photo: "",
-      short: "Co-founder. Builds the detection engine and shapes how the product feels to use.",
-      long: "Abhinav leads the intelligence behind SilentHelp — the four-layer detection engine that reads the rhythm of a device without ever reading a diary. He built the keyword and semantic layers that tell a genuine cry for help from a joke made in the same words, and tuned them against tens of thousands of phrases so the system catches what matters and stays silent when it should. As product manager he also owns how all of that feels in a person's hands: unhurried, private, and never alarming."
+      photo: "/static/img/team/abhinav.jpg",
+      short: "Co-founder. Built the detection engine and everything a person actually touches.",
+      long: "Abhinav built most of what SilentHelp is — the four-layer detection engine that reads the rhythm of a device without ever reading a diary, and the product a person actually touches: the dashboard that surfaces focus, energy, and burnout as care rather than an alarm, the coping chat, the Help a Friend coach, and the escalation flow that drafts a note to someone who can help. He tuned the detector against tens of thousands of phrases so it tells a real cry for help from a joke made in the same words. A student AI/ML engineer at Metea Valley High School, he is also a research intern at Pulse working on multi-agent reinforcement learning, and founder of Choose & Rise and Math & Code Academy. With Sree, he presented SilentHelp to Naperville Mayor Scott Wehrli."
     },
     {
       slug: "nehanth",
       name: "Nehanth Arvapalli",
-      role: "Co-Founder · Lead Full-Stack Software Engineer",
+      role: "Co-Founder · Database Engineer",
       email: "nehanth.arvpalli2@gmail.com",
       linkedin: "https://www.linkedin.com/in/nehanth-arvapalli-005a68335/",
-      photo: "",
-      short: "Co-founder. Builds the app end to end — the surfaces people actually touch.",
-      long: "Nehanth builds the parts of SilentHelp people actually touch — the dashboard that surfaces focus, energy, and burnout as care rather than an alarm; the coping chat; the Help a Friend coach; and the escalation flow that, when it truly matters, drafts a note to someone who can help. As lead full-stack engineer he carries the product from the detection core out to the last pixel, holding a single dark, quiet design language across every screen."
+      photo: "/static/img/team/nehanth.jpg",
+      short: "Co-founder. Built the database layer that stores it all.",
+      long: "Nehanth built the database layer behind SilentHelp — where a person's account, settings, and history live, kept private and durable across the app. A junior at Metea Valley High School and a student AI developer with an interest in AI safety and responsible AI, he has also built projects including Prose & Cons and CogniTrack, and joined the team in presenting SilentHelp to Naperville Mayor Scott Wehrli."
     }
   ];
 
@@ -824,9 +824,14 @@ function Pricing() {
    /static/img/team/. Initials on a soft gradient, deterministic per name. */
 function Avatar({ member, size = 88 }) {
   const initials = member.name.split(" ").map(w => w[0]).slice(0, 2).join("");
-  if (member.photo) {
+  const [failed, setFailed] = React.useState(false);
+  // Show the photo when present and loading; fall back to the monogram if the
+  // file isn't there yet (a photo path is set for all three, but real headshots
+  // land one at a time).
+  if (member.photo && !failed) {
     return <img src={member.photo} alt={member.name}
-                className="rounded-full object-cover"
+                onError={() => setFailed(true)}
+                className="rounded-full object-cover shrink-0"
                 style={{ width: size, height: size }} />;
   }
   return (
