@@ -165,6 +165,7 @@ var TEAM = [
     email: "abhinavallani02@gmail.com",
     linkedin: "https://www.linkedin.com/in/abhinav-allani-1a9207389/",
     photo: "/static/img/team/abhinav.jpg",
+    pos: "50% 28%",
     bio: "Abhinav leads SilentHelp's AI/ML and detection-systems engineering. He established the layered detection framework that combines deterministic signal matching, semantic context classification, behavioral indicators, and time-based trend analysis. His work focuses on making detection more accurate, context-aware, and resilient — helping the system distinguish casual language, humor, stress, burnout, and potentially urgent signals without relying on one-word triggers alone. Abhinav is responsible for improving model integration, classifier behavior, evaluation scenarios, routing logic, and the technical safeguards that ensure AI provides semantic insight while deterministic code retains control over every response."
   },
   {
@@ -188,8 +189,11 @@ TEAM.forEach(function(m){
   // If a photo path is set but the file isn't there yet, fall back to the
   // monogram rather than showing a broken-image icon.
   var mono = '<div class="avatar hd">' + initials(m.name) + '</div>';
+  // Per-person crop point (m.pos) overrides the default, so a face that sits
+  // off-centre in its photo can be centred in the circle.
+  var posStyle = m.pos ? ' style="object-position:' + m.pos + '"' : '';
   var av = m.photo
-    ? '<img class="avatar" src="' + m.photo + '" alt="' + m.name + '" ' +
+    ? '<img class="avatar" src="' + m.photo + '" alt="' + m.name + '"' + posStyle + ' ' +
       'onerror="this.outerHTML=' + JSON.stringify(mono).replace(/"/g, '&quot;') + '" />'
     : mono;
   var el = document.createElement("div");
