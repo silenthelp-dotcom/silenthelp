@@ -26,7 +26,6 @@
      Biggest perceived-speed win short of removing Babel entirely. -->
 <link rel="preconnect" href="https://unpkg.com" crossorigin>
 <link rel="preconnect" href="https://cdn.tailwindcss.com">
-<link rel="preload" as="script" href="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous">
 <link rel="preload" as="script" href="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous">
 
 <script src="https://cdn.tailwindcss.com"></script>
@@ -34,7 +33,6 @@
      dev-mode warnings to every visitor. Minified is ~140 KB total. -->
 <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" integrity="sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" integrity="sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/framer-motion@11.11.17/dist/framer-motion.js"></script>
 <script>
   // framer-motion 11.11.17's UMD build already exposes `window.Motion`. The
@@ -204,26 +202,46 @@
 </script>
 
 <!-- ══ Icons ══ -->
-<script type="text/babel">
-const ArrowUpRight = ({className="h-4 w-4"}) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor"
-       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M7 17L17 7"/><path d="M7 7h10v10"/>
-  </svg>
-);
-const Play = ({className="h-4 w-4"}) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <polygon points="6 4 20 12 6 20 6 4"/>
-  </svg>
-);
+<script>
+(function(){
+const ArrowUpRight = ({
+  className = "h-4 w-4"
+}) => /*#__PURE__*/React.createElement("svg", {
+  className: className,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: "2",
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  "aria-hidden": "true"
+}, /*#__PURE__*/React.createElement("path", {
+  d: "M7 17L17 7"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M7 7h10v10"
+}));
+const Play = ({
+  className = "h-4 w-4"
+}) => /*#__PURE__*/React.createElement("svg", {
+  className: className,
+  viewBox: "0 0 24 24",
+  fill: "currentColor",
+  "aria-hidden": "true"
+}, /*#__PURE__*/React.createElement("polygon", {
+  points: "6 4 20 12 6 20 6 4"
+}));
 window.ArrowUpRight = ArrowUpRight;
 window.Play = Play;
+})();
 </script>
 
 <!-- ══ FadingVideo — rAF crossfade, manual loop ══ -->
-<script type="text/babel">
-const { useRef, useEffect } = React;
-
+<script>
+(function(){
+const {
+  useRef,
+  useEffect
+} = React;
 const FADE_MS = 500;
 const FADE_OUT_LEAD = 0.55; // seconds before `ended` to begin fading out
 
@@ -237,27 +255,29 @@ const FADE_OUT_LEAD = 0.55; // seconds before `ended` to begin fading out
  * transition so a new fade can resume from wherever the previous one stopped
  * (reading the live value off video.style.opacity) instead of jumping.
  */
-function FadingVideo({ src, className, style, poster }) {
+function FadingVideo({
+  src,
+  className,
+  style,
+  poster
+}) {
   const videoRef = useRef(null);
   const rafRef = useRef(0);
   const fadingOutRef = useRef(false);
-
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-
     const fadeTo = (target, duration = FADE_MS) => {
       cancelAnimationFrame(rafRef.current);
       const from = parseFloat(video.style.opacity || "0");
       const start = performance.now();
-      const step = (now) => {
+      const step = now => {
         const t = Math.min((now - start) / duration, 1);
         video.style.opacity = String(from + (target - from) * t);
         if (t < 1) rafRef.current = requestAnimationFrame(step);
       };
       rafRef.current = requestAnimationFrame(step);
     };
-
     const onLoaded = () => {
       video.style.opacity = "0";
       const p = video.play();
@@ -281,12 +301,10 @@ function FadingVideo({ src, className, style, poster }) {
         fadeTo(1);
       }, 100);
     };
-
     video.addEventListener("loadeddata", onLoaded);
     video.addEventListener("timeupdate", onTime);
     video.addEventListener("ended", onEnded);
     if (video.readyState >= 2) onLoaded();
-
     return () => {
       cancelAnimationFrame(rafRef.current);
       video.removeEventListener("loadeddata", onLoaded);
@@ -294,228 +312,311 @@ function FadingVideo({ src, className, style, poster }) {
       video.removeEventListener("ended", onEnded);
     };
   }, [src]);
-
-  return (
-    <video ref={videoRef} className={className} style={{ opacity: 0, ...style }}
-           src={src} poster={poster} autoPlay muted playsInline preload="auto" aria-hidden="true" />
-  );
+  return /*#__PURE__*/React.createElement("video", {
+    ref: videoRef,
+    className: className,
+    style: {
+      opacity: 0,
+      ...style
+    },
+    src: src,
+    poster: poster,
+    autoPlay: true,
+    muted: true,
+    playsInline: true,
+    preload: "auto",
+    "aria-hidden": "true"
+  });
 }
 window.FadingVideo = FadingVideo;
+})();
 </script>
 
 <!-- ══ BlurText — word-by-word blur-in ══ -->
-<script type="text/babel">
-const { useRef, useEffect, useState } = React;
-const { motion } = window.Motion;
-
-function BlurText({ text, className = "", delayMs = 100 }) {
+<script>
+(function(){
+const {
+  useRef,
+  useEffect,
+  useState
+} = React;
+const {
+  motion
+} = window.Motion;
+function BlurText({
+  text,
+  className = "",
+  delayMs = 100
+}) {
   const ref = useRef(null);
   const [show, setShow] = useState(false);
-
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     // Respect reduced motion: render the line immediately, no per-word stagger.
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { setShow(true); return; }
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setShow(true);
+      return;
+    }
     const io = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { setShow(true); io.disconnect(); }
-    }, { threshold: 0.1 });
+      if (e.isIntersecting) {
+        setShow(true);
+        io.disconnect();
+      }
+    }, {
+      threshold: 0.1
+    });
     io.observe(el);
     return () => io.disconnect();
   }, []);
-
   const words = text.split(" ");
-  return (
-    <p ref={ref} className={className}
-       style={{ display:"flex", flexWrap:"wrap", justifyContent:"center", rowGap:"0.1em" }}>
-      {words.map((w, i) => (
-        <motion.span
-          key={w + i}
-          initial={{ filter:"blur(10px)", opacity:0, y:50 }}
-          animate={show ? {
-            filter:["blur(10px)","blur(5px)","blur(0px)"],
-            opacity:[0, 0.5, 1],
-            y:[50, -5, 0]
-          } : {}}
-          transition={{ duration:0.7, times:[0,0.5,1], ease:"easeOut", delay:(i*delayMs)/1000 }}
-          /* marginRight rather than a non-breaking space: the -4px tracking
-             collapses an nbsp and the words run together. */
-          style={{ display:"inline-block", marginRight:"0.28em" }}
-        >{w}</motion.span>
-      ))}
-    </p>
-  );
+  return /*#__PURE__*/React.createElement("p", {
+    ref: ref,
+    className: className,
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      rowGap: "0.1em"
+    }
+  }, words.map((w, i) => /*#__PURE__*/React.createElement(motion.span, {
+    key: w + i,
+    initial: {
+      filter: "blur(10px)",
+      opacity: 0,
+      y: 50
+    },
+    animate: show ? {
+      filter: ["blur(10px)", "blur(5px)", "blur(0px)"],
+      opacity: [0, 0.5, 1],
+      y: [50, -5, 0]
+    } : {},
+    transition: {
+      duration: 0.7,
+      times: [0, 0.5, 1],
+      ease: "easeOut",
+      delay: i * delayMs / 1000
+    }
+    /* marginRight rather than a non-breaking space: the -4px tracking
+       collapses an nbsp and the words run together. */,
+    style: {
+      display: "inline-block",
+      marginRight: "0.28em"
+    }
+  }, w)));
 }
 window.BlurText = BlurText;
+})();
 </script>
 
 <!-- ══ Navbar ══ -->
-<script type="text/babel">
-const { ArrowUpRight } = window;
-
+<script>
+(function(){
+const {
+  ArrowUpRight
+} = window;
 function Navbar() {
-  const links = [
-    ["Overview", "#top"], ["How it works", "#how"],
-    ["The science", "#science"], ["Privacy", "#privacy"], ["Pricing", "#pricing"]
-  ];
+  const links = [["Overview", "#top"], ["How it works", "#how"], ["The science", "#science"], ["Privacy", "#privacy"], ["Pricing", "#pricing"]];
   const go = (e, href) => {
     e.preventDefault();
-    if (href === "#top") return window.scrollTo({ top:0, behavior:"smooth" });
+    if (href === "#top") return window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
     const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior:"smooth" });
+    if (el) el.scrollIntoView({
+      behavior: "smooth"
+    });
   };
-  return (
-    <nav className="fixed top-4 left-0 right-0 z-50 px-8 lg:px-16 flex items-center justify-between">
-      <a href="/" className="h-12 w-12 rounded-full liquid-glass flex items-center justify-center shrink-0"
-         aria-label="SilentHelp home">
-        <img src="/static/img/badge-256.png" alt="" className="h-8 w-8 rounded-full" />
-      </a>
-
-      <div className="hidden lg:flex items-center gap-2">
-        <div className="liquid-glass rounded-full px-1.5 py-1.5 flex items-center">
-          {links.map(([label, href]) => (
-            <a key={href} href={href} onClick={(e)=>go(e,href)}
-               className="px-3 py-2 text-sm font-medium text-white/90 font-body rounded-full hover:text-white">
-              {label}
-            </a>
-          ))}
-        </div>
-        <a href="/download/agent"
-           className="liquid-glass rounded-full px-4 py-2 text-sm font-medium font-body text-white
-                      whitespace-nowrap flex items-center gap-1.5 hover:opacity-90">
-          Download for Mac
-        </a>
-        <a href="/app"
-           className="bg-white text-black rounded-full px-4 py-2 text-sm font-medium font-body
-                      whitespace-nowrap flex items-center gap-1.5 hover:opacity-90">
-          Start free <ArrowUpRight className="h-4 w-4" />
-        </a>
-      </div>
-
-      <div className="h-12 w-12 shrink-0 lg:block hidden" aria-hidden="true" />
-      <a href="/app" className="lg:hidden bg-white text-black rounded-full px-4 py-2 text-sm font-medium font-body">
-        Start free
-      </a>
-    </nav>
-  );
+  return /*#__PURE__*/React.createElement("nav", {
+    className: "fixed top-4 left-0 right-0 z-50 px-8 lg:px-16 flex items-center justify-between"
+  }, /*#__PURE__*/React.createElement("a", {
+    href: "/",
+    className: "h-12 w-12 rounded-full liquid-glass flex items-center justify-center shrink-0",
+    "aria-label": "SilentHelp home"
+  }, /*#__PURE__*/React.createElement("img", {
+    src: "/static/img/badge-256.png",
+    alt: "",
+    className: "h-8 w-8 rounded-full"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "hidden lg:flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "liquid-glass rounded-full px-1.5 py-1.5 flex items-center"
+  }, links.map(([label, href]) => /*#__PURE__*/React.createElement("a", {
+    key: href,
+    href: href,
+    onClick: e => go(e, href),
+    className: "px-3 py-2 text-sm font-medium text-white/90 font-body rounded-full hover:text-white"
+  }, label))), /*#__PURE__*/React.createElement("a", {
+    href: "/download/agent",
+    className: "liquid-glass rounded-full px-4 py-2 text-sm font-medium font-body text-white whitespace-nowrap flex items-center gap-1.5 hover:opacity-90"
+  }, "Download for Mac"), /*#__PURE__*/React.createElement("a", {
+    href: "/app",
+    className: "bg-white text-black rounded-full px-4 py-2 text-sm font-medium font-body whitespace-nowrap flex items-center gap-1.5 hover:opacity-90"
+  }, "Start free ", /*#__PURE__*/React.createElement(ArrowUpRight, {
+    className: "h-4 w-4"
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "h-12 w-12 shrink-0 lg:block hidden",
+    "aria-hidden": "true"
+  }), /*#__PURE__*/React.createElement("a", {
+    href: "/app",
+    className: "lg:hidden bg-white text-black rounded-full px-4 py-2 text-sm font-medium font-body"
+  }, "Start free"));
 }
 window.Navbar = Navbar;
+})();
 </script>
 
 <!-- ══ Hero — the Lithos "See beneath the surface" hero ══ -->
-<script type="text/babel">
-const { motion } = window.Motion;
-const { FadingVideo, BlurText, Navbar, ArrowUpRight, Play } = window;
-
-const rise = (delay) => ({
-  initial: { filter:"blur(10px)", opacity:0, y:20 },
-  animate: { filter:"blur(0px)", opacity:1, y:0 },
-  transition: { duration:0.8, ease:"easeOut", delay }
+<script>
+(function(){
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+const {
+  motion
+} = window.Motion;
+const {
+  FadingVideo,
+  BlurText,
+  Navbar,
+  ArrowUpRight,
+  Play
+} = window;
+const rise = delay => ({
+  initial: {
+    filter: "blur(10px)",
+    opacity: 0,
+    y: 20
+  },
+  animate: {
+    filter: "blur(0px)",
+    opacity: 1,
+    y: 0
+  },
+  transition: {
+    duration: 0.8,
+    ease: "easeOut",
+    delay
+  }
 });
 
 /* Icons for the stat cards: a clock (rhythm over time) and a shield (privacy),
    both 28×28 white outline to match the card treatment. */
-const ClockIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-       strokeWidth="1.5" className="text-white" aria-hidden="true">
-    <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" strokeLinecap="round"/>
-  </svg>
-);
-const ShieldIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-       strokeWidth="1.5" className="text-white" aria-hidden="true">
-    <path d="M12 3l7 3v6c0 4.2-2.9 7.8-7 9-4.1-1.2-7-4.8-7-9V6l7-3Z" strokeLinejoin="round"/>
-    <path d="M9.2 12.2l2 2 3.6-3.8" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-
+const ClockIcon = () => /*#__PURE__*/React.createElement("svg", {
+  width: "28",
+  height: "28",
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: "1.5",
+  className: "text-white",
+  "aria-hidden": "true"
+}, /*#__PURE__*/React.createElement("circle", {
+  cx: "12",
+  cy: "12",
+  r: "9"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M12 7v5l3 2",
+  strokeLinecap: "round"
+}));
+const ShieldIcon = () => /*#__PURE__*/React.createElement("svg", {
+  width: "28",
+  height: "28",
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: "1.5",
+  className: "text-white",
+  "aria-hidden": "true"
+}, /*#__PURE__*/React.createElement("path", {
+  d: "M12 3l7 3v6c0 4.2-2.9 7.8-7 9-4.1-1.2-7-4.8-7-9V6l7-3Z",
+  strokeLinejoin: "round"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M9.2 12.2l2 2 3.6-3.8",
+  strokeLinecap: "round",
+  strokeLinejoin: "round"
+}));
 function Hero() {
-  return (
-    <section id="top" className="relative min-h-screen bg-black overflow-hidden flex flex-col">
-      <FadingVideo
-        src={window.SH_HERO_VIDEO}
-        className="absolute left-1/2 top-0 -translate-x-1/2 object-cover object-top z-0"
-        style={{ width:"120%", height:"120%" }}
-      />
-
-      <div className="relative z-10 flex flex-col flex-1">
-        <Navbar />
-
-        <div className="flex-1 flex flex-col items-center justify-center text-center pt-24 px-4">
-          <motion.div {...rise(0.4)}>
-            <div className="liquid-glass rounded-full flex items-center gap-3 pr-3">
-              <span className="bg-white text-black rounded-full px-3 py-1 text-xs font-semibold font-body">New</span>
-              <span className="text-sm text-white/90 font-body">Now watching for four layers, live on macOS</span>
-            </div>
-          </motion.div>
-
-          <BlurText
-            text="See beneath the surface"
-            className="on-video text-6xl md:text-7xl lg:text-[5.5rem] font-heading italic text-white
-                       leading-[0.8] max-w-2xl justify-center tracking-[-4px] mt-6"
-          />
-
-          <motion.p {...rise(0.8)}
-            className="on-video mt-4 text-sm md:text-base text-white max-w-2xl font-body font-light leading-tight">
-            Every tab, every late night, every restless switch leaves a trace. SilentHelp reads
-            those layers quietly — on your Mac, never sent anywhere — and points you toward real
-            human support the moment it matters.
-          </motion.p>
-
-          <motion.div {...rise(1.1)} className="flex items-center gap-6 mt-6">
-            <a href="/download/agent"
-               className="liquid-glass-strong rounded-full px-5 py-2.5 text-sm font-medium
-                          text-white font-body flex items-center gap-2">
-              Download for Mac <ArrowUpRight className="h-5 w-5" />
-            </a>
-            <a href="/app"
-               className="bg-white text-black rounded-full px-5 py-2.5 text-sm font-medium
-                          font-body flex items-center gap-2 hover:opacity-90">
-              Open the app <ArrowUpRight className="h-5 w-5" />
-            </a>
-            <a href="#how" onClick={(e)=>{e.preventDefault();document.getElementById('how').scrollIntoView({behavior:'smooth'});}}
-               className="text-sm font-medium text-white font-body flex items-center gap-2">
-              See how it works <Play className="h-4 w-4" />
-            </a>
-          </motion.div>
-
-          <motion.div {...rise(1.3)} className="flex items-stretch gap-4 mt-8 flex-wrap justify-center">
-            <div className="liquid-glass p-5 w-[220px] rounded-[1.25rem] flex flex-col justify-between">
-              <ClockIcon />
-              <div>
-                <div className="text-4xl font-heading italic text-white tracking-[-1px] leading-none mt-6">&lt; 1 ms</div>
-                <div className="text-xs text-white font-body font-light mt-2">On-device scan, before anything leaves</div>
-              </div>
-            </div>
-            <div className="liquid-glass p-5 w-[220px] rounded-[1.25rem] flex flex-col justify-between">
-              <ShieldIcon />
-              <div>
-                <div className="text-4xl font-heading italic text-white tracking-[-1px] leading-none mt-6">0 bytes</div>
-                <div className="text-xs text-white font-body font-light mt-2">Raw text stored or transmitted</div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-        <motion.div {...rise(1.4)} className="flex flex-col items-center gap-4 pb-8 px-4">
-          <div className="liquid-glass rounded-full px-3.5 py-1 text-xs font-medium text-white font-body text-center">
-            Built for students, families, and school counselors
-          </div>
-          <div className="on-video flex flex-wrap justify-center items-center gap-8 md:gap-16
-                          font-heading italic text-white text-2xl md:text-3xl tracking-tight">
-            <span>Keyword</span><span>Semantic</span><span>Behavioral</span><span>Trend</span>
-          </div>
-        </motion.div>
-      </div>
-    </section>
-  );
+  return /*#__PURE__*/React.createElement("section", {
+    id: "top",
+    className: "relative min-h-screen bg-black overflow-hidden flex flex-col"
+  }, /*#__PURE__*/React.createElement(FadingVideo, {
+    src: window.SH_HERO_VIDEO,
+    className: "absolute left-1/2 top-0 -translate-x-1/2 object-cover object-top z-0",
+    style: {
+      width: "120%",
+      height: "120%"
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "relative z-10 flex flex-col flex-1"
+  }, /*#__PURE__*/React.createElement(Navbar, null), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 flex flex-col items-center justify-center text-center pt-24 px-4"
+  }, /*#__PURE__*/React.createElement(motion.div, rise(0.4), /*#__PURE__*/React.createElement("div", {
+    className: "liquid-glass rounded-full flex items-center gap-3 pr-3"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "bg-white text-black rounded-full px-3 py-1 text-xs font-semibold font-body"
+  }, "New"), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm text-white/90 font-body"
+  }, "Now watching for four layers, live on macOS"))), /*#__PURE__*/React.createElement(BlurText, {
+    text: "See beneath the surface",
+    className: "on-video text-6xl md:text-7xl lg:text-[5.5rem] font-heading italic text-white leading-[0.8] max-w-2xl justify-center tracking-[-4px] mt-6"
+  }), /*#__PURE__*/React.createElement(motion.p, _extends({}, rise(0.8), {
+    className: "on-video mt-4 text-sm md:text-base text-white max-w-2xl font-body font-light leading-tight"
+  }), "Every tab, every late night, every restless switch leaves a trace. SilentHelp reads those layers quietly \u2014 on your Mac, never sent anywhere \u2014 and points you toward real human support the moment it matters."), /*#__PURE__*/React.createElement(motion.div, _extends({}, rise(1.1), {
+    className: "flex items-center gap-6 mt-6"
+  }), /*#__PURE__*/React.createElement("a", {
+    href: "/download/agent",
+    className: "liquid-glass-strong rounded-full px-5 py-2.5 text-sm font-medium text-white font-body flex items-center gap-2"
+  }, "Download for Mac ", /*#__PURE__*/React.createElement(ArrowUpRight, {
+    className: "h-5 w-5"
+  })), /*#__PURE__*/React.createElement("a", {
+    href: "/app",
+    className: "bg-white text-black rounded-full px-5 py-2.5 text-sm font-medium font-body flex items-center gap-2 hover:opacity-90"
+  }, "Open the app ", /*#__PURE__*/React.createElement(ArrowUpRight, {
+    className: "h-5 w-5"
+  })), /*#__PURE__*/React.createElement("a", {
+    href: "#how",
+    onClick: e => {
+      e.preventDefault();
+      document.getElementById('how').scrollIntoView({
+        behavior: 'smooth'
+      });
+    },
+    className: "text-sm font-medium text-white font-body flex items-center gap-2"
+  }, "See how it works ", /*#__PURE__*/React.createElement(Play, {
+    className: "h-4 w-4"
+  }))), /*#__PURE__*/React.createElement(motion.div, _extends({}, rise(1.3), {
+    className: "flex items-stretch gap-4 mt-8 flex-wrap justify-center"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "liquid-glass p-5 w-[220px] rounded-[1.25rem] flex flex-col justify-between"
+  }, /*#__PURE__*/React.createElement(ClockIcon, null), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "text-4xl font-heading italic text-white tracking-[-1px] leading-none mt-6"
+  }, "< 1 ms"), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-white font-body font-light mt-2"
+  }, "On-device scan, before anything leaves"))), /*#__PURE__*/React.createElement("div", {
+    className: "liquid-glass p-5 w-[220px] rounded-[1.25rem] flex flex-col justify-between"
+  }, /*#__PURE__*/React.createElement(ShieldIcon, null), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "text-4xl font-heading italic text-white tracking-[-1px] leading-none mt-6"
+  }, "0 bytes"), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-white font-body font-light mt-2"
+  }, "Raw text stored or transmitted"))))), /*#__PURE__*/React.createElement(motion.div, _extends({}, rise(1.4), {
+    className: "flex flex-col items-center gap-4 pb-8 px-4"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "liquid-glass rounded-full px-3.5 py-1 text-xs font-medium text-white font-body text-center"
+  }, "Built for students, families, and school counselors"), /*#__PURE__*/React.createElement("div", {
+    className: "on-video flex flex-wrap justify-center items-center gap-8 md:gap-16 font-heading italic text-white text-2xl md:text-3xl tracking-tight"
+  }, /*#__PURE__*/React.createElement("span", null, "Keyword"), /*#__PURE__*/React.createElement("span", null, "Semantic"), /*#__PURE__*/React.createElement("span", null, "Behavioral"), /*#__PURE__*/React.createElement("span", null, "Trend")))));
 }
 window.Hero = Hero;
+})();
 </script>
 
 <!-- ══ LithosReveal — the original hero's rock/spotlight, ported ══ -->
-<script type="text/babel">
-const { useRef, useEffect } = React;
+<script>
+(function(){
+const {
+  useRef,
+  useEffect
+} = React;
 
 /*
  * The Lithos treatment from the original SilentHelp hero: two stacked images of
@@ -534,169 +635,194 @@ function LithosReveal() {
   const wrapRef = useRef(null);
   const revealRef = useRef(null);
   const rafRef = useRef(0);
-
   useEffect(() => {
-    const wrap = wrapRef.current, reveal = revealRef.current;
+    const wrap = wrapRef.current,
+      reveal = revealRef.current;
     if (!wrap || !reveal) return;
-
-    const R = 260;                         // spotlight radius, px
-    const pos = { x: 0.5, y: 0.5 };        // normalized target
-    const cur = { x: 0.5, y: 0.5 };        // eased actual
+    const R = 260; // spotlight radius, px
+    const pos = {
+      x: 0.5,
+      y: 0.5
+    }; // normalized target
+    const cur = {
+      x: 0.5,
+      y: 0.5
+    }; // eased actual
     const fine = matchMedia("(hover: hover) and (pointer: fine)").matches;
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-
     const paint = () => {
       const r = wrap.getBoundingClientRect();
-      const px = cur.x * r.width, py = cur.y * r.height;
-      const m = `radial-gradient(circle ${R}px at ${px}px ${py}px,` +
-                ` #000 0%, rgba(0,0,0,.86) 42%, rgba(0,0,0,0) 72%)`;
+      const px = cur.x * r.width,
+        py = cur.y * r.height;
+      const m = `radial-gradient(circle ${R}px at ${px}px ${py}px,` + ` #000 0%, rgba(0,0,0,.86) 42%, rgba(0,0,0,0) 72%)`;
       reveal.style.webkitMaskImage = m;
       reveal.style.maskImage = m;
     };
-
-    const onMove = (e) => {
+    const onMove = e => {
       const r = wrap.getBoundingClientRect();
       pos.x = (e.clientX - r.left) / r.width;
       pos.y = (e.clientY - r.top) / r.height;
     };
-
     let t = 0;
     const loop = () => {
       rafRef.current = requestAnimationFrame(loop);
-      if (!fine || reduce) {           // no cursor: drift the light slowly
+      if (!fine || reduce) {
+        // no cursor: drift the light slowly
         t += 0.0045;
         pos.x = 0.5 + Math.cos(t) * 0.26;
         pos.y = 0.5 + Math.sin(t * 0.8) * 0.2;
       }
-      cur.x += (pos.x - cur.x) * 0.12;  // ease toward the target
+      cur.x += (pos.x - cur.x) * 0.12; // ease toward the target
       cur.y += (pos.y - cur.y) * 0.12;
       paint();
     };
-
-    if (fine && !reduce) window.addEventListener("pointermove", onMove, { passive: true });
+    if (fine && !reduce) window.addEventListener("pointermove", onMove, {
+      passive: true
+    });
     paint();
     rafRef.current = requestAnimationFrame(loop);
-
     return () => {
       cancelAnimationFrame(rafRef.current);
       window.removeEventListener("pointermove", onMove);
     };
   }, []);
-
-  return (
-    <div ref={wrapRef} className="absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
-      {/* barren rock — the surface */}
-      <div className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-           style={{ backgroundImage:`url("${window.SH_LITHOS_BASE}")` }} />
-      {/* the same rock alive — revealed only inside the spotlight */}
-      <div ref={revealRef} className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-           style={{ backgroundImage:`url("${window.SH_LITHOS_REVEAL}")`,
-                    WebkitMaskImage:"radial-gradient(circle 0px at 50% 50%, #000, transparent)",
-                    maskImage:"radial-gradient(circle 0px at 50% 50%, #000, transparent)" }} />
-      {/* the footage runs edge to edge; fade the bottom so the section below
-          does not start on a hard horizon line */}
-      <div className="absolute inset-x-0 bottom-0 h-40"
-           style={{ background:"linear-gradient(to bottom, transparent, #000)" }} />
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", {
+    ref: wrapRef,
+    className: "absolute inset-0 z-0 overflow-hidden",
+    "aria-hidden": "true"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute inset-0 bg-cover bg-center bg-no-repeat",
+    style: {
+      backgroundImage: `url("${window.SH_LITHOS_BASE}")`
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    ref: revealRef,
+    className: "absolute inset-0 bg-cover bg-center bg-no-repeat",
+    style: {
+      backgroundImage: `url("${window.SH_LITHOS_REVEAL}")`,
+      WebkitMaskImage: "radial-gradient(circle 0px at 50% 50%, #000, transparent)",
+      maskImage: "radial-gradient(circle 0px at 50% 50%, #000, transparent)"
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "absolute inset-x-0 bottom-0 h-40",
+    style: {
+      background: "linear-gradient(to bottom, transparent, #000)"
+    }
+  }));
 }
 window.LithosReveal = LithosReveal;
+})();
 </script>
 
 <!-- ══ Capabilities — the four detection layers ══ -->
-<script type="text/babel">
-const { LithosReveal } = window;
-
-const IconLayers = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6 text-white" aria-hidden="true">
-    <path d="M12 3 2 8l10 5 10-5-10-5Zm0 12.5L4.2 11.6 2 12.7l10 5 10-5-2.2-1.1L12 15.5Z"/>
-  </svg>
-);
-const IconPulse = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6 text-white" aria-hidden="true">
-    <path d="M3 13h3.5l2-6 3 12 2.5-8 1.6 2H21v2h-6.2l-2.6-3.3L9.4 21 6.6 9.9 5.6 15H3v-2Z"/>
-  </svg>
-);
-const IconLock = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6 text-white" aria-hidden="true">
-    <path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm-3 8V7a3 3 0 1 1 6 0v3H9Z"/>
-  </svg>
-);
-
-const CARDS = [
-  { icon:<IconLayers/>, title:"Four layers",
-    tags:["Keyword","Semantic","Behavioral","Trend gate"],
-    body:"Keywords miss meaning, models miss patterns, and behavior alone can't tell you why. Each layer covers the one before it." },
-  { icon:<IconPulse/>, title:"Your baseline",
-    tags:["Typing rhythm","Late nights","Tab switching","Session length"],
-    body:"A few ordinary days establish what normal looks like for you. Layer three reads no text at all — only rhythm." },
-  { icon:<IconLock/>, title:"Nothing leaves",
-    tags:["On-device","No raw text","You press send","Erase anytime"],
-    body:"Only a category and a level are ever recorded. When it matters, the message to a counselor is drafted — and you send it." }
-];
-
+<script>
+(function(){
+const {
+  LithosReveal
+} = window;
+const IconLayers = () => /*#__PURE__*/React.createElement("svg", {
+  viewBox: "0 0 24 24",
+  fill: "currentColor",
+  className: "h-6 w-6 text-white",
+  "aria-hidden": "true"
+}, /*#__PURE__*/React.createElement("path", {
+  d: "M12 3 2 8l10 5 10-5-10-5Zm0 12.5L4.2 11.6 2 12.7l10 5 10-5-2.2-1.1L12 15.5Z"
+}));
+const IconPulse = () => /*#__PURE__*/React.createElement("svg", {
+  viewBox: "0 0 24 24",
+  fill: "currentColor",
+  className: "h-6 w-6 text-white",
+  "aria-hidden": "true"
+}, /*#__PURE__*/React.createElement("path", {
+  d: "M3 13h3.5l2-6 3 12 2.5-8 1.6 2H21v2h-6.2l-2.6-3.3L9.4 21 6.6 9.9 5.6 15H3v-2Z"
+}));
+const IconLock = () => /*#__PURE__*/React.createElement("svg", {
+  viewBox: "0 0 24 24",
+  fill: "currentColor",
+  className: "h-6 w-6 text-white",
+  "aria-hidden": "true"
+}, /*#__PURE__*/React.createElement("path", {
+  d: "M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm-3 8V7a3 3 0 1 1 6 0v3H9Z"
+}));
+const CARDS = [{
+  icon: /*#__PURE__*/React.createElement(IconLayers, null),
+  title: "Four layers",
+  tags: ["Keyword", "Semantic", "Behavioral", "Trend gate"],
+  body: "Keywords miss meaning, models miss patterns, and behavior alone can't tell you why. Each layer covers the one before it."
+}, {
+  icon: /*#__PURE__*/React.createElement(IconPulse, null),
+  title: "Your baseline",
+  tags: ["Typing rhythm", "Late nights", "Tab switching", "Session length"],
+  body: "A few ordinary days establish what normal looks like for you. Layer three reads no text at all — only rhythm."
+}, {
+  icon: /*#__PURE__*/React.createElement(IconLock, null),
+  title: "Nothing leaves",
+  tags: ["On-device", "No raw text", "You press send", "Erase anytime"],
+  body: "Only a category and a level are ever recorded. When it matters, the message to a counselor is drafted — and you send it."
+}];
 function Capabilities() {
-  return (
-    <section id="how" className="relative min-h-screen bg-black overflow-hidden">
-      <LithosReveal />
-
-      <div className="relative z-10 px-8 md:px-16 lg:px-20 pt-24 pb-10 flex flex-col min-h-screen">
-        <div className="mb-auto">
-          <p className="text-sm font-body text-white/80 mb-6">// How it works</p>
-          <h2 className="on-video font-heading italic text-white text-6xl md:text-7xl lg:text-[6rem]
-                         leading-[0.9] tracking-[-3px]">
-            Support that<br/>notices first
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
-          {CARDS.map((c) => (
-            <div key={c.title} className="liquid-glass rounded-[1.25rem] p-6 min-h-[360px] flex flex-col">
-              <div className="flex items-start justify-between gap-4">
-                <div className="h-11 w-11 liquid-glass rounded-[0.75rem] flex items-center justify-center shrink-0">
-                  {c.icon}
-                </div>
-                <div className="flex flex-wrap justify-end gap-1.5 max-w-[70%]">
-                  {c.tags.map((t) => (
-                    <span key={t} className="liquid-glass rounded-full px-3 py-1 text-[11px]
-                                             text-white/90 font-body whitespace-nowrap">{t}</span>
-                  ))}
-                </div>
-              </div>
-              <div className="flex-1" />
-              <div className="mt-6">
-                <h3 className="font-heading italic text-white text-3xl md:text-4xl tracking-[-1px] leading-none">
-                  {c.title}
-                </h3>
-                <p className="mt-3 text-sm text-white/90 font-body font-light leading-snug max-w-[32ch]">
-                  {c.body}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
+  return /*#__PURE__*/React.createElement("section", {
+    id: "how",
+    className: "relative min-h-screen bg-black overflow-hidden"
+  }, /*#__PURE__*/React.createElement(LithosReveal, null), /*#__PURE__*/React.createElement("div", {
+    className: "relative z-10 px-8 md:px-16 lg:px-20 pt-24 pb-10 flex flex-col min-h-screen"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mb-auto"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-body text-white/80 mb-6"
+  }, "// How it works"), /*#__PURE__*/React.createElement("h2", {
+    className: "on-video font-heading italic text-white text-6xl md:text-7xl lg:text-[6rem] leading-[0.9] tracking-[-3px]"
+  }, "Support that", /*#__PURE__*/React.createElement("br", null), "notices first")), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-3 gap-6 mt-16"
+  }, CARDS.map(c => /*#__PURE__*/React.createElement("div", {
+    key: c.title,
+    className: "liquid-glass rounded-[1.25rem] p-6 min-h-[360px] flex flex-col"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-start justify-between gap-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "h-11 w-11 liquid-glass rounded-[0.75rem] flex items-center justify-center shrink-0"
+  }, c.icon), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap justify-end gap-1.5 max-w-[70%]"
+  }, c.tags.map(t => /*#__PURE__*/React.createElement("span", {
+    key: t,
+    className: "liquid-glass rounded-full px-3 py-1 text-[11px] text-white/90 font-body whitespace-nowrap"
+  }, t)))), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "mt-6"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-heading italic text-white text-3xl md:text-4xl tracking-[-1px] leading-none"
+  }, c.title), /*#__PURE__*/React.createElement("p", {
+    className: "mt-3 text-sm text-white/90 font-body font-light leading-snug max-w-[32ch]"
+  }, c.body)))))));
 }
 window.Capabilities = Capabilities;
+})();
 </script>
 
 <!-- ══ Science · Privacy · Pricing · Footer ══ -->
-<script type="text/babel">
-const { motion } = window.Motion;
-const { ArrowUpRight } = window;
-
-function Band({ id, kicker, title, children }) {
-  return (
-    <section id={id} className="relative bg-black px-8 md:px-16 lg:px-20 py-28
-                                border-t border-white/10">
-      <p className="text-sm font-body text-white/80 mb-6">// {kicker}</p>
-      <h2 className="font-heading italic text-white text-5xl md:text-6xl lg:text-[4.5rem]
-                     leading-[0.95] tracking-[-3px] max-w-3xl">{title}</h2>
-      {children}
-    </section>
-  );
+<script>
+(function(){
+const {
+  motion
+} = window.Motion;
+const {
+  ArrowUpRight
+} = window;
+function Band({
+  id,
+  kicker,
+  title,
+  children
+}) {
+  return /*#__PURE__*/React.createElement("section", {
+    id: id,
+    className: "relative bg-black px-8 md:px-16 lg:px-20 py-28 border-t border-white/10"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-body text-white/80 mb-6"
+  }, "// ", kicker), /*#__PURE__*/React.createElement("h2", {
+    className: "font-heading italic text-white text-5xl md:text-6xl lg:text-[4.5rem] leading-[0.95] tracking-[-3px] max-w-3xl"
+  }, title), children);
 }
 
 /* Live demo, embedded. The /stage page runs the real detector, so this is the
@@ -706,237 +832,251 @@ function Band({ id, kicker, title, children }) {
 function LiveDemo() {
   const [live, setLive] = React.useState(false);
   const boxRef = React.useRef(null);
-
   React.useEffect(() => {
     const el = boxRef.current;
     if (!el || live) return;
-    const io = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setLive(true); io.disconnect(); } },
-      { rootMargin: "300px" }
-    );
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) {
+        setLive(true);
+        io.disconnect();
+      }
+    }, {
+      rootMargin: "300px"
+    });
     io.observe(el);
     return () => io.disconnect();
   }, [live]);
-
-  return (
-    <Band id="demo" kicker="See it run"
-          title={<>Six screens.<br/>One quiet layer.</>}>
-      <p className="mt-8 max-w-2xl text-white/70 font-body font-light leading-relaxed">
-        Real messages, typed live into Messages, Discord, Snapchat, Instagram,
-        WhatsApp and Slack — each one scored by the same detector that ships in
-        the app. Including the one it deliberately ignores.
-      </p>
-
-      <div ref={boxRef}
-           className="mt-12 liquid-glass rounded-[1.5rem] overflow-hidden relative"
-           style={{ aspectRatio: "16 / 10" }}>
-        {live ? (
-          <iframe
-            src="/stage?auto=1&embed=1"
-            title="SilentHelp live detection demo"
-            loading="lazy"
-            className="absolute inset-0 w-full h-full"
-            style={{ border: "none" }}
-          />
-        ) : (
-          <div className="absolute inset-0 grid place-items-center text-white/40 font-body text-sm">
-            Loading the demo…
-          </div>
-        )}
-      </div>
-
-      <div className="mt-6 flex flex-wrap items-center gap-4">
-        <a href="/stage" target="_blank" rel="noopener"
-           className="liquid-glass rounded-full px-5 py-2.5 text-sm text-white/90 font-body
-                      hover:text-white transition-colors">
-          Open full screen
-        </a>
-        <span className="text-xs text-white/40 font-body">
-          Runs the live pipeline — nothing here is pre-recorded.
-        </span>
-      </div>
-    </Band>
-  );
+  return /*#__PURE__*/React.createElement(Band, {
+    id: "demo",
+    kicker: "See it run",
+    title: /*#__PURE__*/React.createElement(React.Fragment, null, "Six screens.", /*#__PURE__*/React.createElement("br", null), "One quiet layer.")
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "mt-8 max-w-2xl text-white/70 font-body font-light leading-relaxed"
+  }, "Real messages, typed live into Messages, Discord, Snapchat, Instagram, WhatsApp and Slack \u2014 each one scored by the same detector that ships in the app. Including the one it deliberately ignores."), /*#__PURE__*/React.createElement("div", {
+    ref: boxRef,
+    className: "mt-12 liquid-glass rounded-[1.5rem] overflow-hidden relative",
+    style: {
+      aspectRatio: "16 / 10"
+    }
+  }, live ? /*#__PURE__*/React.createElement("iframe", {
+    src: "/stage?auto=1&embed=1",
+    title: "SilentHelp live detection demo",
+    loading: "lazy",
+    className: "absolute inset-0 w-full h-full",
+    style: {
+      border: "none"
+    }
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "absolute inset-0 grid place-items-center text-white/40 font-body text-sm"
+  }, "Loading the demo\u2026")), /*#__PURE__*/React.createElement("div", {
+    className: "mt-6 flex flex-wrap items-center gap-4"
+  }, /*#__PURE__*/React.createElement("a", {
+    href: "/stage",
+    target: "_blank",
+    rel: "noopener",
+    className: "liquid-glass rounded-full px-5 py-2.5 text-sm text-white/90 font-body hover:text-white transition-colors"
+  }, "Open full screen"), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-white/40 font-body"
+  }, "Runs the live pipeline \u2014 nothing here is pre-recorded.")));
 }
-
 function Science() {
-  const rows = [
-    ["Layer 1 · Keyword", "Tens of thousands of phrases matched locally in under a millisecond. No AI, no network."],
-    ["Layer 2 · Semantic", "Reads meaning, so “this test is killing me” and a genuine goodbye are never confused."],
-    ["Layer 3 · Behavioral", "Tab switching, typing pace, late nights — measured against your own baseline. Reads no text."],
-    ["Layer 4 · Trend gate", "A single bad day means nothing. Only a sustained pattern surfaces — crisis always bypasses."]
-  ];
-  return (
-    <Band id="science" kicker="The science" title={<>Four quiet layers,<br/>one gentle signal</>}>
-      <div className="mt-14 grid gap-3">
-        {rows.map(([t, d]) => (
-          <div key={t} className="liquid-glass rounded-[1.25rem] p-6 flex flex-col md:flex-row md:items-center gap-3 md:gap-8">
-            <h3 className="font-heading italic text-white text-2xl md:text-3xl tracking-[-1px] md:w-[38%] shrink-0">{t}</h3>
-            <p className="text-sm text-white/90 font-body font-light leading-snug">{d}</p>
-          </div>
-        ))}
-      </div>
-    </Band>
-  );
+  const rows = [["Layer 1 · Keyword", "Tens of thousands of phrases matched locally in under a millisecond. No AI, no network."], ["Layer 2 · Semantic", "Reads meaning, so “this test is killing me” and a genuine goodbye are never confused."], ["Layer 3 · Behavioral", "Tab switching, typing pace, late nights — measured against your own baseline. Reads no text."], ["Layer 4 · Trend gate", "A single bad day means nothing. Only a sustained pattern surfaces — crisis always bypasses."]];
+  return /*#__PURE__*/React.createElement(Band, {
+    id: "science",
+    kicker: "The science",
+    title: /*#__PURE__*/React.createElement(React.Fragment, null, "Four quiet layers,", /*#__PURE__*/React.createElement("br", null), "one gentle signal")
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mt-14 grid gap-3"
+  }, rows.map(([t, d]) => /*#__PURE__*/React.createElement("div", {
+    key: t,
+    className: "liquid-glass rounded-[1.25rem] p-6 flex flex-col md:flex-row md:items-center gap-3 md:gap-8"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-heading italic text-white text-2xl md:text-3xl tracking-[-1px] md:w-[38%] shrink-0"
+  }, t), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-white/90 font-body font-light leading-snug"
+  }, d)))));
 }
-
 function Privacy() {
-  const vows = [
-    "Detection runs on your device. Raw text is never stored or transmitted.",
-    "Only a category and a level are recorded — never what you wrote.",
-    "Nothing is sent to anyone automatically. Escalation is drafted; you press send.",
-    "No selling data. No training public models on it. No ads, ever.",
-    "Export or erase everything, any time, in one click."
-  ];
-  return (
-    <Band id="privacy" kicker="Privacy" title={<>The data<br/>never leaves</>}>
-      <div className="mt-14 liquid-glass rounded-[1.25rem] p-8 max-w-3xl">
-        <ul className="grid gap-4">
-          {vows.map((v) => (
-            <li key={v} className="flex gap-4 items-start text-white/90 font-body font-light text-sm leading-snug">
-              <span className="mt-0.5 h-5 w-5 rounded-full liquid-glass flex items-center justify-center text-white text-[11px] shrink-0">✓</span>
-              <span>{v}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </Band>
-  );
+  const vows = ["Detection runs on your device. Raw text is never stored or transmitted.", "Only a category and a level are recorded — never what you wrote.", "Nothing is sent to anyone automatically. Escalation is drafted; you press send.", "No selling data. No training public models on it. No ads, ever.", "Export or erase everything, any time, in one click."];
+  return /*#__PURE__*/React.createElement(Band, {
+    id: "privacy",
+    kicker: "Privacy",
+    title: /*#__PURE__*/React.createElement(React.Fragment, null, "The data", /*#__PURE__*/React.createElement("br", null), "never leaves")
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mt-14 liquid-glass rounded-[1.25rem] p-8 max-w-3xl"
+  }, /*#__PURE__*/React.createElement("ul", {
+    className: "grid gap-4"
+  }, vows.map(v => /*#__PURE__*/React.createElement("li", {
+    key: v,
+    className: "flex gap-4 items-start text-white/90 font-body font-light text-sm leading-snug"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mt-0.5 h-5 w-5 rounded-full liquid-glass flex items-center justify-center text-white text-[11px] shrink-0"
+  }, "\u2713"), /*#__PURE__*/React.createElement("span", null, v))))));
 }
-
 function Pricing() {
   // One tier. SilentHelp is free for everyone — no student/family/school split.
-  const includes = [
-    "All four detection layers",
-    "Coping chat & Help a Friend",
-    "The Mac agent, watching quietly",
-    "Escalation drafting to someone you trust",
-    "Everything on-device, nothing sold",
-  ];
-  return (
-    <Band id="pricing" kicker="Pricing" title={<>Free. For everyone.</>}>
-      <div className="mt-14 max-w-xl">
-        <div className="liquid-glass-strong rounded-[1.5rem] p-10 flex flex-col">
-          <div className="font-heading italic text-white text-7xl tracking-[-3px] leading-none">Free</div>
-          <p className="mt-4 text-base text-white/80 font-body font-light leading-relaxed">
-            No plans, no tiers, no paywall. The same SilentHelp for students, families,
-            and schools alike — because who gets support shouldn't depend on who can pay.
-          </p>
-          <ul className="mt-7 grid gap-3">
-            {includes.map((f) => (
-              <li key={f} className="flex gap-3 items-center text-white/85 font-body font-light text-[15px]">
-                <span className="h-5 w-5 rounded-full liquid-glass flex items-center justify-center text-white text-[11px] shrink-0">✓</span>
-                {f}
-              </li>
-            ))}
-          </ul>
-          <a href="/app" className="mt-9 bg-white text-black rounded-full px-6 py-3 text-[15px] font-medium
-                                    font-body flex items-center justify-center gap-2 hover:opacity-90">
-            Get started — free <ArrowUpRight className="h-4 w-4" />
-          </a>
-        </div>
-      </div>
-    </Band>
-  );
+  const includes = ["All four detection layers", "Coping chat & Help a Friend", "The Mac agent, watching quietly", "Escalation drafting to someone you trust", "Everything on-device, nothing sold"];
+  return /*#__PURE__*/React.createElement(Band, {
+    id: "pricing",
+    kicker: "Pricing",
+    title: /*#__PURE__*/React.createElement(React.Fragment, null, "Free. For everyone.")
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mt-14 max-w-xl"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "liquid-glass-strong rounded-[1.5rem] p-10 flex flex-col"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "font-heading italic text-white text-7xl tracking-[-3px] leading-none"
+  }, "Free"), /*#__PURE__*/React.createElement("p", {
+    className: "mt-4 text-base text-white/80 font-body font-light leading-relaxed"
+  }, "No plans, no tiers, no paywall. The same SilentHelp for students, families, and schools alike \u2014 because who gets support shouldn't depend on who can pay."), /*#__PURE__*/React.createElement("ul", {
+    className: "mt-7 grid gap-3"
+  }, includes.map(f => /*#__PURE__*/React.createElement("li", {
+    key: f,
+    className: "flex gap-3 items-center text-white/85 font-body font-light text-[15px]"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "h-5 w-5 rounded-full liquid-glass flex items-center justify-center text-white text-[11px] shrink-0"
+  }, "\u2713"), f))), /*#__PURE__*/React.createElement("a", {
+    href: "/app",
+    className: "mt-9 bg-white text-black rounded-full px-6 py-3 text-[15px] font-medium font-body flex items-center justify-center gap-2 hover:opacity-90"
+  }, "Get started \u2014 free ", /*#__PURE__*/React.createElement(ArrowUpRight, {
+    className: "h-4 w-4"
+  })))));
 }
 
 /* Monogram avatar — the fallback until real headshots land in
    /static/img/team/. Initials on a soft gradient, deterministic per name. */
-function Avatar({ member, size = 88 }) {
+function Avatar({
+  member,
+  size = 88
+}) {
   const initials = member.name.split(" ").map(w => w[0]).slice(0, 2).join("");
   const [failed, setFailed] = React.useState(false);
   // Show the photo when present and loading; fall back to the monogram if the
   // file isn't there yet (a photo path is set for all three, but real headshots
   // land one at a time).
   if (member.photo && !failed) {
-    return <img src={member.photo} alt={member.name}
-                onError={() => setFailed(true)}
-                className="rounded-full object-cover shrink-0"
-                style={{ width: size, height: size, objectPosition: member.pos || "center" }} />;
+    return /*#__PURE__*/React.createElement("img", {
+      src: member.photo,
+      alt: member.name,
+      onError: () => setFailed(true),
+      className: "rounded-full object-cover shrink-0",
+      style: {
+        width: size,
+        height: size,
+        objectPosition: member.pos || "center"
+      }
+    });
   }
-  return (
-    <div className="rounded-full grid place-items-center font-heading italic text-white/90 shrink-0"
-         style={{ width: size, height: size, fontSize: size * 0.34,
-                  background: "linear-gradient(140deg, rgba(120,132,160,.5), rgba(50,60,86,.5))",
-                  boxShadow: "inset 0 1px 1px rgba(255,255,255,.2)" }}>
-      {initials}
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", {
+    className: "rounded-full grid place-items-center font-heading italic text-white/90 shrink-0",
+    style: {
+      width: size,
+      height: size,
+      fontSize: size * 0.34,
+      background: "linear-gradient(140deg, rgba(120,132,160,.5), rgba(50,60,86,.5))",
+      boxShadow: "inset 0 1px 1px rgba(255,255,255,.2)"
+    }
+  }, initials);
 }
 window.Avatar = Avatar;
 
 /* Team teaser on the landing page — three cards, linking to the fuller
    /about page. */
 function Team() {
-  return (
-    <Band id="team" kicker="Who's behind it"
-          title={<>A small team,<br/>building quietly.</>}>
-      <p className="mt-8 max-w-2xl text-white/70 font-body font-light leading-relaxed">
-        SilentHelp is built by three people who think support should arrive
-        before you have to ask for it.
-      </p>
-      <div className="mt-14 grid gap-4 md:grid-cols-3">
-        {window.SH_TEAM.map(m => (
-          <a key={m.slug} href={"/about#" + m.slug}
-             className="liquid-glass rounded-[1.25rem] p-7 flex flex-col gap-4
-                        hover:bg-white/[0.03] transition-colors">
-            <Avatar member={m} size={72} />
-            <div>
-              <h3 className="font-heading italic text-white text-2xl tracking-[-1px]">{m.name}</h3>
-              <p className="text-xs text-white/55 font-body mt-1 uppercase tracking-wide">{m.role}</p>
-            </div>
-            <p className="text-sm text-white/80 font-body font-light leading-snug">{m.short}</p>
-          </a>
-        ))}
-      </div>
-      <div className="mt-10">
-        <a href="/about"
-           className="liquid-glass rounded-full px-6 py-3 text-sm text-white/90 font-body
-                      hover:text-white transition-colors inline-flex items-center gap-2">
-          Meet the team <ArrowUpRight className="w-4 h-4" />
-        </a>
-      </div>
-    </Band>
-  );
+  return /*#__PURE__*/React.createElement(Band, {
+    id: "team",
+    kicker: "Who's behind it",
+    title: /*#__PURE__*/React.createElement(React.Fragment, null, "A small team,", /*#__PURE__*/React.createElement("br", null), "building quietly.")
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "mt-8 max-w-2xl text-white/70 font-body font-light leading-relaxed"
+  }, "SilentHelp is built by three people who think support should arrive before you have to ask for it."), /*#__PURE__*/React.createElement("div", {
+    className: "mt-14 grid gap-4 md:grid-cols-3"
+  }, window.SH_TEAM.map(m => /*#__PURE__*/React.createElement("a", {
+    key: m.slug,
+    href: "/about#" + m.slug,
+    className: "liquid-glass rounded-[1.25rem] p-7 flex flex-col gap-4 hover:bg-white/[0.03] transition-colors"
+  }, /*#__PURE__*/React.createElement(Avatar, {
+    member: m,
+    size: 72
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    className: "font-heading italic text-white text-2xl tracking-[-1px]"
+  }, m.name), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-white/55 font-body mt-1 uppercase tracking-wide"
+  }, m.role)), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-white/80 font-body font-light leading-snug"
+  }, m.short)))), /*#__PURE__*/React.createElement("div", {
+    className: "mt-10"
+  }, /*#__PURE__*/React.createElement("a", {
+    href: "/about",
+    className: "liquid-glass rounded-full px-6 py-3 text-sm text-white/90 font-body hover:text-white transition-colors inline-flex items-center gap-2"
+  }, "Meet the team ", /*#__PURE__*/React.createElement(ArrowUpRight, {
+    className: "w-4 h-4"
+  }))));
 }
 window.Team = Team;
-
+window.LiveDemo = LiveDemo;
+window.Band = Band;
 function Footer() {
-  return (
-    <footer className="bg-black px-8 md:px-16 lg:px-20 py-14 border-t border-white/10">
-      <div className="flex flex-wrap items-center gap-6">
-        <a href="/" className="flex items-center gap-3 text-white font-body">
-          <img src="/static/img/badge-128.png" alt="" className="h-7 w-7 rounded-full"/>
-          <span className="text-sm font-medium">SilentHelp</span>
-        </a>
-        <span className="ml-auto text-xs text-white/50 font-body">© 2026 SilentHelp</span>
-        <a href="/about" className="text-xs text-white/70 hover:text-white font-body">About</a>
-        <a href="/privacy" className="text-xs text-white/70 hover:text-white font-body">Privacy</a>
-        <a href="/terms" className="text-xs text-white/70 hover:text-white font-body">Terms</a>
-        <a href="/careers" className="text-xs text-white/70 hover:text-white font-body">Careers</a>
-        <a href="mailto:silenthelp@silenthelp.org" className="text-xs text-white/70 hover:text-white font-body">Contact</a>
-      </div>
-      <p className="mt-8 max-w-3xl text-xs text-white/45 font-body font-light leading-relaxed">
-        SilentHelp is a wellbeing companion, not a medical device, and it does not diagnose or
-        provide treatment. If you are in immediate danger, call or text <strong className="text-white/70">988</strong>
-        &nbsp;(US Suicide &amp; Crisis Lifeline) or your local emergency number.
-      </p>
-    </footer>
-  );
+  return /*#__PURE__*/React.createElement("footer", {
+    className: "bg-black px-8 md:px-16 lg:px-20 py-14 border-t border-white/10"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap items-center gap-6"
+  }, /*#__PURE__*/React.createElement("a", {
+    href: "/",
+    className: "flex items-center gap-3 text-white font-body"
+  }, /*#__PURE__*/React.createElement("img", {
+    src: "/static/img/badge-128.png",
+    alt: "",
+    className: "h-7 w-7 rounded-full"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm font-medium"
+  }, "SilentHelp")), /*#__PURE__*/React.createElement("span", {
+    className: "ml-auto text-xs text-white/50 font-body"
+  }, "\xA9 2026 SilentHelp"), /*#__PURE__*/React.createElement("a", {
+    href: "/about",
+    className: "text-xs text-white/70 hover:text-white font-body"
+  }, "About"), /*#__PURE__*/React.createElement("a", {
+    href: "/privacy",
+    className: "text-xs text-white/70 hover:text-white font-body"
+  }, "Privacy"), /*#__PURE__*/React.createElement("a", {
+    href: "/terms",
+    className: "text-xs text-white/70 hover:text-white font-body"
+  }, "Terms"), /*#__PURE__*/React.createElement("a", {
+    href: "/careers",
+    className: "text-xs text-white/70 hover:text-white font-body"
+  }, "Careers"), /*#__PURE__*/React.createElement("a", {
+    href: "mailto:silenthelp@silenthelp.org",
+    className: "text-xs text-white/70 hover:text-white font-body"
+  }, "Contact")), /*#__PURE__*/React.createElement("p", {
+    className: "mt-8 max-w-3xl text-xs text-white/45 font-body font-light leading-relaxed"
+  }, "SilentHelp is a wellbeing companion, not a medical device, and it does not diagnose or provide treatment. If you are in immediate danger, call or text ", /*#__PURE__*/React.createElement("strong", {
+    className: "text-white/70"
+  }, "988"), "\xA0(US Suicide & Crisis Lifeline) or your local emergency number."));
 }
-window.Science = Science; window.Privacy = Privacy;
-window.Pricing = Pricing; window.Footer = Footer;
+window.Science = Science;
+window.Privacy = Privacy;
+window.Pricing = Pricing;
+window.Footer = Footer;
+})();
 </script>
 
 <!-- ══ Mount ══ -->
-<script type="text/babel">
-const { Hero, Capabilities, Science, Privacy, Pricing, Footer } = window;
-function App(){
-  return (<>
-    <Hero/><Capabilities/><LiveDemo/><Science/><Privacy/><Team/><Pricing/><Footer/>
-  </>);
+<script>
+(function(){
+const {
+  Hero,
+  Capabilities,
+  Science,
+  Privacy,
+  Pricing,
+  Footer,
+  LiveDemo,
+  Team
+} = window;
+function App() {
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Hero, null), /*#__PURE__*/React.createElement(Capabilities, null), /*#__PURE__*/React.createElement(LiveDemo, null), /*#__PURE__*/React.createElement(Science, null), /*#__PURE__*/React.createElement(Privacy, null), /*#__PURE__*/React.createElement(Team, null), /*#__PURE__*/React.createElement(Pricing, null), /*#__PURE__*/React.createElement(Footer, null));
 }
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(App, null));
 
 /* ── Scroll reveal ──────────────────────────────────────────────────────
    Runs after mount and tags the content React just rendered. Kept outside
@@ -944,69 +1084,79 @@ ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
    so an IntersectionObserver is cheaper and simpler than re-rendering.
    Elements are unobserved once revealed — nothing animates on scroll-up,
    which would fight the reader. */
-(function(){
+(function () {
   var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var tag = function(){
+  var tag = function () {
     var root = document.getElementById("root");
     if (!root) return;
 
     // Section headings, cards, rows, and list items — everything below the
     // hero, which has its own Framer Motion entrance already.
-    var sel = "section:not(#top) h2, section:not(#top) p.text-sm," +
-              "section:not(#top) .liquid-glass, section:not(#top) .liquid-glass-strong," +
-              "section:not(#top) h3, section:not(#top) li";
-    var els = [].slice.call(document.querySelectorAll(sel))
-                .filter(function(el){ return !el.closest("nav") && !el.classList.contains("sr"); });
-
-    els.forEach(function(el, i){
+    var sel = "section:not(#top) h2, section:not(#top) p.text-sm," + "section:not(#top) .liquid-glass, section:not(#top) .liquid-glass-strong," + "section:not(#top) h3, section:not(#top) li";
+    var els = [].slice.call(document.querySelectorAll(sel)).filter(function (el) {
+      return !el.closest("nav") && !el.classList.contains("sr");
+    });
+    els.forEach(function (el, i) {
       el.classList.add("sr");
       // Cards drift up, list items come from the left — varied enough to feel
       // composed, uniform enough not to look busy.
-      if (el.tagName === "LI") el.classList.add("sr-l");
-      else if (el.classList.contains("liquid-glass") ||
-               el.classList.contains("liquid-glass-strong")) el.classList.add("sr-s");
+      if (el.tagName === "LI") el.classList.add("sr-l");else if (el.classList.contains("liquid-glass") || el.classList.contains("liquid-glass-strong")) el.classList.add("sr-s");
     });
-
-    if (reduce) { els.forEach(function(el){ el.classList.add("in"); }); return; }
-
-    var io = new IntersectionObserver(function(entries){
-      entries.forEach(function(e){
+    if (reduce) {
+      els.forEach(function (el) {
+        el.classList.add("in");
+      });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
         if (!e.isIntersecting) return;
-        var sibs = [].slice.call(e.target.parentNode.children)
-                     .filter(function(c){ return c.classList.contains("sr"); });
+        var sibs = [].slice.call(e.target.parentNode.children).filter(function (c) {
+          return c.classList.contains("sr");
+        });
         var idx = Math.max(0, sibs.indexOf(e.target));
         e.target.style.transitionDelay = Math.min(idx, 6) * 70 + "ms";
         e.target.classList.add("in");
         io.unobserve(e.target);
       });
-    }, { threshold:0.12, rootMargin:"0px 0px -7%" });
-    els.forEach(function(el){ io.observe(el); });
+    }, {
+      threshold: 0.12,
+      rootMargin: "0px 0px -7%"
+    });
+    els.forEach(function (el) {
+      io.observe(el);
+    });
 
     /* Section headings drift slightly as they pass — a small parallax that
        gives the page depth without moving anything the eye is reading. */
     var heads = [].slice.call(document.querySelectorAll("section:not(#top) h2"));
-    if (!reduce && heads.length){
+    if (!reduce && heads.length) {
       var ticking = false;
-      var onScroll = function(){
+      var onScroll = function () {
         if (ticking) return;
         ticking = true;
-        requestAnimationFrame(function(){
+        requestAnimationFrame(function () {
           var vh = innerHeight;
-          heads.forEach(function(h){
+          heads.forEach(function (h) {
             var r = h.getBoundingClientRect();
             if (r.bottom < 0 || r.top > vh) return;
-            var p = (r.top + r.height/2 - vh/2) / vh;   // -0.5 … 0.5
+            var p = (r.top + r.height / 2 - vh / 2) / vh; // -0.5 … 0.5
             h.style.transform = "translateY(" + (p * -22).toFixed(1) + "px)";
           });
           ticking = false;
         });
       };
-      addEventListener("scroll", onScroll, { passive:true });
+      addEventListener("scroll", onScroll, {
+        passive: true
+      });
       onScroll();
     }
   };
   // Wait for React to paint before tagging its output.
-  requestAnimationFrame(function(){ requestAnimationFrame(tag); });
+  requestAnimationFrame(function () {
+    requestAnimationFrame(tag);
+  });
+})();
 })();
 </script>
 </body>
