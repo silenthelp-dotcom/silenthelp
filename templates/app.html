@@ -457,7 +457,10 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
 <!-- The design's shell paints #000, but its video is a SIBLING behind it. Here
      the video is appended to <body> at z-index 0, so an opaque shell would
      cover it — the black lives on <body> instead and the shell stays clear. -->
-<div id="appouter" style="min-height:100vh; background:transparent; display:flex; position:relative; z-index:2; overflow:auto; padding:40px;">
+<!-- Fixed-height shell so ONLY the content column scrolls, not the whole page
+     (sidebar + topbar stay put). overflow:hidden here; the inner content area
+     owns the scroll. -->
+<div id="appouter" style="height:100vh; background:transparent; display:flex; position:relative; z-index:2; overflow:hidden; padding:0;">
   <!-- The design's fixed 1180x760 window is a mock frame; at full size it left
        a hard-edged card floating on the backdrop. Fills the viewport instead,
        capped so it never stretches absurdly wide on large displays. -->
@@ -582,8 +585,7 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
     <div id="appview" style="display:none; position:relative; z-index:5; flex:1; min-height:0; flex-direction:column;">
       <!-- Topbar from the design: wordmark left, ON-DEVICE status chip right.
            It states the product's core promise on every screen. -->
-      <div style="height:56px; flex-shrink:0; display:flex; align-items:center; padding:0 26px; position:relative; z-index:10;">
-        <div class="hd" style="flex:1; font-size:17px; color:rgba(255,255,255,.9);">SilentHelp</div>
+      <div style="height:56px; flex-shrink:0; display:flex; align-items:center; justify-content:flex-end; padding:0 26px; position:relative; z-index:10;">
         <div class="liquid-glass" style="display:flex; align-items:center; gap:6px; font-size:10.5px; font-weight:600; letter-spacing:.08em; color:rgba(255,255,255,.9); border-radius:9999px; padding:5px 12px;"><div style="width:5px; height:5px; border-radius:50%; background:#fff;"></div>ON-DEVICE</div>
       </div>
       <!-- flex:1 + min-height:0, not height:100% — the topbar above now takes
@@ -592,10 +594,10 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
 
         <!-- SIDEBAR -->
         <div style="width:218px; flex-shrink:0; padding:8px 14px 18px; display:flex; flex-direction:column; background:#f8fafc; border-right:1px solid #eef2f6;">
-          <div style="display:flex; align-items:center; gap:11px; padding:6px 10px 22px;">
+          <a href="/" title="Back to silenthelp.org" style="display:flex; align-items:center; gap:11px; padding:6px 10px 22px; text-decoration:none;">
             <img src="/static/img/badge-64.png" alt="SilentHelp" style="width:26px; height:26px; border-radius:50%;" />
             <span style="font-size:15px; font-weight:700; color:#1a2632; letter-spacing:.01em;">SilentHelp</span>
-          </div>
+          </a>
           <div class="navitem" data-screen="dashboard" onclick="App.go('dashboard')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Dashboard</div>
           <div class="navitem" data-screen="analytics" onclick="App.go('analytics')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Analytics</div>
           <div class="navitem" data-screen="reports" onclick="App.go('reports')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Findings</div>
