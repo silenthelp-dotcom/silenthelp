@@ -1769,9 +1769,33 @@ App.init();
           }
         }
       });
-      if (window.Clerk.user){ location.reload(); return; }
+      // Bridge a Clerk sign-in to the Flask session ONCE. The old code called
+      // location.reload() whenever window.Clerk.user was truthy — but that is
+      // truthy on EVERY load once you're signed in, so it reloaded, saw the
+      // user again, reloaded again: an infinite refresh loop (the flickering).
+      //
+      // Guard it: reload at most once per browser session, and only to let the
+      // backend pick up the Clerk session cookie. After that the app's own
+      // /api/me routing takes over and never reloads again.
+      var RELOAD_ONCE = 'sh_clerk_bridged';
+      function bridgeOnce(){
+        if (sessionStorage.getItem(RELOAD_ONCE)) return;   // already did it this session
+        sessionStorage.setItem(RELOAD_ONCE, '1');
+        location.reload();
+      }
+      if (window.Clerk.user){
+        // Signed in with Clerk. If the backend already agrees, do nothing —
+        // App.init()'s /api/me check will route to the dashboard. Only reload
+        // (once) if the cookie hasn't reached the backend yet.
+        fetch('/api/me').then(function(r){ return r.json(); }).then(function(me){
+          if (!me.signedIn) bridgeOnce();
+        }).catch(function(){ /* leave routing to App.init */ });
+        return;
+      }
+      // Not signed in yet — show the sign-in and bridge once when it completes.
+      sessionStorage.removeItem(RELOAD_ONCE);   // fresh sign-in may need one bridge
       window.Clerk.mountSignIn(mount);
-      window.Clerk.addListener(function(e){ if (e.user) location.reload(); });
+      window.Clerk.addListener(function(e){ if (e.user) bridgeOnce(); });
     } catch(err){
       mount.innerHTML = '<div style="color:#f0a58a;font-size:14px">Sign-in failed to load. '+
         '<a href="#" onclick="location.reload()" style="color:#fff">Retry</a></div>';
