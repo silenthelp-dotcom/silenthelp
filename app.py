@@ -219,6 +219,11 @@ def api_signup():
     if not uid:
         return jsonify({"error": "That email is taken, or the details are invalid (password 6+ chars)."}), 409
     session["uid"] = uid
+    # Without this, Flask issues a browser-SESSION cookie (dies when the tab/
+    # browser closes) regardless of PERMANENT_SESSION_LIFETIME — that lifetime
+    # only applies once permanent=True. This was the actual "sign-in doesn't
+    # stick" bug: close the tab, cookie's gone, back to the sign-in screen.
+    session.permanent = True
     # Seed the new account's profile with their real name (never a placeholder).
     user = auth.get_user(uid)
     store.set_data_file(os.path.join(USERDATA_DIR, f"user_{uid}.json"))
@@ -233,6 +238,11 @@ def api_login():
     if not uid:
         return jsonify({"error": "Wrong email or password."}), 401
     session["uid"] = uid
+    # Without this, Flask issues a browser-SESSION cookie (dies when the tab/
+    # browser closes) regardless of PERMANENT_SESSION_LIFETIME — that lifetime
+    # only applies once permanent=True. This was the actual "sign-in doesn't
+    # stick" bug: close the tab, cookie's gone, back to the sign-in screen.
+    session.permanent = True
     return jsonify({"ok": True, "user": auth.get_user(uid)})
 
 
