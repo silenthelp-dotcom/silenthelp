@@ -614,7 +614,9 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
 
         <!-- SIDEBAR -->
         <!-- Sidebar stays put; scrolls only within itself on short screens. -->
-        <div style="width:218px; flex-shrink:0; padding:8px 14px 18px; display:flex; flex-direction:column; min-height:0; overflow-y:auto; background:transparent;">
+        <!-- The sidebar itself never scrolls — only the content column does.
+             No overflow here at all, by design. -->
+        <div style="width:218px; flex-shrink:0; padding:8px 14px 18px; display:flex; flex-direction:column; overflow:hidden; background:transparent;">
           <a href="/" title="Back to silenthelp.org" style="display:flex; align-items:center; gap:11px; padding:6px 10px 22px; text-decoration:none;">
             <img src="/static/img/badge-64.png" alt="SilentHelp" style="width:26px; height:26px; border-radius:50%;" />
             <span style="font-size:15px; font-weight:700; color:#1a2632; letter-spacing:.01em;">SilentHelp</span>
