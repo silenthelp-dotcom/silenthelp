@@ -25,6 +25,12 @@ services:
       - key: NVIDIA_API_KEY
         sync: false          # detection model key — set in the dashboard
       - key: SECRET_KEY
-        generateValue: true  # random session-signing key (code default is public)
+        sync: false          # session-signing key — set ONCE in the dashboard and
+                              # never change it. generateValue: true silently
+                              # regenerates on some blueprint re-syncs, which
+                              # invalidates every existing session cookie at once
+                              # (every signed-in user gets logged out with no
+                              # error — this was the "signed out after a while"
+                              # symptom). A fixed value set here survives deploys.
       - key: PYTHON_VERSION
         value: "3.12.7"
