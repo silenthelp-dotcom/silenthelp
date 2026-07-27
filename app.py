@@ -129,7 +129,18 @@ os.makedirs(USERDATA_DIR, exist_ok=True)
 
 def _is_local_request() -> bool:
     """True only for traffic from this Mac itself (the agent, a local browser).
-    Tunnel visitors carry their real IP via X-Forwarded-For (ProxyFix)."""
+    Tunnel visitors carry their real IP via X-Forwarded-For (ProxyFix).
+
+    Security note: this is only a safe trust boundary if Render's edge is
+    exactly one hop and doesn't pass through a client-supplied
+    X-Forwarded-For verbatim (ProxyFix(x_for=1) trusts one hop). Verified
+    directly against production: sending X-Forwarded-For: 127.0.0.1 to
+    https://silenthelp.org/api/me does NOT get treated as local (confirmed
+    2026-07-27) — Render's proxy overwrites/appends the header rather than
+    passing an attacker value through. _owner_uid() below is also a second,
+    independent guard: it only ever resolves to a single account when exactly
+    one exists, so this bypass can't select among the (many) real accounts
+    even in a hypothetical topology change."""
     return request.remote_addr in ("127.0.0.1", "::1")
 
 
@@ -212,8 +223,28 @@ def api_me():
     return jsonify({"signedIn": bool(u), "user": u})
 
 
+_SIGNUP_ATTEMPTS: Dict[str, list] = {}   # ip -> [timestamps]; in-memory, best-effort
+_SIGNUP_WINDOW_S = 60
+_SIGNUP_MAX_PER_WINDOW = 10
+
+
+def _signup_rate_limited(ip: str) -> bool:
+    """A 409 vs 200 on /api/signup reveals whether an email is registered — an
+    unavoidable property of any signup form that requires a self-chosen
+    password, not something the response wording can hide. The practical
+    mitigation is slowing down how fast one IP can probe emails, same idea as
+    the reset-code attempt cap above."""
+    now = time.time()
+    hits = [t for t in _SIGNUP_ATTEMPTS.get(ip, []) if now - t < _SIGNUP_WINDOW_S]
+    hits.append(now)
+    _SIGNUP_ATTEMPTS[ip] = hits
+    return len(hits) > _SIGNUP_MAX_PER_WINDOW
+
+
 @app.route("/api/signup", methods=["POST"])
 def api_signup():
+    if _signup_rate_limited(request.remote_addr or ""):
+        return jsonify({"error": "Too many attempts. Please wait a minute and try again."}), 429
     d = request.get_json(silent=True) or {}
     uid = auth.signup(d.get("email", ""), d.get("password", ""), d.get("name", ""))
     if not uid:
@@ -275,7 +306,12 @@ def api_change_password():
 # owns the email, so we DO NOT silently reset — that would let anyone change
 # anyone's password by email alone. Instead we tell the user reset-by-email
 # isn't available yet and to contact support. This keeps the flow honest.
-_RESET_CODES: Dict[str, Any] = {}   # email -> (code, expires_at); in-memory, best-effort
+_RESET_CODES: Dict[str, Any] = {}   # email -> (code, expires_at, attempts); in-memory, best-effort
+# A 6-digit code has only 1,000,000 values. Unthrottled, that's exhaustible in
+# well under the 15-minute window against a backend with no rate limiting.
+# Lock the code out after a handful of wrong guesses instead of relying on the
+# keyspace alone — the user just requests a fresh code if they fumble it.
+_RESET_MAX_ATTEMPTS = 8
 
 
 @app.route("/api/password/forgot", methods=["POST"])
@@ -292,7 +328,7 @@ def api_password_forgot():
                         "message": "Password reset by email isn't set up yet. "
                                    "Please contact silenthelp@silenthelp.org for help."})
     code = f"{secrets.randbelow(1000000):06d}"
-    _RESET_CODES[email] = (code, time.time() + 900)   # 15 min
+    _RESET_CODES[email] = (code, time.time() + 900, 0)   # 15 min, 0 attempts so far
     _smtp_send(email, "Your SilentHelp reset code",
                f"Your password reset code is {code}. It expires in 15 minutes.")
     return jsonify({"ok": True, "emailed": True})
@@ -305,7 +341,14 @@ def api_password_reset():
     code = (d.get("code") or "").strip()
     new = d.get("new_password", "")
     rec = _RESET_CODES.get(email)
-    if not (rec and rec[0] == code and time.time() < rec[1]):
+    if not rec:
+        return jsonify({"error": "Invalid or expired code."}), 400
+    stored_code, expires_at, attempts = rec
+    if attempts >= _RESET_MAX_ATTEMPTS or time.time() >= expires_at:
+        _RESET_CODES.pop(email, None)   # locked out or expired — request a fresh one
+        return jsonify({"error": "Invalid or expired code."}), 400
+    if not secrets.compare_digest(stored_code, code):
+        _RESET_CODES[email] = (stored_code, expires_at, attempts + 1)
         return jsonify({"error": "Invalid or expired code."}), 400
     if not auth.reset_password(email, new):
         return jsonify({"error": "New password must be at least 6 characters."}), 400
@@ -923,6 +966,14 @@ def api_helper():
     messages = data.get("messages") or []
     if not messages:
         return jsonify({"error": "no conversation"}), 400
+    # This is public/unauthenticated — an unbounded array (or huge per-message
+    # content) costs a real outbound LLM call per request with no rate limit.
+    # Cap both dimensions; a real Help-a-Friend conversation is nowhere near this.
+    if not isinstance(messages, list) or len(messages) > 60:
+        return jsonify({"error": "conversation too long"}), 400
+    for m in messages:
+        if isinstance(m, dict) and len(str(m.get("content", ""))) > 4000:
+            return jsonify({"error": "message too long"}), 400
     return jsonify(helper.coach(messages))
 
 
@@ -1001,12 +1052,20 @@ def _smtp_send(to_addr: str, subject: str, body: str) -> bool:
     sender = os.environ.get("SMTP_FROM", user or "")
     if not (user and password and to_addr):
         return False
-    msg = EmailMessage()
-    msg["Subject"] = subject or "SilentHelp — a check-in"
-    msg["From"] = sender
-    msg["To"] = to_addr
-    msg.set_content(body or "")
+    # subject/body are client-supplied. EmailMessage's header assignment raises
+    # ValueError on an embedded \r or \n (a would-be header-injection attempt,
+    # e.g. a smuggled "Bcc:" line) — strip those before building the message so
+    # a malformed subject can't 500 an otherwise-legitimate send, and wrap the
+    # whole build (not just the network part) in the try below so anything
+    # else EmailMessage rejects fails the same safe way the rest of this
+    # function already does.
+    subject = (subject or "SilentHelp — a check-in").replace("\r", " ").replace("\n", " ")
     try:
+        msg = EmailMessage()
+        msg["Subject"] = subject
+        msg["From"] = sender
+        msg["To"] = to_addr
+        msg.set_content(body or "")
         ctx = ssl.create_default_context()
         with smtplib.SMTP(host, port, timeout=15) as server:
             server.starttls(context=ctx)
@@ -1027,7 +1086,13 @@ def api_escalation_send():
     opening the user's mail app (mailto). Either way the event is recorded.
     """
     data = request.get_json(silent=True) or {}
-    contact = (data.get("contact") or store.get_settings().get("contact") or DEFAULT_CONTACT).strip()
+    # The recipient is ALWAYS the account's own saved trusted contact — never a
+    # client-supplied value. Trusting data.get("contact") here meant any signed-
+    # up user (self-serve, no verification) could point the server's own SMTP
+    # account at an arbitrary third-party address with attacker-chosen subject/
+    # body: an open mail relay riding on this app's mail reputation. Changing
+    # who this goes to is a Settings action, not a send-time parameter.
+    contact = (store.get_settings().get("contact") or DEFAULT_CONTACT).strip()
     subject = data.get("subject") or "SilentHelp — I could use a check-in"
     body = data.get("body") or ""
     if not contact:

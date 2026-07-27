@@ -1049,7 +1049,11 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
 
         <div id="urgentDraft" style="margin-top:26px; max-width:480px; margin-left:auto; margin-right:auto; text-align:left;">
           <div style="font-size:11px; letter-spacing:.18em; color:#9aa7b3; margin-bottom:6px;">TO</div>
-          <input id="escTo" placeholder="counselor@school.edu" style="width:100%; height:44px; border:1px solid #dde6ef; border-radius:11px; padding:0 14px; font-size:13.5px; background:#fff; color:#16202b; outline:none;" />
+          <!-- Read-only: the send always goes to the account's saved trusted
+               contact (server-enforced) — editing this box no longer changes
+               where it sends, so it must not look editable. Use the "Change
+               who this goes to in Settings" link below instead. -->
+          <input id="escTo" readonly placeholder="counselor@school.edu" style="width:100%; height:44px; border:1px solid #dde6ef; border-radius:11px; padding:0 14px; font-size:13.5px; background:#f6f8fb; color:#5e6f7e; outline:none; cursor:default;" />
           <div style="font-size:11px; letter-spacing:.18em; color:#9aa7b3; margin:14px 0 6px;">SUBJECT</div>
           <input id="escSubj" style="width:100%; height:44px; border:1px solid #dde6ef; border-radius:11px; padding:0 14px; font-size:13.5px; background:#fff; color:#16202b; outline:none;" />
           <div style="font-size:11px; letter-spacing:.18em; color:#9aa7b3; margin:14px 0 6px;">MESSAGE (you can edit this)</div>

@@ -25,6 +25,7 @@ import ApplicationServices
 import CoreGraphics
 import Foundation
 import ScreenCaptureKit
+import Security
 import Vision
 
 // MARK: - Config
@@ -69,6 +70,22 @@ private func probe(_ base: String, timeout: TimeInterval) -> Bool {
     return up
 }
 
+// The override file exists for local development (pointing the agent at a
+// staging backend, etc.) — it was accepting ANY string starting with "http",
+// including plain http://, with no allow-list. Every request built from
+// Config.backend attaches the device pairing token (see Backend.post/get
+// below), so a same-user write to this one file silently redirected all
+// future captured text AND the token to an attacker-controlled host, possibly
+// over cleartext. Restrict it to the known hosts, HTTPS only, loopback
+// exempted since that's the documented local-dev case.
+private func isAllowedBackendOverride(_ s: String) -> Bool {
+    guard let url = URL(string: s), let host = url.host else { return false }
+    if url.scheme == "http", host == "127.0.0.1" || host == "localhost" { return true }
+    guard url.scheme == "https" else { return false }
+    let allowedHosts: Set<String> = ["silenthelp.org", "silenthelp.onrender.com"]
+    return allowedHosts.contains(host)
+}
+
 func resolveBackend() {
     // Pick the hosted app first (silenthelp.org, else the Render fallback) so
     // "Talk it through" always opens something real.
@@ -76,10 +93,11 @@ func resolveBackend() {
         Config.hostedBackend = candidate
         break
     }
-    // 1. Explicit override file wins for DETECTION traffic.
+    // 1. Explicit override file wins for DETECTION traffic — but only to a
+    //    known host, never an arbitrary attacker-named one.
     let cfgPath = (NSString(string: "~/Library/Application Support/SilentHelp/backend.txt")).expandingTildeInPath
     if let s = try? String(contentsOfFile: cfgPath, encoding: .utf8)
-        .trimmingCharacters(in: .whitespacesAndNewlines), s.hasPrefix("http") {
+        .trimmingCharacters(in: .whitespacesAndNewlines), isAllowedBackendOverride(s) {
         Config.backend = s
         shLog("backend from config file: \(s)")
         return
@@ -110,20 +128,80 @@ struct Decision {
     let level: String
 }
 
+// MARK: - Keychain (minimal generic-password wrapper)
+//
+// Just enough of the Keychain Services C API to store one small string
+// per (service, account) — no third-party dependency needed for this.
+enum KeychainStore {
+    static func read(service: String, account: String) -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+        ]
+        var item: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &item)
+        guard status == errSecSuccess, let data = item as? Data else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    static func write(service: String, account: String, value: String) {
+        let data = Data(value.utf8)
+        let base: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+        ]
+        // Overwrite cleanly: delete any existing item, then add the new one —
+        // simpler and just as correct as an update-or-add branch for a value
+        // this small and infrequently written.
+        SecItemDelete(base as CFDictionary)
+        var add = base
+        add[kSecValueData as String] = data
+        add[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+        SecItemAdd(add as CFDictionary, nil)
+    }
+
+    static func delete(service: String, account: String) {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
+}
+
 // MARK: - Device pairing
 //
 // The hosted backend (silenthelp.org) can't tell "this Mac" from any other
 // remote client, so without a credential its /api/monitor calls were being
 // recorded as anonymous and discarded — the agent could run forever and the
 // dashboard would stay empty. The pairing code from Settings -> Mac Agent is
-// that credential: paste it once, it's stored here, and every request after
-// that carries it so the backend can attribute behavioral data to the account.
+// that credential: paste it once, it's stored in the Keychain (not
+// UserDefaults — that's a plaintext plist any other process running as this
+// user could read), and every request after that carries it so the backend
+// can attribute behavioral data to the account.
 enum DeviceAuth {
-    private static let key = "SilentHelpDeviceToken"
+    // The pairing token authenticates every request to the hosted backend —
+    // it's a bearer credential, not a preference. UserDefaults writes to a
+    // plaintext plist any other process running as this user can read
+    // (`defaults read`); the Keychain is what macOS provides specifically for
+    // secrets like this, with real access control instead of a plain file.
+    private static let service = "org.silenthelp.agent.device-token"
+    private static let account = "device-token"
 
     static var token: String? {
-        get { UserDefaults.standard.string(forKey: key) }
-        set { UserDefaults.standard.set(newValue, forKey: key) }
+        get { KeychainStore.read(service: service, account: account) }
+        set {
+            if let newValue {
+                KeychainStore.write(service: service, account: account, value: newValue)
+            } else {
+                KeychainStore.delete(service: service, account: account)
+            }
+        }
     }
 
     static var isPaired: Bool { !(token ?? "").isEmpty }
@@ -642,7 +720,8 @@ final class ScreenReader {
                     let surface = judgment["surface"] as? String ?? "none"
                     let riskLevel = judgment["risk_level"] as? String ?? "none"
                     guard surface != "none" else {
-                        shLog("OCR candidate (\(phrase)) judged \(riskLevel) in context → no popup")
+                        // Level/category only — never the matched text (see file header).
+                        shLog("OCR candidate judged \(riskLevel) in context → no popup")
                         return
                     }
                     self.lastPopPhrase = phrase
@@ -655,7 +734,11 @@ final class ScreenReader {
                         ? "What you're writing sounds really heavy. You don't have to carry it alone. If it's urgent, call or text 988."
                         : "Looks like a lot on you right now. Want to take a breath together?"
                     if !phrase.isEmpty { message += "\n\nNoticed: \u{201C}\(phrase)\u{201D}" }
-                    shLog("OCR \(riskLevel) confirmed in context (\(phrase)) → popup (crisis=\(crisis))")
+                    // The popup itself (above) is allowed to show the phrase to the
+                    // person it's FOR — the log is a diagnostic file that can outlive
+                    // this moment (crash reports, /tmp backups), so it gets level/
+                    // category only, never the text.
+                    shLog("OCR \(riskLevel) confirmed in context → popup (crisis=\(crisis))")
                     Popup.shared.show(title: title, message: message, crisis: crisis)
                 }
                 return
@@ -670,7 +753,7 @@ final class ScreenReader {
             if !phrase.isEmpty {
                 message += "\n\nDetected: \u{201C}\(phrase)\u{201D}"
             }
-            shLog("OCR tier-3 crisis (\(phrase)) → popup")
+            shLog("OCR tier-3 crisis → popup")
             Popup.shared.show(title: "SilentHelp — let's loop someone in", message: message, crisis: true)
         }
     }

@@ -89,8 +89,16 @@ def coach(messages: List[Dict[str, str]]) -> Dict[str, Any]:
     # The model expects OpenAI-style roles; map friend->user, user->assistant so
     # the transcript reads naturally, and label each line so the model can tell
     # who said what.
+    #
+    # /api/helper is public and unauthenticated, and this loop ran before the
+    # try/except below — a non-dict element (a bare string, number, or null in
+    # the "messages" JSON array) raised an unhandled AttributeError on m.get(),
+    # breaking the module's own "fails safe" promise. Skip anything that isn't
+    # a dict instead of crashing on it.
     convo = []
     for m in messages:
+        if not isinstance(m, dict):
+            continue
         who = "FRIEND" if m.get("role") == "friend" else "STUDENT (me)"
         convo.append({"role": "user" if m.get("role") == "friend" else "assistant",
                       "content": f"[{who}] {m.get('content', '')}"})

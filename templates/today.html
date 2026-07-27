@@ -94,6 +94,10 @@
 
 {% block script %}
 <script>
+  // Matches the esc() helper in chat.html/detection.html — this file's
+  // escalation draft/send flow interpolated server-echoed contact/subject/
+  // body straight into innerHTML with no escaping at all.
+  function esc(s){ return String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
   const BASE = {{ baseline | tojson }};
 
   /* ---------------- real behavioral state (persisted) ---------------- */
@@ -342,9 +346,9 @@
     body.innerHTML = `<p class="pmsg">Drafting…</p>`;
     const d = await (await fetch("/api/escalation/draft", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })).json();
     body.innerHTML = `
-      <div class="draft-field"><label>To</label><input id="esc-to" type="text" value="${d.contact}"></div>
-      <div class="draft-field"><label>Subject</label><input id="esc-subj" type="text" value="${d.subject}"></div>
-      <div class="draft-field"><label>Message</label><textarea id="esc-body">${d.body}</textarea></div>
+      <div class="draft-field"><label>To</label><input id="esc-to" type="text" value="${esc(d.contact)}"></div>
+      <div class="draft-field"><label>Subject</label><input id="esc-subj" type="text" value="${esc(d.subject)}"></div>
+      <div class="draft-field"><label>Message</label><textarea id="esc-body">${esc(d.body)}</textarea></div>
       <div class="pactions"><button class="btn" id="sendEmail" type="button">Send to counselor</button>
       <button class="btn ghost" type="button" onclick="document.getElementById('popupMount').innerHTML=''">Cancel</button></div>
       <p class="send-note" style="margin-top:12px">You’re sending this — nothing left your device until now.</p>`;
@@ -352,7 +356,7 @@
       const contact = document.getElementById("esc-to").value.trim();
       const r = await (await fetch("/api/escalation/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contact }) })).json();
       document.getElementById("crisisBody").innerHTML =
-        `<div class="sent-confirm"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> Sent to <b>&nbsp;${r.contact}</b>. (Prototype — no real email left your device.)</div>
+        `<div class="sent-confirm"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> Sent to <b>&nbsp;${esc(r.contact)}</b>. (Prototype — no real email left your device.)</div>
          <div class="pactions" style="margin-top:16px"><button class="btn ghost" type="button" onclick="document.getElementById('popupMount').innerHTML=''">Close</button></div>`;
     });
   }
