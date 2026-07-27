@@ -927,7 +927,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func openDash() {
-        if let url = URL(string: Config.backend + "/") { NSWorkspace.shared.open(url) }
+        // Always open the HOSTED dashboard, never Config.backend. Config.backend
+        // auto-detects a local dev server at 127.0.0.1:5055 and prefers it when
+        // one happens to be running (e.g. a developer testing locally) — that
+        // silently sent a paired hosted-account user to "localhost" for
+        // Dashboard, which is never what they want to see.
+        if let url = URL(string: Config.hostedBackend + "/app") { NSWorkspace.shared.open(url) }
     }
     @objc private func toggleConnect() {
         if DeviceAuth.isPaired {
