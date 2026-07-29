@@ -253,7 +253,12 @@ _FUZZY_WORDS = {
     "depressed": 3, "depression": 3, "alone": 3, "lonely": 3, "hopeless": 3,
     "worthless": 3, "empty": 3, "numb": 3, "isolated": 3, "unwanted": 3,
     "unloved": 3, "abandoned": 3, "invisible": 3, "helpless": 3, "miserable": 3,
-    "lost": 3, "broken": 3, "pointless": 3, "useless": 3,
+    "broken": 3, "pointless": 3, "useless": 3,
+    # NOT here: "lost". Unlike every other word in this group, its everyday
+    # sense dominates — "i lost my keys", "i lost 5 pounds", "i lost my
+    # airpods" all carry a first-person marker and were scoring level 3. The
+    # emotional sense needs its framing to be meaningful, so it lives in the
+    # level-2 phrase rules ("feel so lost", "feeling so lost") instead of here.
     # stress / overwhelm (level 2)
     "stressed": 2, "anxious": 2, "anxiety": 2, "overwhelmed": 2, "panicking": 2,
     "panic": 2, "scared": 2, "afraid": 2, "terrified": 2, "drowning": 2,

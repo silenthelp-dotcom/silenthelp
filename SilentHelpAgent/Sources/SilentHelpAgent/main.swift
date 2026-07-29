@@ -102,10 +102,23 @@ func resolveBackend() {
         shLog("backend from config file: \(s)")
         return
     }
-    // 2. Local backend if one is running (the developer's private setup).
+    // 2. If this agent is PAIRED to a hosted account, always post to the hosted
+    //    backend. "A server happens to be listening on 127.0.0.1:5055" is not
+    //    evidence the user wants local — during development a dev server ran on
+    //    the same Mac as a paired agent, so a week of real behavioral data went
+    //    into a throwaway local database while silenthelp.org's analytics stayed
+    //    (correctly) empty. Pairing is an explicit statement of intent; an open
+    //    port is not.
+    if DeviceAuth.isPaired {
+        Config.backend = Config.hostedBackend
+        shLog("backend resolved: \(Config.backend) (paired → hosted, ignoring any local server)")
+        return
+    }
+    // 3. Unpaired: fall back to a local backend if one is running (the
+    //    developer's fully-on-device setup), else the hosted app.
     let localUp = probe(Config.localBackend, timeout: 1.5)
     Config.backend = localUp ? Config.localBackend : Config.hostedBackend
-    shLog("backend resolved: \(Config.backend) (local up: \(localUp), hosted: \(Config.hostedBackend))")
+    shLog("backend resolved: \(Config.backend) (unpaired; local up: \(localUp), hosted: \(Config.hostedBackend))")
 }
 
 // MARK: - Diagnostic log (/tmp/silenthelp-agent.log)
@@ -862,7 +875,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory) // menu-bar only, no dock icon
-        resolveBackend()  // local backend if running, else the hosted app
+        resolveBackend()  // paired → hosted; else local if running, else hosted
         shLog("LAUNCH path=\(Bundle.main.bundlePath) ax=\(AXIsProcessTrusted()) screen=\(CGPreflightScreenCaptureAccess())")
 
         // Gatekeeper "app translocation": launched from a randomized quarantine
@@ -1024,6 +1037,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             DeviceAuth.promptAndStore()
         }
         connectMenuItem.title = DeviceAuth.isPaired ? "Disconnect account" : "Connect account…"
+        // Pairing state decides which backend we post to (see resolveBackend),
+        // so re-resolve now instead of waiting for the next launch — otherwise
+        // someone who just paired keeps posting to a local server until restart.
+        resolveBackend()
     }
     @objc private func snooze1h() { Snooze.set(hours: 1) }
     @objc private func snooze2h() { Snooze.set(hours: 2) }
