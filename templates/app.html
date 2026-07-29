@@ -425,19 +425,16 @@ input:focus, textarea:focus, select:focus {
 input::placeholder, textarea::placeholder { color:#7b879d !important; }
 
 /* Sidebar / nav --------------------------------------------------------- */
-/* Per the design's navStyle(): the ACTIVE item carries .liquid-glass and full
-   white text; inactive items are rgba(255,255,255,.6) with no fill.
-   (This restores the active-tab pill that was previously removed.) */
-/* No pill on any item, active or not. */
+/* Plain-text nav, generously spaced. The active item gets a bordered outline
+   (not a filled pill) — an editorial, text-first sidebar rather than a list
+   of buttons. */
 .navitem, .navitem.active {
   background:transparent !important; box-shadow:none !important;
   backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
-  transition:color .2s;
+  border:1px solid transparent; transition:color .2s, border-color .2s;
 }
 .navitem:hover { color:rgba(255,255,255,.85) !important; }
-.navitem.active { color:#fff !important; }
-.navitem .navdot { background:rgba(255,255,255,.35) !important; }
-.navitem.active .navdot { background:#fff !important; }
+.navitem.active { color:#fff !important; border-color:rgba(255,255,255,.28) !important; }
 
 /* Buttons — reuse the landing page's glass rather than the light gradient */
 .glass, .glass.ghost {
@@ -617,19 +614,19 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
         <!-- The sidebar itself never scrolls — only the content column does.
              No overflow here at all, by design. -->
         <div style="width:218px; flex-shrink:0; padding:8px 14px 18px; display:flex; flex-direction:column; overflow:hidden; background:transparent;">
-          <a href="/" title="Back to silenthelp.org" style="display:flex; align-items:center; gap:11px; padding:6px 10px 22px; text-decoration:none;">
-            <img src="/static/img/badge-64.png" alt="SilentHelp" style="width:26px; height:26px; border-radius:50%;" />
-            <span style="font-size:15px; font-weight:700; color:#1a2632; letter-spacing:.01em;">SilentHelp</span>
+          <a href="/" title="Back to silenthelp.org" style="display:flex; align-items:center; gap:11px; padding:9px 14px; margin-bottom:28px; text-decoration:none; border:1px solid rgba(255,255,255,.14); border-radius:9999px;">
+            <div class="hd" style="width:26px; height:26px; border-radius:50%; border:1px solid rgba(255,255,255,.3); display:flex; align-items:center; justify-content:center; font-size:13px; color:rgba(255,255,255,.85); flex-shrink:0;">S</div>
+            <span class="hd" style="font-size:15px; color:rgba(255,255,255,.9); letter-spacing:.01em;">SilentHelp</span>
           </a>
-          <div class="navitem" data-screen="dashboard" onclick="App.go('dashboard')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Dashboard</div>
-          <div class="navitem" data-screen="analytics" onclick="App.go('analytics')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Analytics</div>
-          <div class="navitem" data-screen="reports" onclick="App.go('reports')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Findings</div>
-          <div class="navitem" data-screen="moments" onclick="App.go('moments')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Moments</div>
-          <div class="navitem" data-screen="chat" onclick="App.go('chat')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Coping Chat</div>
-          <div class="navitem" data-screen="helper" onclick="App.go('helper')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Help a Friend</div>
-          <div class="navitem" data-screen="connection" onclick="App.go('connection')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Connection</div>
-          <div class="navitem" data-screen="settings" onclick="App.go('settings')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Settings</div>
-          <div class="navitem" data-screen="account" onclick="App.go('account')" style="display:flex; align-items:center; gap:12px; height:38px; padding:0 12px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:all .2s;"><div class="navdot" style="width:6px; height:6px; border-radius:50%;"></div>Account</div>
+          <div class="navitem" data-screen="dashboard" onclick="App.go('dashboard')" style="display:flex; align-items:center; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;">Dashboard</div>
+          <div class="navitem" data-screen="analytics" onclick="App.go('analytics')" style="display:flex; align-items:center; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;">Analytics</div>
+          <div class="navitem" data-screen="reports" onclick="App.go('reports')" style="display:flex; align-items:center; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;">Findings</div>
+          <div class="navitem" data-screen="moments" onclick="App.go('moments')" style="display:flex; align-items:center; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;">Moments</div>
+          <div class="navitem" data-screen="chat" onclick="App.go('chat')" style="display:flex; align-items:center; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;">Coping Chat</div>
+          <div class="navitem" data-screen="helper" onclick="App.go('helper')" style="display:flex; align-items:center; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;">Help a Friend</div>
+          <div class="navitem" data-screen="connection" onclick="App.go('connection')" style="display:flex; align-items:center; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;">Connection</div>
+          <div class="navitem" data-screen="settings" onclick="App.go('settings')" style="display:flex; align-items:center; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;">Settings</div>
+          <div class="navitem" data-screen="account" onclick="App.go('account')" style="display:flex; align-items:center; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;">Account</div>
           <div style="flex:1;"></div>
           <!-- "Demo the moments" — from the design's sidebar. These call the
                same App.openGentle / App.openUrgent the settings screen uses, so
@@ -1381,12 +1378,11 @@ const App = {
     document.querySelectorAll('.navitem').forEach(it => {
       const on = it.dataset.screen === this.screen;
       it.classList.toggle('active', on);
-      // No pill: the current screen is shown by text colour and its dot only.
+      // Plain text, no fill — the active item gets a bordered outline instead.
       it.classList.remove('liquid-glass');
       it.style.background = 'transparent';
       it.style.color = on ? '#ffffff' : 'rgba(255,255,255,.6)';
-      const dot = it.querySelector('.navdot');
-      if (dot) dot.style.background = on ? '#ffffff' : 'rgba(255,255,255,.35)';
+      it.style.borderColor = on ? 'rgba(255,255,255,.28)' : 'transparent';
     });
   },
 
