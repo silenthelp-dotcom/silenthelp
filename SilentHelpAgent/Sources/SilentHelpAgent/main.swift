@@ -774,11 +774,34 @@ final class ScreenReader {
 
 // MARK: - Behavioral (Layer 3 — rhythm only, reads NO text)
 final class Behavioral {
-    private var keys = 0, backs = 0, switches = 0
-    private var lastSwitch = Date(), longest: TimeInterval = 0
+    // `started` never resets — active_minutes is a cumulative today-so-far
+    // total, and the backend's own confidence ramp already smooths early noise
+    // on that field. Everything else here is a RATE (tab-switches/hr, backspace
+    // fraction, session length), and a rate needs a rolling window: not "since
+    // the process launched" (an all-day average that can't reflect anything
+    // happening right now), and not "since the last 45s report" either (a
+    // single burst — three quick alt-tabs while multitasking normally — pegs
+    // the reading at max every time that happens to land in a report). Instead,
+    // each event is timestamped and a report only counts the last 15 minutes.
+    private let windowSeconds: TimeInterval = 15 * 60
+    private var switchTimes: [Date] = []
+    private var keyTimes: [Date] = []       // total keystrokes in the window
+    private var backTimes: [Date] = []      // backspace/delete keystrokes in the window
+    private var lastSwitch = Date()
+    private var longest: TimeInterval = 0   // longest gap between switches, THIS window
     private var lateMs: TimeInterval = 0, lastTick = Date()
     private let started = Date()
     private var keyMonitor: Any?
+
+    /// Drop entries older than the rolling window so the arrays don't grow
+    /// unbounded over a long-running session.
+    private func trim(_ times: inout [Date], before cutoff: Date) {
+        if let firstKept = times.firstIndex(where: { $0 >= cutoff }) {
+            if firstKept > 0 { times.removeFirst(firstKept) }
+        } else if !times.isEmpty {
+            times.removeAll()
+        }
+    }
 
     func start() {
         // App switches = the "tab switching" signal at the OS level.
@@ -786,8 +809,8 @@ final class Behavioral {
             forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
         ) { [weak self] _ in
             guard let self else { return }
-            self.switches += 1
             let now = Date()
+            self.switchTimes.append(now)
             self.longest = max(self.longest, now.timeIntervalSince(self.lastSwitch))
             self.lastSwitch = now
         }
@@ -795,33 +818,45 @@ final class Behavioral {
         // never the characters. keyCode 51 = delete, 117 = forward-delete.
         keyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] e in
             guard let self else { return }
-            self.keys += 1
-            if e.keyCode == 51 || e.keyCode == 117 { self.backs += 1 }
+            let now = Date()
+            self.keyTimes.append(now)
+            if e.keyCode == 51 || e.keyCode == 117 { self.backTimes.append(now) }
         }
-        // Late-night accrual.
+        // Late-night accrual (cumulative today — this one IS meant to add up).
         Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
             guard let self else { return }
             let now = Date(); let dt = now.timeIntervalSince(self.lastTick); self.lastTick = now
             let h = Calendar.current.component(.hour, from: now)
             if h >= 0 && h < 5 { self.lateMs += dt }
         }
-        // Report to the backend every 45s.
+        // Report to the backend every 45s; each report looks at the trailing
+        // 15-minute window, not just what happened since the last report.
         Timer.scheduledTimer(withTimeInterval: 45, repeats: true) { [weak self] _ in self?.report() }
     }
 
     private func report() {
-        let activeMin = Date().timeIntervalSince(started) / 60.0
-        let activeHr = max(activeMin / 60.0, 0.08)
-        let tab = min(120.0, Double(switches) / activeHr)
+        let now = Date()
+        let cutoff = now.addingTimeInterval(-windowSeconds)
+        trim(&switchTimes, before: cutoff)
+        trim(&keyTimes, before: cutoff)
+        trim(&backTimes, before: cutoff)
+
+        let activeMin = now.timeIntervalSince(started) / 60.0   // cumulative, today
+        // Early in a fresh window (agent just launched, or just past a quiet
+        // stretch) windowSeconds itself would overstate the elapsed time — use
+        // whichever is shorter: the full window, or time since launch.
+        let elapsedHr = max(min(windowSeconds, now.timeIntervalSince(started)) / 3600.0, 0.01)
+        let tab = min(120.0, Double(switchTimes.count) / elapsedHr)
         let signals: [String: Any] = [
             "tab_switches": tab,
             "interruptions": tab * 0.7,
-            "avg_session_min": switches == 0 ? 50.0 : longest / 60.0,
-            "backspace_rate": keys > 0 ? Double(backs) / Double(keys) : 0.0,
+            "avg_session_min": switchTimes.isEmpty ? 50.0 : longest / 60.0,
+            "backspace_rate": keyTimes.isEmpty ? 0.0 : Double(backTimes.count) / Double(keyTimes.count),
             "late_night_min": lateMs / 60.0,
             "active_minutes": activeMin,
         ]
         Backend.log(signals)
+        longest = 0   // "longest gap between switches" resets to this window only
     }
 }
 
