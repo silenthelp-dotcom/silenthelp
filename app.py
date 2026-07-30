@@ -1141,6 +1141,14 @@ def api_dashboard():
     return jsonify(store.dashboard())
 
 
+@app.route("/api/agent_prefs")
+def api_agent_prefs():
+    """Small, cheap poll target for the Mac agent — just the settings that
+    change agent BEHAVIOR (not the whole settings object), so it can start/stop
+    app-usage tracking without a restart when the user flips the toggle."""
+    return jsonify({"track_app_usage": bool(store.get_settings().get("track_app_usage"))})
+
+
 @app.route("/api/analytics")
 def api_analytics():
     return jsonify(store.analytics())
@@ -1157,6 +1165,36 @@ def api_behavioral_log():
     signals = request.get_json(silent=True) or {}
     metrics = store.record_behavioral(signals)
     return jsonify(metrics)
+
+
+@app.route("/api/app_usage/log", methods=["POST"])
+def api_app_usage_log():
+    """Record per-app foreground seconds — opt-in only. The agent is expected
+    to check the toggle itself before ever calling this, but the server
+    enforces it too: an old/misbehaving client can't collect this data just
+    because it kept posting after the user turned tracking off."""
+    if not store.get_settings().get("track_app_usage"):
+        return jsonify({"ok": False, "reason": "tracking is off"}), 403
+    data = request.get_json(silent=True) or {}
+    apps = data.get("apps")
+    if not isinstance(apps, dict):
+        return jsonify({"error": "expected {\"apps\": {name: seconds}}"}), 400
+    store.record_app_usage(apps)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/wrap")
+def api_wrap():
+    """Monthly recap. ?year=2026&month=7 for a specific month; defaults to the
+    current month (so-far, if it hasn't closed)."""
+    try:
+        year = int(request.args["year"]) if "year" in request.args else None
+        month = int(request.args["month"]) if "month" in request.args else None
+    except (ValueError, KeyError):
+        return jsonify({"error": "year/month must be integers"}), 400
+    if month is not None and not (1 <= month <= 12):
+        return jsonify({"error": "month must be 1-12"}), 400
+    return jsonify(store.monthly_wrap(year, month))
 
 
 @app.route("/api/monitor", methods=["POST"])

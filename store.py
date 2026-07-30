@@ -44,6 +44,11 @@ DEFAULTS: Dict[str, Any] = {
         "contact": "School Counselor <counselor@school.edu>",
         "onboarded": False,
         "toggles": {"keyword": True, "semantic": True, "behavioral": True, "trend": True},
+        # Off by default. Behavioral rhythm signals (tab-switch rate, typing
+        # pace) never included app NAMES — this is a separate, more identifying
+        # signal (which apps, how long), so it's an explicit opt-in rather than
+        # bundled into "behavioral" silently gaining scope.
+        "track_app_usage": False,
         # How aggressively detections interrupt the user.
         #   "balanced" (default) — crisis/high → urgent popup, moderate → gentle
         #                          popup, low → detected + logged silently, feeding
@@ -60,6 +65,10 @@ DEFAULTS: Dict[str, Any] = {
     "chat": [],        # active conversation: {role, content, ts}
     "chat_threads": [],  # archived conversations: {id, title, messages, ts}
     "trend_streak": 0,
+    # "YYYY-MM-DD" -> {"AppName": seconds_in_foreground}. Only written when
+    # settings.track_app_usage is on; the agent enforces that, not the server —
+    # see api_app_usage_log's own check for the belt-and-suspenders version.
+    "app_usage": {},
 }
 
 _LEVEL_ORDER = {"none": 0, "low": 1, "moderate": 2, "high": 3, "crisis": 4}
@@ -110,6 +119,8 @@ def update_settings(patch: Dict[str, Any]) -> Dict[str, Any]:
                 s[key] = str(value)
             elif key == "onboarded":
                 s["onboarded"] = bool(value)
+            elif key == "track_app_usage":
+                s["track_app_usage"] = bool(value)
             elif key == "popup_policy":
                 # Unknown values fall back to "balanced" rather than silently
                 # disabling popups entirely.
@@ -136,6 +147,25 @@ def record_behavioral(signals: Dict[str, Any]) -> Dict[str, Any]:
         _recompute_streak(data)
         _save(data)
     return metrics
+
+
+def record_app_usage(app_seconds: Dict[str, float]) -> None:
+    """Add today's per-app foreground seconds, ADDING to any already recorded
+    today (the agent reports incrementally through the day) rather than
+    overwriting — unlike record_behavioral, which is a fresh snapshot each
+    time. Only called when settings.track_app_usage is on (checked by the
+    route, since this function has no request context to check it itself)."""
+    if not app_seconds:
+        return
+    with _LOCK:
+        data = _load()
+        day = data["app_usage"].setdefault(_today(), {})
+        for name, secs in app_seconds.items():
+            name = str(name).strip()[:80]   # cap length against a hostile/buggy client
+            if not name or not isinstance(secs, (int, float)) or secs <= 0:
+                continue
+            day[name] = day.get(name, 0.0) + float(secs)
+        _save(data)
 
 
 # Seed values match the design so a brand-new install still looks alive.
@@ -275,6 +305,116 @@ def findings() -> Dict[str, Any]:
         return {"avg_battery": avg_b, "avg_focus": avg_f, "deep_focus_h": len(last7) * 4,
                 "late_nights": late, "narrative": narrative, "suggestions": sugg,
                 "empty": False, "seeded": False}
+
+
+def monthly_wrap(year: int | None = None, month: int | None = None) -> Dict[str, Any]:
+    """A "Wrapped"-style recap for one calendar month (default: the current
+    month, so-far). Every stat is either real (derived from days/events/chat
+    already recorded) or explicitly marked absent — nothing here is invented
+    to fill a slide, the way the old analytics/findings seeding used to be.
+    """
+    with _LOCK:
+        data = _load()
+        days_map = data["days"]
+        events = data.get("events", [])
+        threads = data.get("chat_threads", [])
+        active_chat = data.get("chat", [])
+        app_usage = data.get("app_usage", {})
+        track_apps = bool(data["settings"].get("track_app_usage"))
+
+    today = date.today()
+    y = year or today.year
+    m = month or today.month
+    # Every date string in [y-m-01, min(today, last day of y-m)].
+    first = date(y, m, 1)
+    last_day = (date(y + 1, 1, 1) if m == 12 else date(y, m + 1, 1)) - timedelta(days=1)
+    last_day = min(last_day, today)
+    month_days: List[str] = []
+    d = first
+    while d <= last_day:
+        month_days.append(d.isoformat())
+        d += timedelta(days=1)
+
+    # --- Battery + focus trend -------------------------------------------
+    battery_vals = [days_map[k]["metrics"]["mental_battery"] for k in month_days if k in days_map]
+    focus_vals = [days_map[k]["metrics"]["focus_score"] for k in month_days if k in days_map]
+    tracked_days = sorted(k for k in month_days if k in days_map)
+
+    # --- Moments & check-ins (from events, no raw text ever stored there) --
+    def _in_month(ts: str) -> bool:
+        try:
+            dt = datetime.fromisoformat(ts)
+        except ValueError:
+            return False
+        return first <= dt.date() <= last_day
+    month_events = [e for e in events if _in_month(e.get("ts", ""))]
+    moments_count = len(month_events)
+    crisis_count = sum(1 for e in month_events if _LEVEL_ORDER.get(e.get("level"), 0) >= 4)
+    # Longest run of consecutive tracked days with NO flagged event >= moderate —
+    # a "calm streak", framed as care rather than a gamified pressure metric.
+    calm_streak = 0
+    best_calm = 0
+    flagged_days = {datetime.fromisoformat(e["ts"]).date().isoformat()
+                    for e in month_events if _LEVEL_ORDER.get(e.get("level"), 0) >= 2}
+    for k in month_days:
+        if k in flagged_days:
+            calm_streak = 0
+        elif k in tracked_days:
+            calm_streak += 1
+            best_calm = max(best_calm, calm_streak)
+
+    # --- Coping Chat usage ---------------------------------------------
+    def _msg_in_month(msg: Dict[str, Any]) -> bool:
+        return _in_month(msg.get("ts", "")) if msg.get("ts") else False
+    month_msgs = [m for m in active_chat if m.get("role") == "user" and _msg_in_month(m)]
+    for t in threads:
+        ts = t.get("ts", "")
+        try:
+            in_month = ts and first <= datetime.fromisoformat(ts).date() <= last_day
+        except ValueError:
+            in_month = False
+        if in_month:
+            month_msgs.extend(mm for mm in (t.get("messages") or [])
+                               if mm.get("role") == "user")
+    chat_message_count = len(month_msgs)
+
+    # --- Top active hours-of-day (from event timestamps — always available,
+    #     no opt-in needed: it's WHEN something was noticed, not what app) ---
+    from collections import Counter
+    hour_counts = Counter(datetime.fromisoformat(e["ts"]).hour for e in month_events
+                           if e.get("ts"))
+    top_hours = []
+    for hour, count in hour_counts.most_common(3):
+        label = (f"{hour%12 or 12} {'AM' if hour<12 else 'PM'} – "
+                  f"{(hour+1)%12 or 12} {'AM' if hour+1<12 or hour+1==24 else 'PM'}")
+        top_hours.append({"label": label, "count": count})
+
+    # --- Top apps (opt-in only) ------------------------------------------
+    top_apps: List[Dict[str, Any]] = []
+    if track_apps:
+        totals: Dict[str, float] = {}
+        for k in month_days:
+            for name, secs in app_usage.get(k, {}).items():
+                totals[name] = totals.get(name, 0.0) + secs
+        for name, secs in sorted(totals.items(), key=lambda kv: -kv[1])[:3]:
+            top_apps.append({"name": name, "minutes": round(secs / 60)})
+
+    has_any = bool(tracked_days) or moments_count or chat_message_count or bool(top_apps)
+    return {
+        "year": y, "month": m,
+        "days_tracked": len(tracked_days),
+        "days_in_range": len(month_days),
+        "empty": not has_any,
+        "avg_battery": round(sum(battery_vals) / len(battery_vals)) if battery_vals else None,
+        "avg_focus": round(sum(focus_vals) / len(focus_vals)) if focus_vals else None,
+        "moments_count": moments_count,
+        "crisis_count": crisis_count,
+        "calm_streak_days": best_calm,
+        "chat_message_count": chat_message_count,
+        "top_hours": top_hours,
+        "top_apps": top_apps,
+        "app_tracking_on": track_apps,
+    }
 
 
 # ---------------------------------------------------------------------------

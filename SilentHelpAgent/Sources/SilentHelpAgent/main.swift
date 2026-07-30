@@ -261,6 +261,12 @@ enum Backend {
         post("/api/behavioral/log", signals) { _ in }
     }
 
+    /// Per-app foreground seconds — opt-in only (see AppUsageTracker). The
+    /// server independently re-checks the toggle before storing anything.
+    static func logAppUsage(_ appSeconds: [String: Double]) {
+        post("/api/app_usage/log", ["apps": appSeconds]) { _ in }
+    }
+
     static func get(_ path: String, _ done: @escaping ([String: Any]?) -> Void) {
         guard let url = URL(string: Config.backend + path) else { done(nil); return }
         var req = URLRequest(url: url)
@@ -860,6 +866,81 @@ final class Behavioral {
     }
 }
 
+// MARK: - Per-app usage (opt-in — see Settings -> Mac Agent -> "Track app
+// usage" in the web app). Off by default: this is a more identifying signal
+// than the rhythm-only behavioral data (which app, not just that a switch
+// happened), so it needs an explicit choice, not silent inclusion in
+// "behavioral" tracking.
+final class AppUsageTracker {
+    private var enabled = false
+    private var currentApp: String?
+    private var appStartedAt = Date()
+    private var accumulated: [String: Double] = [:]   // app name -> seconds this report period
+    private var observer: NSObjectProtocol?
+
+    func start() {
+        // Poll the toggle rather than requiring a relaunch to notice it — the
+        // user can flip it in Settings while the agent keeps running.
+        Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+            self?.refreshEnabled()
+        }
+        refreshEnabled()
+        Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in self?.report() }
+    }
+
+    private func refreshEnabled() {
+        Backend.get("/api/agent_prefs") { [weak self] json in
+            guard let self else { return }
+            let on = (json?["track_app_usage"] as? Bool) ?? false
+            DispatchQueue.main.async {
+                if on && !self.enabled { self.beginTracking() }
+                if !on && self.enabled { self.stopTracking() }
+            }
+        }
+    }
+
+    private func beginTracking() {
+        enabled = true
+        currentApp = NSWorkspace.shared.frontmostApplication?.localizedName
+        appStartedAt = Date()
+        observer = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
+        ) { [weak self] note in
+            guard let self, self.enabled else { return }
+            self.closeCurrentSpan()
+            let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+            self.currentApp = app?.localizedName
+            self.appStartedAt = Date()
+        }
+    }
+
+    private func stopTracking() {
+        closeCurrentSpan()
+        enabled = false
+        currentApp = nil
+        if let observer { NSWorkspace.shared.notificationCenter.removeObserver(observer) }
+        observer = nil
+        accumulated.removeAll()   // discard, don't send — tracking was just turned off
+    }
+
+    /// Credit the time spent in whatever app was frontmost, up to now.
+    private func closeCurrentSpan() {
+        guard enabled, let app = currentApp else { return }
+        let secs = Date().timeIntervalSince(appStartedAt)
+        if secs > 0 { accumulated[app, default: 0] += secs }
+    }
+
+    private func report() {
+        guard enabled else { return }
+        closeCurrentSpan()
+        appStartedAt = Date()   // the still-open span continues into the next period
+        guard !accumulated.isEmpty else { return }
+        let toSend = accumulated
+        accumulated.removeAll()
+        Backend.logAppUsage(toSend)
+    }
+}
+
 // MARK: - App
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
@@ -868,6 +949,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let monitor = Monitor()
     private let behavioral = Behavioral()
     private let screenReader = ScreenReader()
+    private let appUsage = AppUsageTracker()
     private var lastUrgent = false
     private var lastGentle = false
     private var gatingBaselined = false   // first poll sets state, never pops
@@ -927,6 +1009,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.terminate(nil)
             return
         }
+
+        // Needs no Accessibility/Screen Recording permission (just app-switch
+        // notifications), and internally polls the opt-in toggle — safe to
+        // start unconditionally; it's a no-op until the user turns it on.
+        appUsage.start()
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         // The SilentHelp emblem in the menu bar, followed by a small colored

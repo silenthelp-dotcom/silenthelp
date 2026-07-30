@@ -705,8 +705,13 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
           <!-- ANALYTICS -->
           <div class="appscreen" id="scr-analytics" style="display:none;">
             <div class="screen-anim" style="padding:34px 40px;">
-              <div style="font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:#7a93ad;">This week · against your own baseline</div>
-              <div class="pf" style="font-size:40px; color:#0e1822; margin-top:8px; line-height:1;">Analytics <span id="anPreview" style="display:none; vertical-align:middle; font-family:'Inter',sans-serif; font-style:normal; font-size:10.5px; font-weight:700; letter-spacing:.08em; color:#a4701f; background:#fff6ec; border:1px solid #f6e0c4; border-radius:999px; padding:5px 12px; margin-left:10px;">SAMPLE PREVIEW</span></div>
+              <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+                <div>
+                  <div style="font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:#7a93ad;">This week · against your own baseline</div>
+                  <div class="pf" style="font-size:40px; color:#0e1822; margin-top:8px; line-height:1;">Analytics <span id="anPreview" style="display:none; vertical-align:middle; font-family:'Inter',sans-serif; font-style:normal; font-size:10.5px; font-weight:700; letter-spacing:.08em; color:#a4701f; background:#fff6ec; border:1px solid #f6e0c4; border-radius:999px; padding:5px 12px; margin-left:10px;">SAMPLE PREVIEW</span></div>
+                </div>
+                <button class="liquid-glass hov" onclick="App.openWrap()" style="background:transparent; color:rgba(255,255,255,.9); border:none; border-radius:9999px; padding:12px 22px; font-size:13.5px; font-weight:500; cursor:pointer; white-space:nowrap;">See your monthly Wrap →</button>
+              </div>
               <div id="anPreviewNote" style="display:none; font-size:12.5px; color:#8b99a6; margin-top:10px; font-weight:300;">This is what your analytics will look like — the real chart fills in as SilentHelp learns your days.</div>
 
               <!-- Empty state: shown when there's no real tracked data (no invented curve). -->
@@ -879,6 +884,10 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
                 <div id="devicePaired" style="display:none; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;">
                   <div style="display:flex; align-items:center; gap:9px;"><span style="width:8px; height:8px; border-radius:50%; background:#1f9d55;"></span><span style="font-size:13.5px; color:#16202b;">Agent paired to this account</span></div>
                   <button class="hov" onclick="App.unpairDevice()" style="background:#fff; border:1px solid #f3d6d0; border-radius:9999px; padding:10px 20px; font-size:12.5px; font-weight:600; color:#d2381f; cursor:pointer;">Disconnect</button>
+                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding-top:16px; margin-top:16px; border-top:1px solid #eef2f6;">
+                  <div><div style="font-size:13.5px; color:#16202b;">Track app usage</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300; max-width:400px;">Off by default. Records which apps you use and for how long, so your monthly Wrap can show your top apps. More identifying than rhythm-only tracking — your choice.</div></div>
+                  <div class="sw" data-key="track_app_usage" onclick="App.toggleAppUsage()" style="width:42px; height:24px; border-radius:999px; cursor:pointer; position:relative; transition:.2s; flex-shrink:0;"><div class="swk" style="position:absolute; top:2px; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.2); transition:.2s;"></div></div>
                 </div>
               </div>
 
@@ -1069,6 +1078,33 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
           <span onclick="App.snooze(1)" style="cursor:pointer; text-decoration:underline; text-underline-offset:3px;">Ignore for 1 hour</span>
           <span onclick="App.snooze(2)" style="cursor:pointer; text-decoration:underline; text-underline-offset:3px;">Ignore for 2 hours</span>
         </div>
+      </div>
+    </div>
+
+    <!-- WRAP — the monthly recap. A self-contained slideshow, same dark/orb
+         ground as the rest of the app rather than the reference's light theme.
+         Every number comes from /api/wrap; slides for stats that are null
+         (nothing tracked, or app-tracking off) are skipped, never faked. -->
+    <div id="wrap-overlay" style="display:none; position:absolute; inset:0; z-index:50; background:#000; flex-direction:column; overflow:hidden;">
+      <video id="wrapBg" autoplay muted loop playsinline style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.22; pointer-events:none;"></video>
+      <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.75) 40%, rgba(0,0,0,.55)); pointer-events:none;"></div>
+
+      <!-- top bar: progress pill, wordmark, close -->
+      <div style="position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between; padding:22px 28px; flex-shrink:0;">
+        <div id="wrapProgress" class="liquid-glass" style="padding:8px 16px; border-radius:9999px; font-size:12px; color:rgba(255,255,255,.8); font-weight:500;">1 / 6</div>
+        <div class="hd" style="font-size:15px; color:rgba(255,255,255,.85); display:flex; align-items:center; gap:8px;"><span style="opacity:.7;">✳</span> SilentHelp</div>
+        <button class="hov" onclick="App.closeWrap()" aria-label="Close" style="width:38px; height:38px; border-radius:50%; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.06); color:#fff; font-size:16px; cursor:pointer;">✕</button>
+      </div>
+
+      <!-- click/tap zones advance or go back, like the reference -->
+      <div style="position:relative; z-index:1; flex:1; min-height:0; display:flex;">
+        <div onclick="App.wrapPrev()" style="flex:1; cursor:pointer;"></div>
+        <div onclick="App.wrapNext()" style="flex:1; cursor:pointer;"></div>
+      </div>
+      <div id="wrapSlides" style="position:absolute; inset:0; z-index:1; display:flex; align-items:center; pointer-events:none;"></div>
+
+      <div style="position:relative; z-index:2; display:flex; justify-content:center; padding-bottom:26px; flex-shrink:0;">
+        <div style="width:34px; height:34px; border-radius:50%; border:1px solid rgba(255,255,255,.25); display:grid; place-items:center; color:rgba(255,255,255,.6); font-size:13px;">⌄</div>
       </div>
     </div>
 
@@ -1460,6 +1496,128 @@ const App = {
     document.getElementById('popup-gentle').style.display = 'none';
     document.getElementById('popup-urgent').style.display = 'none'; },
 
+  // ---- Wrap (monthly recap) ----
+  async openWrap(){
+    const ov = document.getElementById('wrap-overlay');
+    const bg = document.getElementById('wrapBg');
+    if (bg && !bg.src && window.SH_HERO_VIDEO) bg.src = window.SH_HERO_VIDEO;
+    ov.style.display = 'flex';
+    const w = await this.api('/api/wrap').catch(()=>null);
+    this._wrapSlides = this.buildWrapSlides(w);
+    this._wrapIndex = 0;
+    this.renderWrapSlide();
+  },
+  closeWrap(){ document.getElementById('wrap-overlay').style.display = 'none'; },
+  wrapNext(){
+    if (!this._wrapSlides) return;
+    if (this._wrapIndex < this._wrapSlides.length - 1){ this._wrapIndex++; this.renderWrapSlide(); }
+  },
+  wrapPrev(){
+    if (!this._wrapSlides) return;
+    if (this._wrapIndex > 0){ this._wrapIndex--; this.renderWrapSlide(); }
+  },
+  // Build the slide list from real /api/wrap data only — a stat with no data
+  // (null, empty, or app-tracking off) skips its slide entirely rather than
+  // showing a zero or a placeholder, so nothing here is invented.
+  buildWrapSlides(w){
+    const monthName = w ? new Date(w.year, w.month - 1, 1).toLocaleDateString(undefined, {month:'long'}) : '';
+    const slides = [];
+    if (!w || w.empty){
+      slides.push({ kind:'empty' });
+      return slides;
+    }
+    if (w.avg_battery != null) slides.push({ kind:'stat',
+      kicker:'Mental Battery', big:`${w.avg_battery}%`,
+      title:`Your battery averaged ${w.avg_battery}% in ${monthName}.`,
+      sub:'Charged more days than not — a steady month.' });
+    if (w.avg_focus != null) slides.push({ kind:'stat',
+      kicker:'Focus Stability', big:`${w.avg_focus}`,
+      title:`Your focus stability averaged ${w.avg_focus}/100.`,
+      sub:'Measured against your own baseline, not a generic scale.' });
+    if (w.moments_count > 0) slides.push({ kind:'stat',
+      kicker:'Moments Noticed', big:`${w.moments_count}`,
+      title:`SilentHelp noticed ${w.moments_count} moment${w.moments_count===1?'':'s'} worth a gentle check-in.`,
+      sub: w.crisis_count > 0
+        ? `${w.crisis_count} crossed the threshold for real support — you weren't carrying it alone.`
+        : 'Nothing urgent — just the quiet kind of noticing.' });
+    if (w.calm_streak_days > 1) slides.push({ kind:'stat',
+      kicker:'Calm Streak', big:`${w.calm_streak_days}`,
+      title:`Your longest calm streak was ${w.calm_streak_days} days.`,
+      sub:'Tracked days with nothing flagged above a quiet baseline.' });
+    if (w.chat_message_count > 0) slides.push({ kind:'stat',
+      kicker:'Coping Chat', big:`${w.chat_message_count}`,
+      title:`You sent ${w.chat_message_count} message${w.chat_message_count===1?'':'s'} to Coping Chat.`,
+      sub:'Every one of them stayed on your device.' });
+    if (w.top_hours && w.top_hours.length) slides.push({ kind:'hours', hours:w.top_hours, month:monthName });
+    if (w.app_tracking_on && w.top_apps && w.top_apps.length) slides.push({ kind:'apps', apps:w.top_apps });
+    slides.push({ kind:'summary', w, monthName });
+    return slides;
+  },
+  renderWrapSlide(){
+    const list = this._wrapSlides || []; const i = this._wrapIndex || 0;
+    const s = list[i]; if (!s) return;
+    document.getElementById('wrapProgress').textContent = `${i+1} / ${list.length}`;
+    const host = document.getElementById('wrapSlides');
+    const wrap = (inner) => `<div style="width:100%; padding:0 64px; pointer-events:none;">${inner}</div>`;
+    let html = '';
+    if (s.kind === 'empty'){
+      html = wrap(`
+        <div class="hd" style="font-size:38px; color:#fff; line-height:1.2;">Nothing to wrap up yet.</div>
+        <div style="font-size:15px; color:rgba(255,255,255,.6); margin-top:16px; max-width:480px; font-weight:300; line-height:1.7;">Your monthly recap fills in once SilentHelp has tracked some real days — battery, focus, and the moments it noticed along the way.</div>`);
+    } else if (s.kind === 'stat'){
+      html = wrap(`
+        <div style="font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.5);">${this.esc(s.kicker)}</div>
+        <div class="hd" style="font-size:44px; color:#fff; line-height:1.25; margin-top:14px; max-width:640px;">${this.esc(s.title)}</div>
+        <div style="font-size:15px; color:rgba(255,255,255,.55); margin-top:18px; font-weight:300; max-width:460px;">${this.esc(s.sub)}</div>`);
+    } else if (s.kind === 'hours'){
+      const rows = s.hours.map((h,idx) => `
+        <div style="display:flex; align-items:center; gap:16px; margin-top:${idx?14:0}px;">
+          <div class="hd" style="font-size:26px; color:rgba(255,255,255,.4); width:36px;">${idx+1}.</div>
+          <div style="font-size:19px; color:#fff;">${this.esc(h.label)}</div>
+        </div>`).join('');
+      html = wrap(`
+        <div style="font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.5);">When SilentHelp Noticed Most</div>
+        <div class="hd" style="font-size:34px; color:#fff; margin-top:14px;">Your top hours in ${this.esc(s.month)}</div>
+        <div style="margin-top:26px;">${rows}</div>`);
+    } else if (s.kind === 'apps'){
+      const rows = s.apps.map((a,idx) => `
+        <div style="display:flex; align-items:center; gap:16px; margin-top:${idx?14:0}px;">
+          <div class="hd" style="font-size:26px; color:rgba(255,255,255,.4); width:36px;">${idx+1}.</div>
+          <div style="font-size:19px; color:#fff; flex:1;">${this.esc(a.name)}</div>
+          <div style="font-size:14px; color:rgba(255,255,255,.5);">${a.minutes}m</div>
+        </div>`).join('');
+      html = wrap(`
+        <div style="font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.5);">Most Used Apps</div>
+        <div class="hd" style="font-size:34px; color:#fff; margin-top:14px;">Where your time went</div>
+        <div style="margin-top:26px; max-width:420px;">${rows}</div>`);
+    } else if (s.kind === 'summary'){
+      const w = s.w;
+      const initials = ((this.name||'?').trim()[0]||'?').toUpperCase();
+      html = `<div style="width:100%; display:flex; flex-direction:column; align-items:center; pointer-events:auto;">
+        <div class="liquid-glass" style="width:520px; max-width:88vw; border-radius:24px; padding:30px 32px; background:linear-gradient(160deg, rgba(70,60,140,.35), rgba(20,15,40,.5));">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <div class="hd" style="width:52px; height:52px; border-radius:14px; background:rgba(255,255,255,.12); display:grid; place-items:center; font-size:20px; color:#fff; flex-shrink:0;">${this.esc(initials)}</div>
+              <div><div style="font-size:12px; color:rgba(255,255,255,.55);">${this.esc(s.monthName)} Recap</div>
+                   <div style="font-size:18px; color:#fff; font-weight:600;">${this.esc(this.name || 'Your month')}</div></div>
+            </div>
+            <div class="hd" style="font-size:13px; color:rgba(255,255,255,.5);">SilentHelp</div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-top:26px; padding-top:22px; border-top:1px solid rgba(255,255,255,.12);">
+            <div><div class="hd" style="font-size:24px; color:#fff;">${w.avg_battery ?? '—'}${w.avg_battery!=null?'%':''}</div><div style="font-size:10.5px; color:rgba(255,255,255,.5); margin-top:3px;">AVG BATTERY</div></div>
+            <div><div class="hd" style="font-size:24px; color:#fff;">${w.avg_focus ?? '—'}</div><div style="font-size:10.5px; color:rgba(255,255,255,.5); margin-top:3px;">AVG FOCUS</div></div>
+            <div><div class="hd" style="font-size:24px; color:#fff;">${w.moments_count}</div><div style="font-size:10.5px; color:rgba(255,255,255,.5); margin-top:3px;">MOMENTS</div></div>
+            <div><div class="hd" style="font-size:24px; color:#fff;">${w.calm_streak_days}</div><div style="font-size:10.5px; color:rgba(255,255,255,.5); margin-top:3px;">CALM STREAK</div></div>
+            <div><div class="hd" style="font-size:24px; color:#fff;">${w.chat_message_count}</div><div style="font-size:10.5px; color:rgba(255,255,255,.5); margin-top:3px;">CHAT MSGS</div></div>
+            <div><div class="hd" style="font-size:24px; color:#fff;">${w.days_tracked}</div><div style="font-size:10.5px; color:rgba(255,255,255,.5); margin-top:3px;">DAYS TRACKED</div></div>
+          </div>
+        </div>
+        <button class="hovup glass" onclick="App.closeWrap()" style="margin-top:24px; background:#fff; color:#000; border:none; border-radius:999px; padding:13px 32px; font-size:14px; font-weight:600; cursor:pointer;">Done</button>
+      </div>`;
+    }
+    host.innerHTML = `<div class="screen-anim" style="width:100%; display:flex; ${s.kind==='summary'?'justify-content:center;':''}">${html}</div>`;
+  },
+
   // A moment for `text` should show only if it's a DIFFERENT message than the
   // one the user just dismissed. Same message → stay quiet until a new trigger.
   _isDismissed(text, phrase){
@@ -1486,13 +1644,20 @@ const App = {
     this.api('/api/settings', { toggles: { [key]: this.toggles[key] } }); },
   paintToggles(){
     document.querySelectorAll('.sw').forEach(sw => {
-      const on = this.toggles[sw.dataset.key];
+      const key = sw.dataset.key;
+      // track_app_usage lives outside the layer-toggles object.
+      const on = key === 'track_app_usage' ? !!this.trackAppUsage : this.toggles[key];
       // Design uses white-when-on, not blue.
       sw.style.background = on ? '#ffffff' : 'rgba(255,255,255,.15)';
       const knob = sw.querySelector('.swk');
       knob.style.left = on ? '20px' : '2px';
       knob.style.background = on ? '#000000' : '#ffffff';
     });
+  },
+  toggleAppUsage(){
+    this.trackAppUsage = !this.trackAppUsage;
+    this.paintToggles();
+    this.api('/api/settings', { track_app_usage: this.trackAppUsage });
   },
   // ---- Mac agent pairing ----
   async loadDeviceStatus(){
@@ -1501,6 +1666,9 @@ const App = {
     const un = document.getElementById('deviceUnpaired'), p = document.getElementById('devicePaired');
     if (un) un.style.display = paired ? 'none' : 'block';
     if (p) p.style.display = paired ? 'flex' : 'none';
+    const s = await this.api('/api/settings').catch(()=>null);
+    this.trackAppUsage = !!(s && s.track_app_usage);
+    this.paintToggles();
   },
   async pairDevice(){
     const d = await this.api('/api/device/pair', {}).catch(()=>null);
