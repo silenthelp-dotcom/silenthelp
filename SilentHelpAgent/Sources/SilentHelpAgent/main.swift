@@ -690,7 +690,12 @@ final class ScreenReader {
     private func handle(_ raw: String) {
         var text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         if text.count > 4000 { text = String(text.prefix(4000)) }
-        guard text.count >= 14, text != lastText else { return }
+        // Was a hardcoded 14 with no justification — stricter than the field-
+        // reading path's Config.minChars (8) for no reason, and high enough to
+        // silently drop short, severe phrases: "I want to die" is 13
+        // characters and never reached Backend.scan at all. Matched to the
+        // same threshold used everywhere else.
+        guard text.count >= Config.minChars, text != lastText else { return }
         lastText = text
 
         // Don't scan our OWN web app's screen — the dashboard/chat contain the
