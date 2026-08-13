@@ -462,7 +462,18 @@ final class Popup {
                             styleMask: [.borderless, .nonactivatingPanel],
                             backing: .buffered, defer: false)
         panel.isFloatingPanel = true
-        panel.level = .screenSaver                  // above almost everything
+        // Was .screenSaver ("above almost everything"). On macOS 27 Beta this
+        // locally-signed (no Developer ID, not notarized) app's panel at that
+        // level was silently dropped by the window server — Cocoa's own
+        // bookkeeping (isVisible, this method's own log line) reported success,
+        // but CGWindowListCopyWindowInfo showed zero real windows, and nothing
+        // ever appeared on screen. .floating is still elevated (above normal
+        // app windows) but is accepted; verified end-to-end after this change
+        // that the panel is real (onscreen=true in the window list) AND
+        // visible in a screenshot. This was the actual cause of "detection
+        // doesn't work" reports — the detector and popup-trigger logic were
+        // both firing correctly the whole time; the panel just never rendered.
+        panel.level = .floating
         // Show over full-screen apps and on every Space (Google Docs / browser fullscreen).
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         panel.isOpaque = false
