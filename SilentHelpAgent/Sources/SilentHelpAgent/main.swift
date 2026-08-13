@@ -219,23 +219,32 @@ enum DeviceAuth {
 
     static var isPaired: Bool { !(token ?? "").isEmpty }
 
-    /// Prompts for the pairing code shown in Settings -> Mac Agent -> Generate
-    /// pairing code, and stores it. Called from the menu-bar "Connect account…"
-    /// item.
+    /// Opens the pairing page on whichever backend is already resolved
+    /// (hosted in production; local during development). The browser is
+    /// already signed in there — no code to generate, copy, or paste. The
+    /// page itself redirects into silenthelp://pair?token=... (see
+    /// `application(_:open:)` below), which is what actually stores it.
+    ///
+    /// This replaces the old flow: Settings → Mac Agent → Generate pairing
+    /// code → copy a long random string → NSAlert text field → paste. That
+    /// was real friction (easy to mistype, a token sitting exposed on
+    /// screen/clipboard) for something that should be one click since the
+    /// user is, by definition, already logged in on this same Mac.
     static func promptAndStore() {
-        let alert = NSAlert()
-        alert.messageText = "Connect SilentHelp Account"
-        alert.informativeText = "Paste the pairing code from Settings → Mac Agent → Generate pairing code."
-        alert.addButton(withTitle: "Connect")
-        alert.addButton(withTitle: "Cancel")
-        let input = NSTextField(frame: NSRect(x: 0, y: 0, width: 280, height: 24))
-        input.placeholderString = "Pairing code"
-        alert.accessoryView = input
-        alert.window.initialFirstResponder = input
-        if alert.runModal() == .alertFirstButtonReturn {
-            let code = input.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !code.isEmpty { token = code }
-        }
+        guard let url = URL(string: Config.hostedBackend + "/pair-agent") else { return }
+        NSWorkspace.shared.open(url)
+    }
+
+    /// Called from application(_:open:) when macOS routes a
+    /// silenthelp://pair?token=... URL to this app (the browser page at
+    /// /pair-agent issues the token server-side, then redirects here).
+    static func completePairing(from url: URL) -> Bool {
+        guard url.scheme == "silenthelp", url.host == "pair" else { return false }
+        guard let token = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+            .queryItems?.first(where: { $0.name == "token" })?.value,
+            !token.isEmpty else { return false }
+        Self.token = token
+        return true
     }
 
     static func disconnect() { token = nil }
@@ -1032,6 +1041,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         resolveBackend()  // paired → hosted; else local if running, else hosted
         shLog("LAUNCH path=\(Bundle.main.bundlePath) ax=\(AXIsProcessTrusted()) screen=\(CGPreflightScreenCaptureAccess())")
 
+        // Catches silenthelp:// pairing links (see handleGetURLEvent above).
+        NSAppleEventManager.shared().setEventHandler(
+            self, andSelector: #selector(handleGetURLEvent(_:replyEvent:)),
+            forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
+
         // Gatekeeper "app translocation": launched from a randomized quarantine
         // path (e.g. straight out of the Downloads zip). Permissions can NEVER
         // stick to that path — tell the user how to fix it instead of failing
@@ -1097,6 +1111,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             defaults.set(true, forKey: "sh.axAlertShown")
             notifyPermission()
         }
+    }
+
+    /// Registered for the "silenthelp" URL scheme via CFBundleURLTypes in
+    /// Info.plist (see make-app.sh). The browser's /pair-agent page issues a
+    /// token for whoever is already signed in there, then redirects to
+    /// silenthelp://pair?token=..., which macOS delivers here — completing
+    /// the "Connect account…" flow with no code to type.
+    ///
+    /// NSApplicationDelegate's application(_:open:) is the file-opening
+    /// callback (CFBundleDocumentTypes) and is unreliable for custom URL
+    /// SCHEMES on plain AppKit apps — macOS actually delivers those as a
+    /// kAEGetURL Apple Event, which is what a CFBundleURLTypes registration
+    /// asks for. Handling that event directly is the correct, documented
+    /// mechanism (this was verified against a live build: application(_:open:)
+    /// alone never fired for a `open "silenthelp://..."` from the shell).
+    @objc func handleGetURLEvent(_ event: NSAppleEventDescriptor, replyEvent: NSAppleEventDescriptor) {
+        guard let urlString = event.paramDescriptor(forKeyword: keyDirectObject)?.stringValue,
+              let url = URL(string: urlString) else { return }
+        handlePairingCallback(url)
     }
 
     private func startScreen() {
@@ -1192,14 +1225,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func toggleConnect() {
         if DeviceAuth.isPaired {
             DeviceAuth.disconnect()
+            connectMenuItem.title = "Connect account…"
+            resolveBackend()
         } else {
+            // Opens the browser to /pair-agent; pairing itself completes
+            // asynchronously when macOS routes the resulting silenthelp://pair
+            // callback to handleGetURLEvent above — nothing to update here
+            // yet, the menu item and backend refresh happen there instead.
             DeviceAuth.promptAndStore()
         }
-        connectMenuItem.title = DeviceAuth.isPaired ? "Disconnect account" : "Connect account…"
-        // Pairing state decides which backend we post to (see resolveBackend),
-        // so re-resolve now instead of waiting for the next launch — otherwise
-        // someone who just paired keeps posting to a local server until restart.
+    }
+    /// The other half of connect: macOS calls this when the browser redirects
+    /// to silenthelp://pair?token=... after /pair-agent issues one. Updates
+    /// the same two things toggleConnect's disconnect branch updates.
+    func handlePairingCallback(_ url: URL) {
+        shLog("PAIR CALLBACK received: \(url.absoluteString)")
+        guard DeviceAuth.completePairing(from: url) else {
+            shLog("PAIR CALLBACK rejected (bad scheme/host or missing token)")
+            return
+        }
+        connectMenuItem.title = "Disconnect account"
         resolveBackend()
+        // Reuse the same corner-popup system as every other moment, rather
+        // than pulling in UserNotifications (its own separate permission
+        // prompt) just for a one-line confirmation.
+        Popup.shared.show(title: "Connected", message: "This Mac's activity now reaches your dashboard.", crisis: false)
     }
     @objc private func snooze1h() { Snooze.set(hours: 1) }
     @objc private func snooze2h() { Snooze.set(hours: 2) }

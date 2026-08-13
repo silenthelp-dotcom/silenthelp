@@ -10,3 +10,6 @@ users.json
 userdata/
 nohup.out
 .claude/settings.local.json
+audit.jsonl
+.DS_Store
+**/.DS_Store

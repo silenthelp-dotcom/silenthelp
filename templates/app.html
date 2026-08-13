@@ -835,17 +835,10 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
               <div style="background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:18px 20px;">
                 <div id="deviceUnpaired">
                   <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;">
-                    <div style="font-size:13.5px; color:#16202b;">Not paired yet</div>
-                    <button class="hov" onclick="App.pairDevice()" style="background:#16202b; color:#fff; border:none; border-radius:9999px; padding:10px 20px; font-size:12.5px; font-weight:600; cursor:pointer;">Generate pairing code</button>
+                    <div><div style="font-size:13.5px; color:#16202b;">Not paired yet</div><div style="font-size:12px; color:#8b99a6; margin-top:3px; font-weight:300;">One click — no code to copy. You're already signed in here.</div></div>
+                    <button class="hov" onclick="App.pairDevice()" style="background:#16202b; color:#fff; border:none; border-radius:9999px; padding:10px 20px; font-size:12.5px; font-weight:600; cursor:pointer;">Connect the Mac agent</button>
                   </div>
-                  <div id="deviceCodeWrap" style="display:none; margin-top:16px;">
-                    <div style="font-size:11px; letter-spacing:.15em; color:#9aa7b3; text-transform:uppercase; margin-bottom:8px;">Paste this into the agent's menu — "Connect account…"</div>
-                    <div style="display:flex; gap:10px; align-items:center;">
-                      <code id="deviceCode" style="flex:1; background:#f6f8fb; border:1px solid #eef2f6; border-radius:10px; padding:11px 14px; font-size:13px; color:#16202b; word-break:break-all;"></code>
-                      <button class="hov" onclick="App.copyDeviceCode()" style="background:#fff; border:1px solid #e6ecf2; border-radius:9px; padding:11px 16px; font-size:12.5px; font-weight:600; color:#3c4a57; cursor:pointer; flex-shrink:0;">Copy</button>
-                    </div>
-                    <div style="font-size:11.5px; color:#9aa7b3; margin-top:10px; font-weight:300;">This code won't be shown again after you leave this page. Generating a new one disconnects the old device.</div>
-                  </div>
+                  <div id="deviceWaiting" style="display:none; margin-top:16px; font-size:12px; color:#9aa7b3; font-weight:300;">Waiting for the agent to confirm… if nothing happens, make sure it's installed and try again.</div>
                 </div>
                 <div id="devicePaired" style="display:none; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;">
                   <div style="display:flex; align-items:center; gap:9px;"><span style="width:8px; height:8px; border-radius:50%; background:#1f9d55;"></span><span style="font-size:13.5px; color:#16202b;">Agent paired to this account</span></div>
@@ -1687,20 +1680,28 @@ const App = {
     this.trackAppUsage = !!(s && s.track_app_usage);
     this.paintToggles();
   },
-  async pairDevice(){
-    const d = await this.api('/api/device/pair', {}).catch(()=>null);
-    if (!d || !d.token) return;
-    document.getElementById('deviceCode').textContent = d.token;
-    document.getElementById('deviceCodeWrap').style.display = 'block';
-  },
-  copyDeviceCode(){
-    const t = document.getElementById('deviceCode').textContent;
-    if (t) navigator.clipboard.writeText(t).catch(()=>{});
+  pairDevice(){
+    // /pair-agent issues a token for this signed-in session and hands it to
+    // the installed agent via the silenthelp:// URL scheme — no code shown
+    // on screen, nothing to copy or paste. Opens in a new tab so this
+    // Connection screen stays put and can poll for the result.
+    window.open('/pair-agent', '_blank');
+    const w = document.getElementById('deviceWaiting');
+    if (w) w.style.display = 'block';
+    // The agent confirms asynchronously (macOS routing a URL to a separate
+    // app isn't something this tab gets a callback for), so poll status for
+    // a bit rather than making the user manually refresh to see it connect.
+    let tries = 0;
+    const poll = setInterval(async () => {
+      tries++;
+      const d = await this.api('/api/device/status').catch(()=>null);
+      if (d && d.paired) { clearInterval(poll); this.loadDeviceStatus(); }
+      else if (tries >= 20) { clearInterval(poll); if (w) w.style.display = 'none'; }
+    }, 3000);
   },
   async unpairDevice(){
     if (!confirm('Disconnect the Mac agent from this account? It will stop reporting until re-paired.')) return;
     await this.api('/api/device/unpair', {}).catch(()=>{});
-    document.getElementById('deviceCodeWrap').style.display = 'none';
     this.loadDeviceStatus();
   },
   async exportData(){

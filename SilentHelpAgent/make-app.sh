@@ -38,6 +38,18 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
   <key>LSUIElement</key><true/>
   <key>LSMinimumSystemVersion</key><string>13.0</string>
   <key>NSHumanReadableCopyright</key><string>SilentHelp prototype</string>
+  <!-- Registers this app as the handler for silenthelp:// links, so the
+       web app's /pair-agent page can hand back a pairing token with a
+       single click instead of a copy-pasted code (see DeviceAuth in
+       main.swift). -->
+  <key>CFBundleURLTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleURLName</key><string>com.silenthelp.agent.pairing</string>
+      <key>CFBundleURLSchemes</key>
+      <array><string>silenthelp</string></array>
+    </dict>
+  </array>
 </dict>
 </plist>
 PLIST

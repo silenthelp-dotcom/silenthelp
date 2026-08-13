@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Connecting your Mac — SilentHelp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#050608; --paper:#f4f2ed; }
+  html,body{ margin:0; height:100%; background:#000; color:var(--paper); }
+  body{
+    font-family:'Manrope',-apple-system,sans-serif; -webkit-font-smoothing:antialiased;
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    padding:32px;
+  }
+  .card{ max-width:440px; }
+  .orb{ width:15px; height:15px; border-radius:50%; margin:0 auto 28px;
+    background: radial-gradient(circle at 32% 28%, #fff, #cfd3da 45%, #7d838d 100%);
+    box-shadow: 0 0 16px rgba(255,255,255,.45); }
+  h1{ font-family:'Instrument Serif',serif; font-style:italic; font-weight:400;
+      font-size:30px; line-height:1.2; margin:0; }
+  p{ font-size:14px; line-height:1.6; color:rgba(244,242,237,.62); margin:16px 0 0; }
+  .fallback{ margin-top:32px; padding-top:24px; border-top:1px solid rgba(244,242,237,.14); }
+  .fallback p{ font-size:12.5px; }
+  a.btn{
+    display:inline-block; margin-top:14px; background:#fff; color:#000;
+    text-decoration:none; border-radius:9999px; padding:11px 24px;
+    font-size:13px; font-weight:600;
+  }
+  .spin{
+    width:22px; height:22px; margin:24px auto 0; border-radius:50%;
+    border:2px solid rgba(244,242,237,.18); border-top-color:rgba(244,242,237,.7);
+    animation:spin 0.9s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="orb"></div>
+    <h1>Connecting your Mac…</h1>
+    <p>Handing your account to the SilentHelp agent. This closes on its own once it's done — you can close this tab.</p>
+    <div class="spin" aria-hidden="true"></div>
+
+    <div class="fallback">
+      <p>Nothing happened? The agent needs to be installed first, or click below to try again.</p>
+      <a class="btn" id="retryLink" href="#">Open SilentHelp Agent</a>
+    </div>
+  </div>
+
+  <script>
+    // The token is issued server-side per visit (see /pair-agent) and is
+    // single-use in spirit — reissuing invalidates the previous one (see
+    // auth.create_device_token). Handing it off via a custom URL scheme
+    // means it's never shown on screen or sitting in a clipboard.
+    var pairUrl = "silenthelp://pair?token={{ token | urlencode }}";
+    document.getElementById('retryLink').href = pairUrl;
+    window.location.href = pairUrl;
+  </script>
+</body>
+</html>

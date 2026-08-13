@@ -408,6 +408,33 @@ def api_device_unpair():
     return jsonify({"ok": True})
 
 
+@app.route("/pair-agent")
+def pair_agent():
+    """
+    One-click Mac agent pairing. Replaces the old flow (Settings -> Mac Agent
+    -> generate a token -> copy it -> paste into an NSAlert on the agent) with
+    a single click: the agent's "Connect account..." menu item opens this page
+    in the browser, where the user is (by definition) already signed in, and
+    this issues a token and hands it straight back to the agent via the
+    silenthelp:// URL scheme the agent registers as a handler for. No secret
+    is ever shown on screen or copy-pasted.
+
+    Not in _PUBLIC_PATHS: this must only ever run for a real signed-in session.
+    """
+    uid = session.get("uid")
+    if not (uid and auth.get_user(uid)):
+        # This flow only makes sense when the browser is already signed in
+        # (that's the whole point — no code to type). If it isn't, there's
+        # nothing to hand the agent yet; send them to sign in normally and
+        # they can reopen "Connect account…" from the agent afterward.
+        return redirect("/app")
+    token = auth.create_device_token(uid)
+    if not token:
+        return ("Could not create a pairing token. Try again from "
+                "Settings → Mac Agent in the app.", 500)
+    return render_template("pair_agent.html", token=token)
+
+
 @app.route("/robots.txt")
 def robots():
     resp = make_response("User-agent: *\nAllow: /\nSitemap: https://silenthelp.org/sitemap.xml\n")
