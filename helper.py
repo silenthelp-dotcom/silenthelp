@@ -108,10 +108,20 @@ def coach(messages: List[Dict[str, str]]) -> Dict[str, Any]:
         # primary once, so a single rate-limit or timeout on Groq silently
         # dropped straight to the generic fallback below, even for an active
         # escalate-worthy message. This is the fix for that.
+        #
+        # max_tokens=320 was measured truncating the JSON on exactly the
+        # highest-stakes case: an "escalate" verdict has to fill reply +
+        # guidance + escalation_reason (three free-text fields), which is
+        # reliably longer than a "none"/"watch" completion that can leave
+        # escalation_reason empty. A truncated completion breaks mid-string,
+        # json.loads() in _parse() throws, and coach() silently drops to the
+        # generic fallback below — so the exact case that matters most to
+        # get right was the one most likely to be truncated into failure.
+        # Raised to give escalate-length output room to finish.
         raw = detection._complete(
             [{"role": "system", "content": HELPER_SYSTEM_PROMPT}, *convo],
             temperature=0.6,
-            max_tokens=320,
+            max_tokens=500,
         ).strip()
         parsed = _parse(raw)
         if parsed:
