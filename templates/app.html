@@ -334,57 +334,23 @@ button[style*="color:#0a6dff"] { color:#000 !important; }
 #scr-onboarding[style*="radial-gradient"], #scr-auth[style*="radial-gradient"] {
   background:transparent !important;
 }
-/* The urgent popup is a full-screen takeover with its own dark ground — pure
-   black, no navy tint (#0b1120 was the blue wash the user kept seeing). */
-#popup-urgent[style*="radial-gradient(120% 90% at 50%"] {
-  background:radial-gradient(120% 90% at 50% 24%, #0a0a0a, #050505 62%, #000) !important;
-}
 /* Escape the padded, max-width app frame. Both popups were position:absolute
    inside #appview, so the takeover was boxed into the content column with the
    desktop showing down both sides (see bug report). Pin them to the viewport
    so the escalation actually covers the whole screen. */
 #popup-urgent, #popup-gentle { position:fixed !important; inset:0 !important; z-index:120 !important; }
-/* Kill the blue accents inside both popups: the eyebrow label and the ripple
-   sweep lines were blue. White eyebrow, white ripples. */
-#popup-urgent [style*="color:#3d8bdb"] { color:rgba(255,255,255,.7) !important; }
-#popup-urgent [style*="rgba(0,122,255"] {
-  background:linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent) !important;
-}
-/* The escalation email draft was light-themed (white inputs, dark text) — out
-   of step with the dark glass everywhere else. Restyle the whole draft as
-   liquid glass: translucent fields, hairline borders, white text. */
-#popup-urgent .pf { color:#fff !important; }
-#popup-urgent #urgentDesc { color:rgba(255,255,255,.62) !important; }
-#popup-urgent #urgentDraft > div[style*="letter-spacing"] { color:rgba(255,255,255,.42) !important; }
-#popup-urgent #escTo, #popup-urgent #escSubj, #popup-urgent #escBody {
-  background:rgba(255,255,255,.05) !important;
-  border:1px solid rgba(255,255,255,.14) !important;
-  color:#fff !important;
-  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
-  box-shadow:inset 0 1px 1px rgba(255,255,255,.10) !important;
-}
-#popup-urgent #escTo:focus, #popup-urgent #escSubj:focus, #popup-urgent #escBody:focus {
-  border-color:rgba(255,255,255,.34) !important; background:rgba(255,255,255,.08) !important;
-}
-#popup-urgent #escTo::placeholder, #popup-urgent #escBody::placeholder { color:rgba(255,255,255,.38) !important; }
-/* "988" helper line and the settings/ignore links were warm/grey on white. */
-#popup-urgent [style*="color:#a4701f"] { color:rgba(255,210,150,.85) !important; }
-#popup-urgent [style*="color:#8a5d18"] { color:#ffd79a !important; }
-#popup-urgent [style*="color:#9aa7b3"] { color:rgba(255,255,255,.45) !important; }
-/* Send/Not-now buttons: primary white pill, secondary glass — matching sign-in. */
-#popup-urgent .glass:not(.ghost) {
-  background:#fff !important; color:#000 !important; border:none !important; font-weight:600;
-}
-#popup-urgent .glass.ghost {
-  background:rgba(255,255,255,.05) !important; color:#fff !important;
-  border:1px solid rgba(255,255,255,.16) !important;
-  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
-}
-/* Popup close buttons sit on that wash. */
-#popup-urgent .hov, #popup-gentle .hov {
+/* Popup close buttons sit on the hero footage. #popup-urgent's own close
+   button is now styled inline (see its markup) to sit on the video directly;
+   this covers #popup-gentle's, which still uses the old light-card look. */
+#popup-gentle .hov {
   background:rgba(255,255,255,.06) !important;
   border-color:rgba(150,175,235,.2) !important;
   color:#c3ccdd !important;
+}
+@media (max-width: 900px){
+  /* The two-column urgent layout doesn't fit a phone-width viewport —
+     stack context above the draft instead of squeezing both to nothing. */
+  #popup-urgent > div > div { grid-template-columns:1fr !important; gap:32px !important; }
 }
 
 /* Text ------------------------------------------------------------------ */
@@ -1043,40 +1009,84 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
       </div>
     </div>
 
-    <!-- ════ URGENT — FULL-SCREEN ════ -->
-    <div id="popup-urgent" style="display:none; position:absolute; inset:0; z-index:45; background:radial-gradient(120% 90% at 50% 30%, #ffffff, #eef4fb 60%, #e2ecf7); flex-direction:column; align-items:center; justify-content:safe center; text-align:center; padding:56px 60px; animation:fadeBg .5s ease; overflow-y:auto;">
-      <button onclick="App.closePopup()" aria-label="Close" title="Close" class="hov" style="position:absolute; top:22px; right:22px; z-index:2; width:38px; height:38px; border-radius:50%; border:1px solid #d3e0ee; background:rgba(255,255,255,.8); color:#5e6f7e; font-size:18px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+    <!-- ════ URGENT — FULL-SCREEN ════
+         Same hero footage as the landing page and the rest of the app, not a
+         second competing background — the popup used to paint an opaque
+         near-black over everything, hiding the orb entirely and leaving both
+         side columns empty on wide screens. Now: the hero plays behind a dark
+         scrim (same treatment as the Wrap overlay below), and the content is
+         a two-column layout — context + the four layers on the left, the
+         actionable email draft on the right — so nothing sits idle. -->
+    <div id="popup-urgent" style="display:none; position:absolute; inset:0; z-index:45; background:#000; flex-direction:column; animation:fadeBg .5s ease; overflow-y:auto;">
+      <video id="urgentBg" autoplay muted loop playsinline style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:top; opacity:.5; pointer-events:none;"></video>
+      <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.35) 30%, rgba(0,0,0,.55) 70%, rgba(0,0,0,.8)); pointer-events:none;"></div>
 
-      <div style="position:relative; max-width:620px; animation:screenIn .8s cubic-bezier(.16,1,.3,1) .3s both;">
-        <img src="/static/img/badge-256.png" alt="SilentHelp" style="width:72px; height:72px; border-radius:50%; margin:0 auto 32px; display:block; box-shadow:0 16px 50px rgba(20,30,60,.3); animation:emBreath 5s ease-in-out infinite;" />
-        <div style="font-size:12px; letter-spacing:.3em; text-transform:uppercase; color:#3d8bdb;">Over the last four days</div>
-        <div class="pf" style="font-size:52px; color:#0e1822; line-height:1.05; margin-top:18px;">Something important<br/>is surfacing.</div>
-        <div id="urgentDesc" style="font-size:16px; color:#5e6f7e; line-height:1.7; margin-top:24px; font-weight:300; max-width:480px; margin-left:auto; margin-right:auto;">Your patterns crossed a threshold we don't ignore. With the permission you gave during setup, a short private note is being prepared for someone you trust.</div>
+      <button onclick="App.closePopup()" aria-label="Close" title="Close" class="hov" style="position:absolute; top:22px; right:22px; z-index:2; width:38px; height:38px; border-radius:50%; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.08); color:#fff; font-size:18px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
 
-        <div id="urgentDraft" style="margin-top:26px; max-width:480px; margin-left:auto; margin-right:auto; text-align:left;">
-          <div style="font-size:11px; letter-spacing:.18em; color:#9aa7b3; margin-bottom:6px;">TO</div>
-          <!-- Read-only: the send always goes to the account's saved trusted
-               contact (server-enforced) — editing this box no longer changes
-               where it sends, so it must not look editable. Use the "Change
-               who this goes to in Settings" link below instead. -->
-          <input id="escTo" readonly placeholder="counselor@school.edu" style="width:100%; height:44px; border:1px solid #dde6ef; border-radius:11px; padding:0 14px; font-size:13.5px; background:#f6f8fb; color:#5e6f7e; outline:none; cursor:default;" />
-          <div style="font-size:11px; letter-spacing:.18em; color:#9aa7b3; margin:14px 0 6px;">SUBJECT</div>
-          <input id="escSubj" style="width:100%; height:44px; border:1px solid #dde6ef; border-radius:11px; padding:0 14px; font-size:13.5px; background:#fff; color:#16202b; outline:none;" />
-          <div style="font-size:11px; letter-spacing:.18em; color:#9aa7b3; margin:14px 0 6px;">MESSAGE (you can edit this)</div>
-          <textarea id="escBody" style="width:100%; min-height:160px; border:1px solid #dde6ef; border-radius:11px; padding:12px 14px; font-size:13.5px; background:#fff; color:#16202b; outline:none; resize:vertical; line-height:1.55; font-family:inherit;"></textarea>
-        </div>
+      <div style="position:relative; z-index:1; flex:1; display:flex; align-items:center; justify-content:center; padding:56px 48px;">
+        <div style="position:relative; width:100%; max-width:1040px; display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:start; animation:screenIn .8s cubic-bezier(.16,1,.3,1) .3s both;">
 
-        <div style="font-size:13px; color:#a4701f; line-height:1.6; margin-top:20px; font-weight:300;">You're not alone right now. You can also reach <strong style="color:#8a5d18; font-weight:600;">988</strong> — call or text, any time.</div>
+          <!-- LEFT — context: what triggered this, and the same four-layer
+               explanation used on the landing page, so the space isn't idle
+               and the moment is explained, not just announced. -->
+          <div style="text-align:left; padding-top:8px;">
+            <img src="/static/img/badge-256.png" alt="SilentHelp" style="width:64px; height:64px; border-radius:50%; margin-bottom:28px; box-shadow:0 16px 50px rgba(0,0,0,.5); animation:emBreath 5s ease-in-out infinite;" />
+            <div style="font-size:12px; letter-spacing:.3em; text-transform:uppercase; color:rgba(255,255,255,.7);">Over the last four days</div>
+            <div class="pf" style="font-size:44px; color:#fff; line-height:1.08; margin-top:16px;">Something important<br/>is surfacing.</div>
+            <div id="urgentDesc" style="font-size:15px; color:rgba(255,255,255,.62); line-height:1.7; margin-top:20px; font-weight:300; max-width:420px;">Your patterns crossed a threshold we don't ignore. With the permission you gave during setup, a short private note is being prepared for someone you trust.</div>
 
-        <div style="display:flex; gap:13px; justify-content:center; margin-top:24px;">
-          <button class="glass ghost" onclick="App.closePopup()" style="border-radius:12px; padding:14px 28px; font-size:14px; font-weight:600;">Not now</button>
-          <button class="glass" onclick="App.sendEmail()" style="border-radius:12px; padding:14px 34px; font-size:14px; font-weight:600;">Send email</button>
-        </div>
-        <div id="escSent" style="display:none; margin-top:18px; font-size:13.5px; color:#1f9d55; font-weight:600;"></div>
-        <div onclick="App.goSettingsFromPopup()" style="font-size:12px; color:#9aa7b3; margin-top:18px; cursor:pointer;">Change who this goes to in Settings</div>
-        <div style="display:flex; justify-content:center; gap:18px; margin-top:10px; font-size:12px; color:#9aa7b3;">
-          <span onclick="App.snooze(1)" style="cursor:pointer; text-decoration:underline; text-underline-offset:3px;">Ignore for 1 hour</span>
-          <span onclick="App.snooze(2)" style="cursor:pointer; text-decoration:underline; text-underline-offset:3px;">Ignore for 2 hours</span>
+            <div style="margin-top:34px; padding-top:26px; border-top:1px solid rgba(255,255,255,.14); display:grid; gap:16px;">
+              <div style="font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,.4);">Why SilentHelp said something</div>
+              <div style="display:flex; gap:12px;">
+                <div style="width:22px; height:22px; border-radius:50%; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16); display:flex; align-items:center; justify-content:center; font-size:11px; color:rgba(255,255,255,.7); flex-shrink:0;">1</div>
+                <div><span style="color:#fff; font-weight:600; font-size:13.5px;">Keyword scan</span><span style="color:rgba(255,255,255,.55); font-size:13px;"> — a local word list, on-device, instant.</span></div>
+              </div>
+              <div style="display:flex; gap:12px;">
+                <div style="width:22px; height:22px; border-radius:50%; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16); display:flex; align-items:center; justify-content:center; font-size:11px; color:rgba(255,255,255,.7); flex-shrink:0;">2</div>
+                <div><span style="color:#fff; font-weight:600; font-size:13.5px;">Semantic context</span><span style="color:rgba(255,255,255,.55); font-size:13px;"> — reads meaning, tells a joke from a cry for help.</span></div>
+              </div>
+              <div style="display:flex; gap:12px;">
+                <div style="width:22px; height:22px; border-radius:50%; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16); display:flex; align-items:center; justify-content:center; font-size:11px; color:rgba(255,255,255,.7); flex-shrink:0;">3</div>
+                <div><span style="color:#fff; font-weight:600; font-size:13.5px;">Behavioral rhythm</span><span style="color:rgba(255,255,255,.55); font-size:13px;"> — typing pace, late nights, tab-switching.</span></div>
+              </div>
+              <div style="display:flex; gap:12px;">
+                <div style="width:22px; height:22px; border-radius:50%; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16); display:flex; align-items:center; justify-content:center; font-size:11px; color:rgba(255,255,255,.7); flex-shrink:0;">4</div>
+                <div><span style="color:#fff; font-weight:600; font-size:13.5px;">Trend gate</span><span style="color:rgba(255,255,255,.55); font-size:13px;"> — a sustained pattern, not one hard night.</span></div>
+              </div>
+            </div>
+
+            <div style="margin-top:28px; padding-top:22px; border-top:1px solid rgba(255,255,255,.14); font-size:12px; color:rgba(255,255,255,.4); line-height:1.6;">Nothing was sent anywhere until this moment — detection ran entirely on your device.</div>
+          </div>
+
+          <!-- RIGHT — the actionable draft. -->
+          <div style="text-align:left;">
+            <div id="urgentDraft">
+              <div style="font-size:11px; letter-spacing:.18em; color:rgba(255,255,255,.45); margin-bottom:6px;">TO</div>
+              <!-- Read-only: the send always goes to the account's saved trusted
+                   contact (server-enforced) — editing this box no longer changes
+                   where it sends, so it must not look editable. Use the "Change
+                   who this goes to in Settings" link below instead. -->
+              <input id="escTo" readonly placeholder="counselor@school.edu" style="width:100%; height:44px; border:1px solid rgba(255,255,255,.14); border-radius:11px; padding:0 14px; font-size:13.5px; background:rgba(255,255,255,.04); color:rgba(255,255,255,.6); outline:none; cursor:default; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);" />
+              <div style="font-size:11px; letter-spacing:.18em; color:rgba(255,255,255,.45); margin:14px 0 6px;">SUBJECT</div>
+              <input id="escSubj" style="width:100%; height:44px; border:1px solid rgba(255,255,255,.14); border-radius:11px; padding:0 14px; font-size:13.5px; background:rgba(255,255,255,.05); color:#fff; outline:none; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);" />
+              <div style="font-size:11px; letter-spacing:.18em; color:rgba(255,255,255,.45); margin:14px 0 6px;">MESSAGE (you can edit this)</div>
+              <textarea id="escBody" style="width:100%; min-height:220px; border:1px solid rgba(255,255,255,.14); border-radius:11px; padding:12px 14px; font-size:13.5px; background:rgba(255,255,255,.05); color:#fff; outline:none; resize:vertical; line-height:1.55; font-family:inherit; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);"></textarea>
+            </div>
+
+            <div style="font-size:13px; color:rgba(255,210,150,.85); line-height:1.6; margin-top:20px; font-weight:300;">You're not alone right now. You can also reach <strong style="color:#ffd79a; font-weight:600;">988</strong> — call or text, any time.</div>
+
+            <div style="display:flex; gap:13px; margin-top:24px;">
+              <button class="glass ghost" onclick="App.closePopup()" style="border-radius:12px; padding:14px 28px; font-size:14px; font-weight:600; background:rgba(255,255,255,.05); color:#fff; border:1px solid rgba(255,255,255,.16); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);">Not now</button>
+              <button class="glass" onclick="App.sendEmail()" style="border-radius:12px; padding:14px 34px; font-size:14px; font-weight:600; background:#fff; color:#000; border:none;">Send email</button>
+            </div>
+            <div id="escSent" style="display:none; margin-top:18px; font-size:13.5px; color:#5fd68a; font-weight:600;"></div>
+            <div onclick="App.goSettingsFromPopup()" style="font-size:12px; color:rgba(255,255,255,.45); margin-top:18px; cursor:pointer;">Change who this goes to in Settings</div>
+            <div style="display:flex; gap:18px; margin-top:10px; font-size:12px; color:rgba(255,255,255,.45);">
+              <span onclick="App.snooze(1)" style="cursor:pointer; text-decoration:underline; text-underline-offset:3px;">Ignore for 1 hour</span>
+              <span onclick="App.snooze(2)" style="cursor:pointer; text-decoration:underline; text-underline-offset:3px;">Ignore for 2 hours</span>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -1442,6 +1452,13 @@ const App = {
     // Crisis-level moments intentionally IGNORE the snooze — safety first.
     this.urgentShown = true;
     document.getElementById('popup-urgent').style.display = 'flex';
+    // Same lazy-src pattern as wrapBg: only load the hero footage the first
+    // time this popup actually opens, not on every page load.
+    const ubg = document.getElementById('urgentBg');
+    if (ubg && !ubg.src && window.SH_HERO_VIDEO) {
+      ubg.src = window.SH_HERO_VIDEO;
+      const p = ubg.play(); if (p && p.catch) p.catch(()=>{});
+    }
     const d = document.getElementById('urgentDesc'), t = this.triggerLine();
     if (d && t) d.innerHTML = t + '<br/><br/>You don’t have to carry this alone. Here’s a private note you can send to someone you trust — edit it however you like.';
     document.getElementById('escSent').style.display = 'none';
