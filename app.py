@@ -72,6 +72,7 @@ import detection
 import helper
 import hq_store
 import layer1
+import qa_store
 import store
 
 app = Flask(__name__)
@@ -917,6 +918,308 @@ def hq_notes_read():
 def hq_plan():
     d = request.get_json(silent=True) or {}
     return jsonify(hq_store.set_plan(d.get("dept", ""), d.get("target", 0)))
+
+
+# ---------------------------------------------------------------------------
+# SilentHelp QA — MVP Readiness & AI Testing Console (internal, HQ-gated)
+# ---------------------------------------------------------------------------
+# Everything under /qa requires an HQ teammate session (same login as
+# careers/team admin) — this is internal test/bug data, never reachable by a
+# student account. See qa_store.py for the storage layer and scoring rules.
+
+def _qa_require_auth():
+    """None if authorized; else a (response, status) tuple to return."""
+    if not _hq_account():
+        return jsonify({"error": "sign in to SilentHelp HQ first"}), 401
+    return None
+
+
+CONTEXT_LABELS = {
+    "none": "no concern", "low": "low", "moderate": "moderate concern",
+    "high": "high concern", "crisis": "crisis",
+}
+
+
+def _run_live_classification(message: str) -> Dict[str, Any]:
+    """The QA console's runDetectionTest(input) bridge to the real pipeline.
+    Never exposes model chain-of-thought — only the same judgment/action
+    shape /classify already returns to the app, plus latency. Fails safe:
+    if the pipeline throws, the caller gets a SYSTEM ERROR result rather
+    than a silently wrong PASS."""
+    t0 = time.time()
+    l1, judgment, action = _pipeline(message)
+    latency_ms = round((time.time() - t0) * 1000)
+    severity = (judgment.get("risk_level") or "none").lower()
+    context = ", ".join(judgment.get("categories") or []) or CONTEXT_LABELS.get(severity, severity)
+    return {
+        "context": context,
+        "severity": severity,
+        "confidence": judgment.get("confidence"),
+        "recommendedAction": (action.get("action") or "").replace("_", " ").upper(),
+        "latencyMs": latency_ms,
+        "metadata": {
+            "source": judgment.get("_source"),
+            "l1Level": judgment.get("_l1_level"),
+            "l2Level": judgment.get("_l2_level"),
+            "tier3": judgment.get("_l1_tier3"),
+            "rationale": judgment.get("rationale"),  # short safe explanation, not raw chain-of-thought
+        },
+    }
+
+
+@app.route("/qa")
+def qa_console():
+    if not _hq_account():
+        return redirect("/careers")
+    return render_template("qa.html")
+
+
+@app.route("/api/qa/state")
+def qa_state():
+    err = _qa_require_auth()
+    if err:
+        return err
+    return jsonify(qa_store.state())
+
+
+@app.route("/api/qa/run-test", methods=["POST"])
+def qa_run_test():
+    """Runs ONE ad-hoc input through the live pipeline (AI Detection Lab's
+    RUN TEST button) — not tied to a saved test case."""
+    err = _qa_require_auth()
+    if err:
+        return err
+    d = request.get_json(silent=True) or {}
+    message = (d.get("message") or "").strip()
+    if not message:
+        return jsonify({"error": "empty message"}), 400
+    try:
+        result = _run_live_classification(message)
+        result["mode"] = "live"
+    except Exception as e:  # noqa: BLE001 — surface as a labeled system error, never a 500 the UI can't show
+        result = {"context": "system error", "severity": "none", "confidence": 0,
+                   "recommendedAction": "NONE", "latencyMs": 0, "metadata": {"error": str(e)},
+                   "mode": "live", "error": True}
+    return jsonify(result)
+
+
+@app.route("/api/qa/test/<test_id>/run", methods=["POST"])
+def qa_run_saved_test(test_id):
+    """Runs one saved test case (from a suite) live and records the result."""
+    err = _qa_require_auth()
+    if err:
+        return err
+    d = qa_store.state()
+    test = next((t for t in d["tests"] if t["id"] == test_id), None)
+    if not test:
+        return jsonify({"error": "test not found"}), 404
+    try:
+        actual = _run_live_classification(test["input"])
+        source = "live"
+    except Exception as e:  # noqa: BLE001
+        actual = {"context": "system error", "severity": "none", "confidence": 0,
+                   "recommendedAction": "NONE", "latencyMs": 0, "metadata": {"error": str(e)}, "error": True}
+        source = "live"
+    updated = qa_store.record_test_result(test_id, actual, source)
+    return jsonify(updated)
+
+
+@app.route("/api/qa/context-pair/<pair_id>/run", methods=["POST"])
+def qa_run_context_pair(pair_id):
+    err = _qa_require_auth()
+    if err:
+        return err
+    d = qa_store.state()
+    pair = next((p for p in d["contextPairs"] if p["id"] == pair_id), None)
+    if not pair:
+        return jsonify({"error": "pair not found"}), 404
+    out = {}
+    for side in ("a", "b"):
+        try:
+            actual = _run_live_classification(pair[side]["input"])
+        except Exception as e:  # noqa: BLE001
+            actual = {"context": "system error", "severity": "none", "confidence": 0,
+                       "recommendedAction": "NONE", "latencyMs": 0, "metadata": {"error": str(e)}, "error": True}
+        out[side] = qa_store.record_context_pair_result(pair_id, side, actual, "live")
+    return jsonify(out["b"])  # both sides updated in the same doc; return the fresh pair
+
+
+@app.route("/api/qa/suite/<suite_key>/run", methods=["POST"])
+def qa_run_suite(suite_key):
+    """Runs every test in a category live, sequentially, and records a run
+    summary. Sequential (not threaded) so this stays gentle on the shared
+    model rate limit — a suite is ~5-10 cases, a few seconds each is fine."""
+    err = _qa_require_auth()
+    if err:
+        return err
+    d = qa_store.state()
+    tests = [t for t in d["tests"] if t["category"] == suite_key]
+    if not tests:
+        return jsonify({"error": "unknown suite"}), 404
+    results = []
+    for t in tests:
+        try:
+            actual = _run_live_classification(t["input"])
+        except Exception as e:  # noqa: BLE001
+            actual = {"context": "system error", "severity": "none", "confidence": 0,
+                       "recommendedAction": "NONE", "latencyMs": 0, "metadata": {"error": str(e)}, "error": True}
+        updated = qa_store.record_test_result(t["id"], actual, "live")
+        results.append(updated)
+    acc = _hq_account()
+    run = qa_store.add_run(suite_key, results, acc.get("name", "") if acc else "")
+    return jsonify({"run": run, "tests": results})
+
+
+@app.route("/api/qa/checklist/toggle", methods=["POST"])
+def qa_checklist_toggle():
+    err = _qa_require_auth()
+    if err:
+        return err
+    d = request.get_json(silent=True) or {}
+    item = qa_store.toggle_checklist(d.get("category", ""), d.get("item", ""))
+    if item is None:
+        return jsonify({"error": "unknown checklist item"}), 404
+    return jsonify(item)
+
+
+@app.route("/api/qa/checklist/note", methods=["POST"])
+def qa_checklist_note():
+    err = _qa_require_auth()
+    if err:
+        return err
+    d = request.get_json(silent=True) or {}
+    item = qa_store.set_checklist_note(d.get("category", ""), d.get("item", ""), d.get("note", ""))
+    if item is None:
+        return jsonify({"error": "unknown checklist item"}), 404
+    return jsonify(item)
+
+
+@app.route("/api/qa/privacy-check", methods=["POST"])
+def qa_privacy_check():
+    err = _qa_require_auth()
+    if err:
+        return err
+    d = request.get_json(silent=True) or {}
+    status = d.get("status", "NOT TESTED")
+    if status not in ("PASS", "FAIL", "NOT TESTED"):
+        return jsonify({"error": "invalid status"}), 400
+    item = qa_store.set_privacy_check(d.get("item", ""), status, d.get("note", ""))
+    if item is None:
+        return jsonify({"error": "unknown privacy check"}), 404
+    return jsonify(item)
+
+
+@app.route("/api/qa/resource-test", methods=["POST"])
+def qa_resource_test():
+    err = _qa_require_auth()
+    if err:
+        return err
+    d = request.get_json(silent=True) or {}
+    return jsonify(qa_store.add_resource_test(d))
+
+
+@app.route("/api/qa/simulator-log", methods=["POST"])
+def qa_simulator_log():
+    err = _qa_require_auth()
+    if err:
+        return err
+    d = request.get_json(silent=True) or {}
+    return jsonify(qa_store.log_simulator_session(d))
+
+
+@app.route("/api/qa/bug", methods=["POST"])
+def qa_bug_create():
+    err = _qa_require_auth()
+    if err:
+        return err
+    d = request.get_json(silent=True) or {}
+    if not (d.get("title") or "").strip():
+        return jsonify({"error": "title required"}), 400
+    return jsonify(qa_store.add_bug(d))
+
+
+@app.route("/api/qa/bug/<bug_id>", methods=["POST"])
+def qa_bug_update(bug_id):
+    err = _qa_require_auth()
+    if err:
+        return err
+    d = request.get_json(silent=True) or {}
+    updated = qa_store.update_bug(bug_id, d)
+    if updated is None:
+        return jsonify({"error": "bug not found"}), 404
+    return jsonify(updated)
+
+
+@app.route("/api/qa/bug/<bug_id>/delete", methods=["POST"])
+def qa_bug_delete(bug_id):
+    err = _qa_require_auth()
+    if err:
+        return err
+    if not qa_store.delete_bug(bug_id):
+        return jsonify({"error": "bug not found"}), 404
+    return jsonify({"ok": True})
+
+
+@app.route("/api/qa/improvement", methods=["POST"])
+def qa_improvement_create():
+    err = _qa_require_auth()
+    if err:
+        return err
+    d = request.get_json(silent=True) or {}
+    if not (d.get("title") or "").strip():
+        return jsonify({"error": "title required"}), 400
+    return jsonify(qa_store.add_improvement(d))
+
+
+@app.route("/api/qa/improvement/<item_id>", methods=["POST"])
+def qa_improvement_update(item_id):
+    err = _qa_require_auth()
+    if err:
+        return err
+    d = request.get_json(silent=True) or {}
+    updated = qa_store.update_improvement(item_id, d)
+    if updated is None:
+        return jsonify({"error": "improvement not found"}), 404
+    return jsonify(updated)
+
+
+@app.route("/api/qa/improvement/<item_id>/delete", methods=["POST"])
+def qa_improvement_delete(item_id):
+    err = _qa_require_auth()
+    if err:
+        return err
+    if not qa_store.delete_improvement(item_id):
+        return jsonify({"error": "improvement not found"}), 404
+    return jsonify({"ok": True})
+
+
+@app.route("/api/qa/gate")
+def qa_gate():
+    err = _qa_require_auth()
+    if err:
+        return err
+    return jsonify(qa_store.compute_gate())
+
+
+@app.route("/api/qa/score")
+def qa_score():
+    err = _qa_require_auth()
+    if err:
+        return err
+    return jsonify(qa_store.readiness_score())
+
+
+@app.route("/api/qa/version", methods=["POST"])
+def qa_version():
+    err = _qa_require_auth()
+    if err:
+        return err
+    d = request.get_json(silent=True) or {}
+    v = (d.get("version") or "").strip()
+    if not v:
+        return jsonify({"error": "version required"}), 400
+    qa_store.set_version(v)
+    return jsonify({"ok": True, "version": v})
 
 
 @app.route("/app")
