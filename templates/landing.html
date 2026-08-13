@@ -22,13 +22,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <!-- Warm up the script CDNs immediately and start fetching the render-blocking
-     bundles in parallel, so the browser isn't discovering them one at a time.
-     Biggest perceived-speed win short of removing Babel entirely. -->
+     bundles in parallel, so the browser isn't discovering them one at a time. -->
 <link rel="preconnect" href="https://unpkg.com" crossorigin>
-<link rel="preconnect" href="https://cdn.tailwindcss.com">
-<link rel="preload" as="script" href="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous">
+<link rel="preload" as="script" href="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" integrity="sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1" crossorigin="anonymous">
 
-<script src="https://cdn.tailwindcss.com"></script>
+<!-- Compiled once at build time (see static/tailwind.input.css + the
+     project's `npx @tailwindcss/cli` step) instead of the cdn.tailwindcss.com
+     script this used to load — that script compiles Tailwind FROM SCRATCH
+     in every single visitor's browser on every page view; Tailwind's own
+     docs call it a dev-only convenience, not for production. A real
+     stylesheet is ~22KB and has zero runtime compile cost. -->
+<link rel="stylesheet" href="/static/tailwind.css">
+
 <!-- Production (minified) React — the dev builds were ~1.2 MB and shipped
      dev-mode warnings to every visitor. Minified is ~140 KB total. -->
 <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" integrity="sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z" crossorigin="anonymous"></script>
@@ -39,17 +44,6 @@
   // usual `window.Motion = window.FramerMotion` shim OVERWRITES it with
   // undefined on this version, so only fall back if Motion is missing.
   window.Motion = window.Motion || window.FramerMotion;
-</script>
-
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        fontFamily: { heading: ["'Instrument Serif'","serif"], body: ["'Barlow'","sans-serif"] },
-        borderRadius: { DEFAULT: "9999px" }
-      }
-    }
-  };
   // Framer Motion emits benign list-key warnings for the per-word spans in
   // BlurText; filter just those so real errors stay visible.
   (function(){ var e=console.error; console.error=function(){
@@ -151,10 +145,13 @@
 
 <script>
   // Background footage. Defined BEFORE the components so they can read it at
-  // render time. Swap for self-hosted files before launch — these point at a
-  // third-party CDN bucket that could disappear or rate-limit without notice.
-  window.SH_HERO_VIDEO = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4";
-  window.SH_CAPS_VIDEO = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_094631_d30ab262-45ee-4b7d-99f3-5d5848c8ef13.mp4";
+  // render time. Self-hosted (static/video/) instead of the third-party
+  // CDN bucket this used to point at — that both removes the "could
+  // disappear or rate-limit without notice" risk AND fixes the caps video,
+  // which was a 20.7MB near-square source; re-encoded at a real bitrate cap
+  // (2 Mbps, AVAssetWriter) it's 3.0MB with no visible quality loss.
+  window.SH_HERO_VIDEO = "/static/video/hero.mp4";
+  window.SH_CAPS_VIDEO = "/static/video/caps.mp4";
 
   /* The team. Bios are written from the roles the founders gave and from
      SilentHelp's actual work — no invented schools or past employers, since

@@ -13,3 +13,4 @@ nohup.out
 audit.jsonl
 .DS_Store
 **/.DS_Store
+node_modules/

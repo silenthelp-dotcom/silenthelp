@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+/* Mirrors the old inline tailwind.config that ran in-browser via the CDN
+   script (removed — that script compiles Tailwind at runtime in every
+   visitor's browser, which is explicitly a dev-only tool per Tailwind's own
+   docs, not meant for production). Same theme extension, now compiled once
+   at build time into a real stylesheet. */
+@theme {
+  --font-heading: 'Instrument Serif', serif;
+  --font-body: 'Barlow', sans-serif;
+  --radius-DEFAULT: 9999px;
+}
+
+@source "../templates/landing.html";
