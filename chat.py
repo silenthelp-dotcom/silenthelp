@@ -51,14 +51,13 @@ def reply(messages: List[Dict[str, str]]) -> str:
     model is unavailable (key unset / throttled) — the chat never hard-fails.
     """
     try:
-        client = detection._make_client()
-        resp = client.chat.completions.create(
-            model=detection.MODEL,
+        # _complete() retries transient errors and fails over to the backup
+        # provider, unlike a raw _make_client() call against the primary only.
+        text = detection._complete(
+            [{"role": "system", "content": CHAT_SYSTEM_PROMPT}, *messages],
             temperature=0.7,
             max_tokens=220,
-            messages=[{"role": "system", "content": CHAT_SYSTEM_PROMPT}, *messages],
-        )
-        text = (resp.choices[0].message.content or "").strip()
+        ).strip()
         return text or _fallback(messages)
     except Exception:
         return _fallback(messages)

@@ -103,14 +103,16 @@ def coach(messages: List[Dict[str, str]]) -> Dict[str, Any]:
         convo.append({"role": "user" if m.get("role") == "friend" else "assistant",
                       "content": f"[{who}] {m.get('content', '')}"})
     try:
-        client = detection._make_client()
-        resp = client.chat.completions.create(
-            model=detection.MODEL,
+        # _complete() retries transient errors and fails over to the backup
+        # provider — _make_client() (the old path here) only ever tried the
+        # primary once, so a single rate-limit or timeout on Groq silently
+        # dropped straight to the generic fallback below, even for an active
+        # escalate-worthy message. This is the fix for that.
+        raw = detection._complete(
+            [{"role": "system", "content": HELPER_SYSTEM_PROMPT}, *convo],
             temperature=0.6,
             max_tokens=320,
-            messages=[{"role": "system", "content": HELPER_SYSTEM_PROMPT}, *convo],
-        )
-        raw = (resp.choices[0].message.content or "").strip()
+        ).strip()
         parsed = _parse(raw)
         if parsed:
             return parsed
