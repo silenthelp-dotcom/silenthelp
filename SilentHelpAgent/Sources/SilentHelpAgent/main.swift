@@ -366,8 +366,12 @@ final class Popup {
         let innerW = w - pad * 2
         let btnH: CGFloat = 30
 
-        let accent = crisis ? NSColor(calibratedRed: 1, green: 0.33, blue: 0.44, alpha: 1)
-                            : NSColor(calibratedRed: 0.18, green: 0.89, blue: 0.69, alpha: 1)
+        // Same palette as the web app's popup: white headline text, amber
+        // reserved for the crisis moment (matches its "You're not alone —
+        // 988" line), a cooler off-white for the gentle case. No red/green —
+        // those never appeared anywhere else in the product's language.
+        let accent = crisis ? NSColor(calibratedRed: 1, green: 0.843, blue: 0.6, alpha: 1)   // #ffd79a
+                            : NSColor(calibratedRed: 0.82, green: 0.84, blue: 0.87, alpha: 1)
 
         // Build labels first and measure them so the window is sized to fit.
         let head = NSTextField(wrappingLabelWithString: title)
@@ -403,16 +407,44 @@ final class Popup {
         talk.bezelStyle = .rounded
         talk.frame = NSRect(x: pad, y: pad + btnH + 8, width: innerW, height: btnH)
         talk.keyEquivalent = "\r"
+        // The web app's primary action is a solid white pill on the dark
+        // ground — .rounded's default is grey/system-tinted, so it read as a
+        // stock alert button rather than this product's own CTA. Keeping
+        // the native bezel (still reads as trusted OS chrome) but forcing
+        // its tint to the same white makes the two surfaces feel related.
+        if let cell = talk.cell as? NSButtonCell {
+            cell.backgroundColor = .white
+        }
+        talk.contentTintColor = .black
 
         body.frame = NSRect(x: pad, y: pad + btnH + 8 + btnH + 16, width: innerW, height: bH)
         head.frame = NSRect(x: pad, y: pad + btnH + 8 + btnH + 16 + bH + 12, width: innerW, height: hH)
 
         let content = NSView(frame: NSRect(x: 0, y: 0, width: w, height: total))
         content.wantsLayer = true
-        content.layer?.backgroundColor = NSColor(calibratedRed: 0.05, green: 0.07, blue: 0.08, alpha: 1).cgColor
+        // Same near-black ground as the web app (#050608), with a faint warm
+        // radial glow standing in for the hero orb — a full video would fight
+        // this notification's whole point of staying quiet in the corner
+        // while you work, but flat black read as more austere than the rest
+        // of the product. This gives it the same "lit from within" feel at a
+        // glance, not a video.
+        let ground = NSColor(calibratedRed: 0.02, green: 0.024, blue: 0.031, alpha: 1)
+        content.layer?.backgroundColor = ground.cgColor
         content.layer?.cornerRadius = 16
         content.layer?.borderWidth = 1
-        content.layer?.borderColor = NSColor(white: 1, alpha: 0.08).cgColor
+        content.layer?.borderColor = NSColor(white: 1, alpha: 0.14).cgColor
+        content.layer?.masksToBounds = true
+
+        let glow = CAGradientLayer()
+        glow.type = .radial
+        let glowColor = crisis ? NSColor(calibratedRed: 0.79, green: 0.66, blue: 0.42, alpha: 0.16)
+                               : NSColor(calibratedRed: 0.56, green: 0.6, blue: 0.65, alpha: 0.12)
+        glow.colors = [glowColor.cgColor, ground.withAlphaComponent(0).cgColor]
+        glow.frame = CGRect(x: 0, y: 0, width: w, height: total)
+        glow.startPoint = CGPoint(x: 0.28, y: 0.85)
+        glow.endPoint = CGPoint(x: 0.9, y: 0.05)
+        content.layer?.addSublayer(glow)
+
         content.addSubview(head); content.addSubview(body)
         content.addSubview(talk); content.addSubview(dismiss)
         content.addSubview(snooze1); content.addSubview(snooze2)
