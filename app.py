@@ -204,6 +204,15 @@ def _bind_user_store():
     if request.path.startswith("/api/hq"):
         return None
 
+    # QA console (internal MVP-readiness dashboard) is likewise shared,
+    # non-personal data — open, no login. On localhost this fell through to
+    # _is_local_request()'s owner-account bypass above and worked fine, which
+    # is exactly why it looked broken only in production: no such bypass
+    # exists for a real remote visitor, so every /api/qa/* call 401'd before
+    # ever reaching qa_console()'s own (already-removed) auth check.
+    if request.path.startswith("/api/qa"):
+        return None
+
     # Anonymous + remote: only public routes; personal APIs require sign-in.
     if request.path.startswith("/api/") and request.path not in _PUBLIC_PATHS:
         return jsonify({"error": "auth_required"}), 401
