@@ -23,7 +23,6 @@ const Q = {
 
   async load() {
     const res = await fetch("/api/qa/state");
-    if (res.status === 401) { location.href = "/careers"; return; }
     this.state = await res.json();
   },
 
@@ -32,7 +31,6 @@ const Q = {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body || {}),
     });
-    if (res.status === 401) { location.href = "/careers"; return null; }
     return res.json();
   },
 

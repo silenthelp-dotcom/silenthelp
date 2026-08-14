@@ -921,16 +921,13 @@ def hq_plan():
 
 
 # ---------------------------------------------------------------------------
-# SilentHelp QA — MVP Readiness & AI Testing Console (internal, HQ-gated)
+# SilentHelp QA — MVP Readiness & AI Testing Console
 # ---------------------------------------------------------------------------
-# Everything under /qa requires an HQ teammate session (same login as
-# careers/team admin) — this is internal test/bug data, never reachable by a
-# student account. See qa_store.py for the storage layer and scoring rules.
+# Open — no HQ login required. See qa_store.py for the storage layer and
+# scoring rules.
 
 def _qa_require_auth():
-    """None if authorized; else a (response, status) tuple to return."""
-    if not _hq_account():
-        return jsonify({"error": "sign in to SilentHelp HQ first"}), 401
+    """No-op: /qa is intentionally open, not gated behind HQ login."""
     return None
 
 
@@ -969,8 +966,6 @@ def _run_live_classification(message: str) -> Dict[str, Any]:
 
 @app.route("/qa")
 def qa_console():
-    if not _hq_account():
-        return redirect("/careers")
     return render_template("qa.html")
 
 
