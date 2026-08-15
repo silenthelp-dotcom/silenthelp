@@ -103,22 +103,23 @@ def coach(messages: List[Dict[str, str]]) -> Dict[str, Any]:
         convo.append({"role": "user" if m.get("role") == "friend" else "assistant",
                       "content": f"[{who}] {m.get('content', '')}"})
     try:
-        # _complete() retries transient errors and fails over to the backup
-        # provider — _make_client() (the old path here) only ever tried the
-        # primary once, so a single rate-limit or timeout on Groq silently
-        # dropped straight to the generic fallback below, even for an active
-        # escalate-worthy message. This is the fix for that.
+        # Runs on the SECONDARY (NIM) provider, not Groq — see chat.py's reply()
+        # for why: Help a Friend is a real feature but not the safety-critical
+        # classification path, and sharing Groq's quota with detection caused
+        # a real production bug (traced this session) where chat/helper
+        # traffic ate into the same fallback quota detection depends on,
+        # leaving non-crisis messages intermittently failing to pop up at all.
+        # secondary_complete() retries and falls over the same way _complete()
+        # does, with Groq as a last resort if the secondary is down.
         #
-        # max_tokens=320 was measured truncating the JSON on exactly the
-        # highest-stakes case: an "escalate" verdict has to fill reply +
-        # guidance + escalation_reason (three free-text fields), which is
+        # max_tokens=500 (not the original 320): an "escalate" verdict has to
+        # fill reply + guidance + escalation_reason (three free-text fields),
         # reliably longer than a "none"/"watch" completion that can leave
         # escalation_reason empty. A truncated completion breaks mid-string,
         # json.loads() in _parse() throws, and coach() silently drops to the
-        # generic fallback below — so the exact case that matters most to
-        # get right was the one most likely to be truncated into failure.
-        # Raised to give escalate-length output room to finish.
-        raw = detection._complete(
+        # generic fallback below — so the exact case that matters most to get
+        # right was the one most likely to be truncated into failure.
+        raw = detection.secondary_complete(
             [{"role": "system", "content": HELPER_SYSTEM_PROMPT}, *convo],
             temperature=0.6,
             max_tokens=500,

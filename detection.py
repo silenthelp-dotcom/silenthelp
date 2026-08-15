@@ -140,9 +140,66 @@ def _client_for(p: "dict") -> OpenAI:
 
 
 def _make_client() -> OpenAI:
-    """The PRIMARY client (Groq). Kept for chat.py / helper.py which use one
-    provider. Detection itself uses _complete() so it can fail over."""
+    """The PRIMARY client (Groq). Detection itself uses _complete() so it can
+    fail over across providers."""
     return _client_for(_providers()[0])
+
+
+# ---------------------------------------------------------------------------
+# Secondary provider — chat.py (Coping Chat) and helper.py (Help a Friend)
+# deliberately run on THIS, not Groq. Both are real conversational features
+# but neither is the safety-critical classification path (that's
+# classify_message()/_complete() above, which stays Groq-primary with its
+# own independent failover). Splitting them onto a separate provider means a
+# burst of chat traffic can never eat into Groq's quota and start starving
+# real crisis classification — which is exactly the failure mode that
+# produced the "only crisis phrases pop up, nothing softer does" bug this
+# session traced back to a shared, exhausted fallback quota. Reuses the same
+# FALLBACK_* env vars as detection's own fallback (one NIM key configured
+# once), but as its OWN primary — not a failover behind Groq.
+# ---------------------------------------------------------------------------
+
+def _secondary_provider() -> "dict | None":
+    fb_key = os.environ.get("FALLBACK_API_KEY")
+    if not fb_key:
+        return None
+    return {
+        "name": "secondary", "key": fb_key,
+        "base_url": os.environ.get("FALLBACK_BASE_URL", "https://integrate.api.nvidia.com/v1"),
+        "model": os.environ.get("FALLBACK_MODEL", "meta/llama-3.1-8b-instruct"),
+        "timeout": 20.0,
+    }
+
+
+def secondary_complete(messages: "list[dict]", *, temperature: float, max_tokens: "int | None" = None) -> str:
+    """Chat/coaching completion on the secondary (NIM) provider, with the
+    same bounded retry _complete() uses, then Groq as a last-resort fallback
+    if the secondary is down — so a NIM outage degrades chat quality/latency
+    rather than going fully silent, without normally touching Groq's quota
+    at all."""
+    providers = []
+    sec = _secondary_provider()
+    if sec:
+        providers.append(sec)
+    providers.extend(_providers())  # Groq (+ its own fallback) as last resort
+
+    last_error: Exception = RuntimeError("no providers")
+    for p in providers:
+        client = _client_for(p)
+        for attempt in range(1, MAX_RETRIES + 1):
+            try:
+                kw = {"model": p["model"], "temperature": temperature, "messages": messages}
+                if max_tokens:
+                    kw["max_tokens"] = max_tokens
+                resp = client.chat.completions.create(**kw)
+                return resp.choices[0].message.content or ""
+            except Exception as exc:  # noqa: BLE001
+                last_error = exc
+                if _is_transient(exc) and attempt < MAX_RETRIES:
+                    time.sleep(_retry_wait_from(exc, attempt))
+                    continue
+                break
+    raise last_error
 
 
 def _complete(messages: "list[dict]", *, temperature: float, max_tokens: "int | None" = None) -> str:

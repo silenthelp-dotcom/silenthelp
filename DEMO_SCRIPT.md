@@ -1,9 +1,11 @@
 # SilentHelp — Demo Video Production Script
 
-A complete shot list, narration, and record path for a ~90-second cinematic
-product demo. Shoot each scene by screen-recording the live app at
-`https://silenthelp.onrender.com` (or the self-running page at `/demo`, which
-drives the flows automatically — see the end of this file).
+A complete shot list, narration, and record path for a ~100-second cinematic
+product demo (add the testing-console beat below for an investor/judge cut;
+cut it for a student/parent cut — see Scene 6's note). Shoot each scene by
+screen-recording the live app at `https://silenthelp.onrender.com` (or the
+self-running page at `/demo`, which drives the flows automatically — see the
+end of this file).
 
 **Format:** 1920×1080, 30fps. Record at 2× device pixel ratio if possible for
 crisp text. Dark UI, so keep room lights low when filming a real Mac.
@@ -163,7 +165,35 @@ line — see the open question in the project. As written, this reflects the
 
 ---
 
-## SCENE 6 · 1:18–1:28 · Landing + close
+## SCENE 6 · 1:18–1:32 · The testing console — how we know it's safe
+
+**Shot:** Open `/qa` (MVP Readiness console). Hold on the readiness ring and
+status chip for a beat, then cut to the AI Detection Lab: type a real phrase
+into "Enter text to test SilentHelp," hit **Run Test**, and let the result
+render live — Concern Level, Context Classification, then the AI
+Classification / Safety Rules / Final Action split. Quick cut to the Context
+Lab pair ("I'm dying laughing" vs. "I'm dying and I don't know what to do")
+side by side. Close on the Launch Gate card at the bottom of the Launch
+Checklist page.
+
+**On-screen text:**
+> Every claim on this page is measured against the real pipeline. Not a mockup.
+
+**VO:** *"Before anyone sees a moment like this, we test for it — jokes,
+sarcasm, ambiguity, the cases that are easy to get wrong. Every result here
+comes from the live detector, not a script."*
+
+**Record path:** `/qa` directly — this is a real internal tool, not a demo
+page, so there's no scripted `?scene=` param. Sign in isn't required; run a
+suite ahead of time so the Overview isn't sitting at 0% on camera.
+
+*(This beat is aimed at investors, judges, and technical reviewers — cut it
+from a student- or parent-facing version of the video. It's proof of
+process, not something a student needs to see.)*
+
+---
+
+## SCENE 7 · 1:32–1:42 · Landing + close
 
 **Shot:** Cut to the landing page hero — the video orb, "See beneath the
 surface" in Instrument Serif. Slow push in. End on the badge logo, centered,
@@ -208,3 +238,5 @@ them"). If it's going anywhere public:
 - [ ] Menu-bar agent running if filming native popups
 - [ ] Screen recorder at 1920×1080, 30fps, no notifications/other apps visible
 - [ ] `/demo` page tested — see below
+- [ ] If shooting Scene 6: run a full suite on `/qa` beforehand so the
+      Overview readiness ring/status isn't sitting at 0% NOT READY on camera

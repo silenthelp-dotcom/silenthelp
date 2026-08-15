@@ -51,9 +51,14 @@ def reply(messages: List[Dict[str, str]]) -> str:
     model is unavailable (key unset / throttled) — the chat never hard-fails.
     """
     try:
-        # _complete() retries transient errors and fails over to the backup
-        # provider, unlike a raw _make_client() call against the primary only.
-        text = detection._complete(
+        # Runs on the SECONDARY (NIM) provider, not Groq — Coping Chat is a
+        # real feature but not the safety-critical classification path, and
+        # sharing Groq's quota with detection is what caused a real bug
+        # (chat/helper traffic exhausting the shared fallback, leaving
+        # non-crisis detection intermittently failing safe). Retries and
+        # falls over the same way _complete() does; Groq is still a
+        # last-resort if the secondary provider is down.
+        text = detection.secondary_complete(
             [{"role": "system", "content": CHAT_SYSTEM_PROMPT}, *messages],
             temperature=0.7,
             max_tokens=220,
