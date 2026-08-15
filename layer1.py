@@ -81,18 +81,29 @@ def _alt(words: List[str]) -> str:
 # the word "today" at crisis level.
 # ---------------------------------------------------------------------------
 _SIGNAL_GROUPS = frozenset({
-    "states", "self_harm_actions", "reported_crisis_actions", "threat_actions",
+    "states", "self_harm_actions", "reported_crisis_actions",
 })
 _GLUE_GROUPS = frozenset({
     "self_starters", "intent_starters", "modifiers", "intensifiers",
     "contexts", "time", "time_or_immediacy", "other_speakers",
     "person_targets", "violent_actions", "reason_context",
     "reason_context_third", "third_party_reporters", "threat_subjects",
+    "threat_actions",
 })
 
 # "violent_actions" is glue on purpose: "kill" / "hurt" / "end" alone are far
 # too common ("kill the lights", "that hurt", "end of class"). They need a
 # target, which the action+target pairing below supplies.
+
+# "threat_actions" is glue for the same reason, moved here after a real bug:
+# it stores phrases like "kill me" (not bare "kill"), and as a _SIGNAL_GROUPS
+# root, _inflect() derives "killing me" from it — which then matches ANY
+# sentence containing that fragment with zero threat-context requirement,
+# firing tier-3 crisis on "this week is killing me" / "this homework is
+# killing me" (ordinary idioms). "kill me" alone was never meant to stand
+# alone; l3_threat_to_user's template already requires a threat SUBJECT
+# ("he's going to kill me", "my ex threatened to kill me") before it fires,
+# same design as violent_actions + person_targets below.
 
 _MIN_ROOT_LEN = 4  # below this a "root" is a fragment, not a phrase
 _SHORT_ROOT_ALLOW = frozenset({"kms"})  # unambiguous despite being short
