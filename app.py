@@ -98,6 +98,19 @@ app.config.update(
     SESSION_COOKIE_SAMESITE="Lax",
     SESSION_COOKIE_SECURE=bool(os.environ.get("RENDER") or os.environ.get("DATABASE_URL")),
     PERMANENT_SESSION_LIFETIME=timedelta(days=30),
+    # Flask 2.2+ changed the static-file default to Cache-Control: no-cache
+    # (forces a revalidation round-trip on every request, even for an
+    # unchanging video file) instead of the old long-cache default. Measured
+    # directly against production: the landing page's hero video was being
+    # re-fetched multiple times per load partly because of this — every
+    # range/metadata probe the browser made had to revalidate with the
+    # server first. One hour is a reasonable middle ground for /static
+    # (videos, css, fonts) — long enough to avoid needless revalidation
+    # within a session, short enough that a redeployed asset isn't stuck
+    # stale for long; the file's own etag/last-modified still let a client
+    # skip a full re-download once the hour is up, it just won't need to
+    # ask the server at all before then.
+    SEND_FILE_MAX_AGE_DEFAULT=3600,
 )
 
 # Behind Cloudflare Tunnel: trust the X-Forwarded-* headers so Flask builds
