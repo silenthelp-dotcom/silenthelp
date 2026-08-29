@@ -74,6 +74,7 @@ import hq_store
 import layer1
 import qa_store
 import store
+import survey_store
 
 app = Flask(__name__)
 # Session-signing key. NEVER ship the old hardcoded default — a key that's
@@ -182,6 +183,7 @@ _PUBLIC_PATHS = {
     "/api/me", "/api/signup", "/api/login", "/api/logout",
     "/api/password/forgot", "/api/password/reset",
     "/api/scan", "/classify", "/api/behavioral", "/api/monitor", "/api/helper",
+    "/api/survey/submit",
 }
 
 
@@ -484,6 +486,25 @@ def privacy_page():
 @app.route("/terms")
 def terms_page():
     return render_template("terms.html")
+
+
+@app.route("/survey")
+def survey_page():
+    return render_template("survey.html", questions=survey_store.QUESTIONS)
+
+
+@app.route("/api/survey/submit", methods=["POST"])
+def api_survey_submit():
+    """Anonymous — no uid/session is read or written here on purpose. The
+    survey's entire point is that a response can't be traced back to the
+    person who gave it."""
+    data = request.get_json(silent=True) or {}
+    answers = data.get("answers")
+    would_use = data.get("would_use")
+    ok = survey_store.submit(answers, would_use)
+    if not ok:
+        return jsonify({"error": "invalid_submission"}), 400
+    return jsonify({"ok": True})
 
 
 def _common():

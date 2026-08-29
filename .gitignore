@@ -1,6 +1,7 @@
 .env
 silenthelp_data.json
 silenthelp_hq.json
+silenthelp_survey.json
 __pycache__/
 *.pyc
 *.tmp

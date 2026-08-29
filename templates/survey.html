@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SilentHelp — Survey</title>
+<meta name="description" content="A short, anonymous survey from SilentHelp.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,500;1,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0a0d13;
+  --ink-raise:#10141c;
+  --ink-raise2:#161b25;
+  --hairline:rgba(255,255,255,.07);
+  --hairline-2:rgba(255,255,255,.12);
+  --t1:#e9edf5;
+  --t2:#a3adbf;
+  --t3:#69738a;
+  --signal:#5aa2ff;
+  --signal-dim:rgba(90,162,255,.14);
+  --r-s:6px; --r-m:10px; --r-l:16px;
+  --ease:cubic-bezier(.23,1,.32,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--ink);color:var(--t1);
+  font:400 15px/1.55 "Inter",-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;
+}
+a{color:inherit}
+.serif{font-family:"Playfair Display",serif;font-style:italic;font-weight:500;letter-spacing:-.01em}
+.wrap{width:100%;max-width:620px;padding:56px 24px 100px;}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14.5px;margin-bottom:48px;justify-content:center}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--signal);box-shadow:0 0 12px var(--signal)}
+.brand span{color:var(--t2);font-weight:500}
+
+.progress{display:flex;gap:6px;margin-bottom:32px}
+.progress i{flex:1;height:3px;border-radius:99px;background:var(--hairline-2);transition:background .2s var(--ease)}
+.progress i.on{background:var(--signal)}
+
+h1{font-size:30px;line-height:1.25;margin-bottom:10px;text-wrap:balance}
+.sub{color:var(--t2);font-size:14px;margin-bottom:8px;line-height:1.6}
+.anon-note{
+  display:flex;align-items:center;gap:8px;
+  font-size:12.5px;color:var(--t3);
+  margin-bottom:36px;padding:10px 14px;
+  background:var(--ink-raise);border-radius:var(--r-s);
+  border:1px solid var(--hairline);
+}
+.anon-note svg{flex-shrink:0}
+
+.q-block{margin-bottom:28px}
+.q-num{font-size:11.5px;font-weight:600;color:var(--signal);letter-spacing:.06em;margin-bottom:6px}
+.q-text{font-size:16.5px;font-weight:500;color:var(--t1);margin-bottom:12px;line-height:1.45}
+textarea, input[type=text]{
+  width:100%;font:inherit;color:var(--t1);
+  background:var(--ink-raise);border:1px solid var(--hairline);
+  border-radius:var(--r-s);padding:12px 14px;outline:none;
+  transition:border-color .15s var(--ease);
+  resize:vertical;min-height:56px;
+}
+textarea:focus, input[type=text]:focus{border-color:var(--signal)}
+
+.choices{display:flex;gap:10px;flex-wrap:wrap}
+.choice{
+  padding:10px 18px;border-radius:99px;font-size:13.5px;font-weight:500;
+  background:var(--ink-raise);border:1px solid var(--hairline);color:var(--t2);
+  cursor:pointer;transition:all .15s var(--ease);
+}
+.choice:hover{border-color:var(--hairline-2);color:var(--t1)}
+.choice.sel{background:var(--signal-dim);border-color:var(--signal);color:var(--t1)}
+
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:20px;gap:16px}
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:14px;font-weight:600;font-family:inherit;
+  padding:12px 24px;border-radius:var(--r-s);border:none;
+  background:var(--signal);color:#08101e;cursor:pointer;
+  transition:transform .12s var(--ease),filter .15s;
+}
+.btn:hover{filter:brightness(1.08)}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:transparent;color:var(--t2);box-shadow:inset 0 0 0 1px var(--hairline-2)}
+.btn.ghost:hover{color:var(--t1)}
+.btn:disabled{opacity:.4;cursor:not-allowed;filter:none}
+
+/* page 2 */
+.video-frame{
+  width:100%;border-radius:var(--r-l);overflow:hidden;
+  background:#000;border:1px solid var(--hairline);margin-bottom:28px;
+}
+.video-frame video{width:100%;display:block}
+.wu-choices{display:flex;flex-direction:column;gap:10px;margin-top:18px;margin-bottom:28px}
+.wu-choice{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 18px;border-radius:var(--r-m);
+  background:var(--ink-raise);border:1px solid var(--hairline);
+  cursor:pointer;transition:all .15s var(--ease);
+}
+.wu-choice:hover{border-color:var(--hairline-2)}
+.wu-choice.sel{background:var(--signal-dim);border-color:var(--signal)}
+.wu-choice .radio{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--hairline-2);flex-shrink:0;position:relative}
+.wu-choice.sel .radio{border-color:var(--signal)}
+.wu-choice.sel .radio::after{content:'';position:absolute;inset:3px;border-radius:50%;background:var(--signal)}
+.wu-choice .label{font-size:14.5px;font-weight:500}
+
+.thanks{text-align:center;padding:80px 0}
+.thanks h1{font-size:32px;margin-bottom:14px}
+.thanks p{color:var(--t2);font-size:14.5px;max-width:400px;margin:0 auto}
+
+#screen-questions, #screen-video, #screen-done{display:none}
+#screen-questions.on, #screen-video.on, #screen-done.on{display:block}
+
+@media (max-width: 480px){
+  .wrap{padding:40px 18px 80px}
+  h1{font-size:25px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><span class="dot"></span>SILENTHELP <span>· survey</span></div>
+
+  <!-- PAGE 1: QUESTIONS -->
+  <div id="screen-questions" class="on">
+    <div class="progress" id="progress"></div>
+    <h1 class="serif">A few honest questions.</h1>
+    <div class="sub">Ten quick ones. Answer however feels true — there's no wrong answer.</div>
+    <div class="anon-note">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 1.5l5.5 2.2v3.8c0 4-2.4 6.9-5.5 7.9-3.1-1-5.5-3.9-5.5-7.9V3.7L8 1.5z" stroke="currentColor" stroke-width="1.2"/></svg>
+      This survey is anonymous. We don't collect your name, email, or IP with your answers.
+    </div>
+
+    <form id="surveyForm"></form>
+
+    <div class="nav-row">
+      <button class="btn ghost" id="btnBack" type="button" onclick="prevQ()" style="visibility:hidden">Back</button>
+      <button class="btn" id="btnNext" type="button" onclick="nextQ()">Next</button>
+    </div>
+  </div>
+
+  <!-- PAGE 2: VIDEO + WOULD YOU USE -->
+  <div id="screen-video">
+    <h1 class="serif">This is SilentHelp.</h1>
+    <div class="sub" style="margin-bottom:22px;">A quick look at what it does before you finish up.</div>
+    <div class="video-frame">
+      <video src="{{ url_for('static', filename='video/hero.mp4') }}" controls playsinline></video>
+    </div>
+
+    <div class="q-text" style="font-size:18px;">Would you use SilentHelp?</div>
+    <div class="wu-choices" id="wuChoices">
+      <div class="wu-choice" data-v="yes"><div class="radio"></div><div class="label">Yes, I'd use this</div></div>
+      <div class="wu-choice" data-v="maybe"><div class="radio"></div><div class="label">Maybe — depends</div></div>
+      <div class="wu-choice" data-v="no"><div class="radio"></div><div class="label">No, not for me</div></div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn ghost" type="button" onclick="backToQuestions()">Back</button>
+      <button class="btn" id="btnSubmit" type="button" onclick="submitSurvey()" disabled>Submit</button>
+    </div>
+  </div>
+
+  <!-- DONE -->
+  <div id="screen-done">
+    <div class="thanks">
+      <h1 class="serif">Thank you.</h1>
+      <p>Your answers were recorded anonymously. That's genuinely helpful — appreciate you taking the time.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = {{ questions | tojson }};
+let current = 0;
+const answers = new Array(QUESTIONS.length).fill('');
+let wouldUse = '';
+
+const CHOICE_TYPES = {
+  1: ['Relief', "Panic", "Don't care"],
+  4: ['Mildly annoyed', 'A bit irritated', 'Pretty frustrated', 'Irrationally furious'],
+  5: ['Yes, often', 'Sometimes', 'Rarely', "Never noticed"],
+  7: ['Calm', 'Busy', 'Chaotic'],
+  9: ["Tired — just tired", "Honestly, to escape the day", "Bit of both"],
+};
+
+function renderProgress(){
+  document.getElementById('progress').innerHTML = QUESTIONS.map((_,i) =>
+    `<i class="${i <= current ? 'on' : ''}"></i>`).join('');
+}
+
+function renderQuestion(){
+  renderProgress();
+  const form = document.getElementById('surveyForm');
+  const choices = CHOICE_TYPES[current];
+  form.innerHTML = `<div class="q-block">
+    <div class="q-num">QUESTION ${current+1} OF ${QUESTIONS.length}</div>
+    <div class="q-text">${QUESTIONS[current]}</div>
+    ${choices
+      ? `<div class="choices">${choices.map(c => `<div class="choice${answers[current]===c?' sel':''}" data-c="${c}">${c}</div>`).join('')}</div>`
+      : `<textarea placeholder="Type your answer…">${answers[current] || ''}</textarea>`
+    }
+  </div>`;
+
+  if (choices){
+    form.querySelectorAll('.choice').forEach(el => el.addEventListener('click', () => {
+      answers[current] = el.dataset.c;
+      form.querySelectorAll('.choice').forEach(c => c.classList.remove('sel'));
+      el.classList.add('sel');
+      updateNextState();
+    }));
+  } else {
+    const ta = form.querySelector('textarea');
+    ta.addEventListener('input', () => { answers[current] = ta.value; updateNextState(); });
+  }
+
+  document.getElementById('btnBack').style.visibility = current === 0 ? 'hidden' : 'visible';
+  document.getElementById('btnNext').textContent = current === QUESTIONS.length - 1 ? 'Continue' : 'Next';
+  updateNextState();
+}
+
+function updateNextState(){
+  const has = (answers[current] || '').toString().trim().length > 0;
+  document.getElementById('btnNext').disabled = !has;
+}
+
+function nextQ(){
+  if (!(answers[current] || '').toString().trim()) return;
+  if (current < QUESTIONS.length - 1){
+    current++;
+    renderQuestion();
+  } else {
+    document.getElementById('screen-questions').classList.remove('on');
+    document.getElementById('screen-video').classList.add('on');
+  }
+}
+function prevQ(){
+  if (current > 0){ current--; renderQuestion(); }
+}
+function backToQuestions(){
+  document.getElementById('screen-video').classList.remove('on');
+  document.getElementById('screen-questions').classList.add('on');
+  current = QUESTIONS.length - 1;
+  renderQuestion();
+}
+
+document.getElementById('wuChoices').addEventListener('click', (e) => {
+  const el = e.target.closest('.wu-choice'); if (!el) return;
+  wouldUse = el.dataset.v;
+  document.querySelectorAll('.wu-choice').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('btnSubmit').disabled = false;
+});
+
+async function submitSurvey(){
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+  try {
+    const res = await fetch('/api/survey/submit', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ answers, would_use: wouldUse }),
+    });
+    if (!res.ok) throw new Error('submit failed');
+    document.getElementById('screen-video').classList.remove('on');
+    document.getElementById('screen-done').classList.add('on');
+  } catch (e) {
+    btn.disabled = false; btn.textContent = 'Submit';
+    alert("Something went wrong submitting — try again.");
+  }
+}
+
+renderQuestion();
+</script>
+</body>
+</html>
