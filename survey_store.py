@@ -59,19 +59,57 @@ def _use_db() -> bool:
 
 
 # QUESTIONS is the source of truth the frontend renders from and the only
-# place that needs editing to change the survey. answers submitted must
-# match this length/order; anything else is rejected server-side.
-QUESTIONS: List[str] = [
-    "When's the last time you sat somewhere for 10 minutes doing literally nothing?",
-    "If your phone died right now, what's the first thing you'd feel — relief, panic, or don't care?",
-    "How many tabs or apps do you have open right now, roughly?",
-    "You have an extra free hour today. Do you use it to rest, or to catch up on something?",
-    "On a scale of \"mildly annoyed\" to \"irrationally furious,\" how do you react when someone interrupts you mid-task?",
-    "Do you ever catch yourself holding your breath or clenching your jaw during the day?",
-    "When was the last time you actually laughed — not just smiled at a text?",
-    "If a friend described your week back to you, would it sound calm, busy, or chaotic?",
-    "How many times today have you thought about something other than what you're currently doing?",
-    "Be honest: are you sleeping because you're tired, or because you're trying to escape the day?",
+# place that needs editing to change the survey. Each entry is
+# (question_text, [option, ...]) — the frontend renders every question as
+# multiple-choice, matching CHOICE_TYPES that used to live only in the
+# template; keeping options here means the template has nothing to hardcode
+# and a new question is a one-line addition to this list.
+#
+# Framed as a casual "how's your week" check-in rather than a visible
+# screener — a question that announces what it's measuring ("are you
+# sleeping to escape the day?") gets a performed answer, not an honest one.
+# Every option still maps to a real stress/burnout signal underneath.
+QUESTIONS: List[Dict[str, Any]] = [
+    {
+        "text": "How does your phone battery usually look by 9pm?",
+        "options": ["Still mostly full", "Around half", "Nearly dead", "Honestly don't check"],
+    },
+    {
+        "text": "What's your browser tab situation right now, roughly?",
+        "options": ["Under 5", "5–15", "15–30", "Lost count a while ago"],
+    },
+    {
+        "text": "Last time someone asked \"how are you,\" what did you actually say?",
+        "options": ["The honest answer", "\"Good, you?\"", "Changed the subject", "Can't remember being asked"],
+    },
+    {
+        "text": "Which is closest to your actual bedtime lately?",
+        "options": ["Roughly on time", "An hour or so past", "I've stopped tracking it", "Depends heavily on the day"],
+    },
+    {
+        "text": "If today got cancelled and you had the whole day free, first instinct?",
+        "options": ["Sleep", "Catch up on stuff I'm behind on", "Do something fun", "Honestly, blank — no idea"],
+    },
+    {
+        "text": "How's your appetite been this week?",
+        "options": ["Normal", "Forgetting meals", "Eating more than usual", "Hasn't really crossed my mind"],
+    },
+    {
+        "text": "When something small goes wrong, what's closer to your reaction?",
+        "options": ["Shrug it off", "Mildly annoyed", "Way more bothered than it deserves", "Depends on the day"],
+    },
+    {
+        "text": "Be honest — how often do you reread the same line because you weren't actually absorbing it?",
+        "options": ["Rarely", "Sometimes", "Constantly", "Never noticed until now"],
+    },
+    {
+        "text": "Which one sounds most like your week?",
+        "options": ["Steady", "Busy but fine", "A lot — barely keeping up", "Kind of a blur"],
+    },
+    {
+        "text": "If a friend read your last few texts, what tone would they guess you're in?",
+        "options": ["Normal", "A little off", "Stressed", "Hard to tell honestly"],
+    },
 ]
 
 
