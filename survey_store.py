@@ -179,3 +179,52 @@ def count() -> int:
             except Exception:
                 pass
         return len(_file_load().get("responses", []))
+
+
+def all_responses() -> List[Dict[str, Any]]:
+    """Every response, newest first. Internal/admin use only — the route
+    calling this must gate access itself; this function has no notion of
+    who's allowed to see it."""
+    with _LOCK:
+        if _use_db():
+            try:
+                pool = _get_pool()
+                with pool.connection() as conn:
+                    rows = conn.execute(
+                        "SELECT id, answers, would_use, submitted_at FROM survey_responses "
+                        "ORDER BY submitted_at DESC"
+                    ).fetchall()
+                    out = []
+                    for r_id, r_answers, r_would_use, r_ts in rows:
+                        answers = json.loads(r_answers) if isinstance(r_answers, str) else r_answers
+                        out.append({"id": r_id, "answers": answers, "would_use": r_would_use,
+                                    "submitted_at": int(r_ts.timestamp() * 1000)})
+                    return out
+            except Exception:
+                pass
+        return sorted(_file_load().get("responses", []), key=lambda r: r["submitted_at"], reverse=True)
+
+
+def summary() -> Dict[str, Any]:
+    """Aggregate view for the admin results page: per-question option tallies
+    and the would_use breakdown, computed from all_responses() so the DB and
+    file backends share one code path."""
+    responses = all_responses()
+    n = len(responses)
+    per_question = []
+    for qi, q in enumerate(QUESTIONS):
+        tally = {opt: 0 for opt in q["options"]}
+        for r in responses:
+            ans = r["answers"][qi] if qi < len(r["answers"]) else None
+            if ans in tally:
+                tally[ans] += 1
+        per_question.append({"text": q["text"], "options": q["options"], "counts": tally})
+    would_use_tally = {"yes": 0, "maybe": 0, "no": 0}
+    for r in responses:
+        if r["would_use"] in would_use_tally:
+            would_use_tally[r["would_use"]] += 1
+    return {
+        "total": n,
+        "would_use": would_use_tally,
+        "questions": per_question,
+    }

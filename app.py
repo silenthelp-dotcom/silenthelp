@@ -507,6 +507,23 @@ def api_survey_submit():
     return jsonify({"ok": True})
 
 
+# Results are internal team data (even though individual answers are
+# anonymous, the aggregate is a company metric) — gated behind the same HQ
+# teammate login as the careers/HQ console, not open like /qa.
+@app.route("/survey-admin")
+def survey_admin_page():
+    if not _hq_account():
+        return redirect("/careers")
+    return render_template("survey_admin.html")
+
+
+@app.route("/api/survey/results")
+def api_survey_results():
+    if not _hq_account():
+        return jsonify({"error": "auth_required"}), 401
+    return jsonify(survey_store.summary())
+
+
 def _common():
     return {
         "model": detection.MODEL,
