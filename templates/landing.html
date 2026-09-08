@@ -565,7 +565,7 @@ function Hero() {
     }
   }), /*#__PURE__*/React.createElement("div", {
     className: "relative z-10 flex flex-col flex-1"
-  }, /*#__PURE__*/React.createElement(Navbar, null), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(window.SectionDock, null), /*#__PURE__*/React.createElement("div", {
     className: "flex-1 flex flex-col items-center justify-center text-center pt-24 px-4"
   }, /*#__PURE__*/React.createElement(motion.div, rise(0.4), /*#__PURE__*/React.createElement("div", {
     className: "liquid-glass rounded-full flex items-center gap-3 pr-3"
@@ -1074,6 +1074,213 @@ window.Science = Science;
 window.Privacy = Privacy;
 window.Pricing = Pricing;
 window.Footer = Footer;
+})();
+</script>
+
+<!-- ══ Dock — macOS-style magnifying section nav ══ -->
+<script>
+(function(){
+const { useRef, useState, useEffect, useCallback, createRef, Fragment } = React;
+const { motion, useMotionValue, useSpring, useTransform, AnimatePresence } = window.Motion;
+
+const SPRING = { stiffness: 400, damping: 25, mass: 0.4 };
+
+// One dock icon. Its width is driven by distance from the cursor through a
+// gaussian falloff, so hovering swells the item under the pointer and, more
+// gently, its neighbours. The animated width lives on an in-flow wrapper so
+// growth PUSHES siblings apart instead of overlapping them, while the icon
+// itself is absolutely positioned and bottom-anchored so it grows upward
+// off the dock floor rather than out of its centre.
+function DockIcon({ item, mouseX, magnification, distance, iconSize, borderRadius, onHover, iconRef }) {
+  const wrapperRef = useRef(null);
+
+  const distanceFromMouse = useTransform(mouseX, (val) => {
+    const el = wrapperRef.current;
+    if (!el) return distance * 100;   // offscreen cursor → no magnification
+    const rect = el.getBoundingClientRect();
+    return Math.abs(val - (rect.left + rect.width / 2));
+  });
+
+  const gaussian = (d) => (magnification - 1) * Math.exp(-(d * d) / (2 * distance * distance)) + 1;
+  const sizeRaw = useTransform(distanceFromMouse, (d) => iconSize * gaussian(d));
+  const width = useSpring(sizeRaw, SPRING);
+  const height = useSpring(sizeRaw, SPRING);
+
+  const Tag = item.href ? "a" : "button";
+
+  return React.createElement(motion.div, {
+    ref: wrapperRef,
+    className: "relative flex items-end justify-center",
+    style: { width, height: iconSize }
+  }, React.createElement(motion.div, {
+    ref: iconRef,
+    style: { width, height, bottom: 0 },
+    className: "absolute"
+  }, React.createElement(Tag, {
+    href: item.href,
+    onClick: item.onClick,
+    onMouseEnter: () => onHover(iconRef),
+    onMouseLeave: () => onHover(null),
+    "aria-label": item.label,
+    style: { borderRadius },
+    className: "flex h-full w-full items-center justify-center text-white/70 transition-colors duration-150 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30"
+  }, item.icon)));
+}
+
+// `tooltipPlacement` matters: the original component always drew the label
+// ABOVE the icon, which is right for a bottom dock but renders off the top of
+// the viewport when the dock is the page's top bar. "bottom" flips both the
+// offset and the little arrow.
+function Dock({ items, magnification = 1.8, distance = 120, iconSize = 40, gap = 4, borderRadius = 16, tooltipPlacement = "top", className = "" }) {
+  const mouseX = useMotionValue(Infinity);
+  const dockRef = useRef(null);
+  const iconRefs = useRef(items.map(() => createRef()));
+  const [hovered, setHovered] = useState(null);
+  const [tip, setTip] = useState({ x: 0, bottom: 0, top: 0 });
+
+  // The hovered icon is mid-spring, so its rect changes every frame. Track it
+  // on rAF while hovered rather than measuring once, or the tooltip lags
+  // behind the icon it is labelling.
+  useEffect(() => {
+    if (hovered === null) return;
+    let raf;
+    const update = () => {
+      const iconEl = iconRefs.current[hovered] && iconRefs.current[hovered].current;
+      const dockEl = dockRef.current;
+      if (iconEl && dockEl) {
+        const i = iconEl.getBoundingClientRect(), d = dockEl.getBoundingClientRect();
+        setTip({
+          x: i.left - d.left + i.width / 2,
+          bottom: d.bottom - i.top,      // for placement "top"
+          top: i.bottom - d.top          // for placement "bottom"
+        });
+      }
+      raf = requestAnimationFrame(update);
+    };
+    raf = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(raf);
+  }, [hovered]);
+
+  const handleHover = useCallback((ref) => {
+    if (ref === null) { setHovered(null); return; }
+    const idx = iconRefs.current.findIndex(r => r === ref);
+    setHovered(idx >= 0 ? idx : null);
+  }, []);
+
+  return React.createElement(motion.div, {
+    ref: dockRef,
+    className: "liquid-glass relative flex items-end overflow-visible px-2 py-2 " + className,
+    style: { gap, borderRadius },
+    onMouseMove: (e) => mouseX.set(e.clientX),
+    onMouseLeave: () => mouseX.set(Infinity)
+  },
+    items.map((item, i) => React.createElement(Fragment, { key: i },
+      React.createElement(DockIcon, {
+        item, mouseX, magnification, distance, iconSize, borderRadius,
+        onHover: handleHover, iconRef: iconRefs.current[i]
+      }),
+      item.separator && React.createElement("div", {
+        className: "mx-1 flex items-center self-stretch"
+      }, React.createElement("div", { className: "h-6 w-px bg-white/15" }))
+    )),
+    React.createElement(AnimatePresence, null,
+      hovered !== null && (() => {
+        const below = tooltipPlacement === "bottom";
+        const label = React.createElement("span", {
+          key: "label",
+          className: "rounded-md bg-white px-2 py-1 text-xs font-medium text-black font-body whitespace-nowrap"
+        }, items[hovered].label);
+        const arrow = React.createElement("svg", {
+          key: "arrow",
+          width: "8", height: "4", viewBox: "0 0 8 4",
+          className: (below ? "-mb-px " : "-mt-px ") + "text-white",
+          "aria-hidden": true
+        }, React.createElement("path", { d: below ? "M4 0L8 4H0L4 0" : "M0 0L4 4L8 0", fill: "currentColor" }));
+        return React.createElement(motion.div, {
+          key: "dock-tooltip",
+          className: "pointer-events-none absolute flex flex-col items-center z-50",
+          style: below
+            ? { left: tip.x, top: tip.top + 8, x: "-50%" }
+            : { left: tip.x, bottom: tip.bottom + 8, x: "-50%" },
+          initial: { opacity: 0, y: below ? -6 : 6, scale: .94 },
+          animate: { opacity: 1, y: 0, scale: 1 },
+          exit: { opacity: 0, y: below ? -6 : 6, scale: .94 },
+          transition: { duration: .13, ease: "easeOut" }
+        }, below ? [arrow, label] : [label, arrow]);
+      })()
+    )
+  );
+}
+
+// Simple stroked glyphs, sized by the parent (h-full/w-full on the button).
+const ico = (...d) => ({ className = "h-5 w-5" }) => React.createElement("svg", {
+  className, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor",
+  strokeWidth: 1.6, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true
+}, ...d.map((p, i) => React.createElement("path", { key: i, d: p })));
+
+const IconHome    = ico("M3 10.5 12 3l9 7.5", "M5 9.5V20h14V9.5");
+const IconLayers  = ico("M12 3 3 8l9 5 9-5-9-5Z", "M3 16l9 5 9-5", "M3 12l9 5 9-5");
+const IconShield  = ico("M12 3l7.5 3v5.5c0 5-3.3 9.2-7.5 10.5C7.8 20.7 4.5 16.5 4.5 11.5V6L12 3Z");
+const IconUsers   = ico("M16 20v-1.5a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4V20", "M9.5 10.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7", "M21 20v-1.5a4 4 0 0 0-3-3.87", "M16.5 3.6a4 4 0 0 1 0 7.75");
+const IconSpark   = ico("M12 3v4", "M12 17v4", "M3 12h4", "M17 12h4", "M6.3 6.3 9 9", "M15 15l2.7 2.7", "M17.7 6.3 15 9", "M9 15l-2.7 2.7");
+const IconDown    = ico("M12 4v11", "M7.5 11 12 15.5 16.5 11", "M5 20h14");
+
+function scrollTo(id){
+  return (e) => {
+    e.preventDefault();
+    const el = document.querySelector(id);
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
+}
+
+const IconTag = ico("M4 7.5C4 5.8 5.8 4 7.5 4h4l8.5 8.5-7.5 7.5L4 11.5v-4Z", "M8.5 8.5h.01");
+
+// The site's top bar. Replaces the old text-link Navbar: the section links
+// are now a magnifying dock, flanked by the logo and the CTAs the navbar
+// carried. Below lg the dock is hidden (hover magnification means nothing on
+// touch) and the bar falls back to the logo + a single "Start free" button,
+// matching what the old navbar did at that breakpoint.
+function SectionDock(){
+  const items = [
+    { icon: React.createElement(IconHome, null),   label: "Overview",     href: "#top",     onClick: (e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); } },
+    { icon: React.createElement(IconLayers, null), label: "How it works", href: "#how",     onClick: scrollTo("#how") },
+    { icon: React.createElement(IconSpark, null),  label: "The science",  href: "#science", onClick: scrollTo("#science") },
+    { icon: React.createElement(IconShield, null), label: "Privacy",      href: "#privacy", onClick: scrollTo("#privacy") },
+    { icon: React.createElement(IconTag, null),    label: "Pricing",      href: "#pricing", onClick: scrollTo("#pricing"), separator: true },
+    { icon: React.createElement(IconUsers, null),  label: "Team",         href: "#team",    onClick: scrollTo("#team") }
+  ];
+  return React.createElement("nav", {
+    className: "fixed top-4 left-0 right-0 z-50 px-8 lg:px-16 flex items-center justify-between"
+  },
+    React.createElement("a", {
+      href: "/",
+      className: "h-12 w-12 rounded-full liquid-glass flex items-center justify-center shrink-0",
+      "aria-label": "SilentHelp home"
+    }, React.createElement("img", { src: "/static/img/badge-256.png", alt: "", className: "h-8 w-8 rounded-full" })),
+
+    React.createElement("div", { className: "hidden lg:flex items-center gap-2" },
+      React.createElement(Dock, { items, iconSize: 36, magnification: 1.7, borderRadius: 9999, tooltipPlacement: "bottom" }),
+      React.createElement("a", {
+        href: "/download/agent",
+        className: "liquid-glass rounded-full px-4 py-2 text-sm font-medium font-body text-white whitespace-nowrap flex items-center gap-1.5 hover:opacity-90"
+      }, "Download for Mac"),
+      React.createElement("a", {
+        href: "/app",
+        className: "bg-white text-black rounded-full px-4 py-2 text-sm font-medium font-body whitespace-nowrap flex items-center gap-1.5 hover:opacity-90"
+      }, "Start free ", React.createElement(window.ArrowUpRight, { className: "h-4 w-4" }))
+    ),
+
+    // Balances the logo so the dock stays optically centred (same trick the
+    // old navbar used).
+    React.createElement("div", { className: "h-12 w-12 shrink-0 lg:block hidden", "aria-hidden": true }),
+    React.createElement("a", {
+      href: "/app",
+      className: "lg:hidden bg-white text-black rounded-full px-4 py-2 text-sm font-medium font-body"
+    }, "Start free")
+  );
+}
+
+window.SectionDock = SectionDock;
 })();
 </script>
 

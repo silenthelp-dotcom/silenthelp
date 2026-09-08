@@ -402,6 +402,51 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
 .navitem:hover { color:rgba(255,255,255,.85) !important; }
 .navitem.active { color:#fff !important; border-color:rgba(255,255,255,.28) !important; }
 
+/* Sidebar collapse ------------------------------------------------------- */
+/* The toggle icon is one outer rounded-rect plus an inner panel whose `d`
+   morphs between a narrow rail (collapsed) and a wide panel (expanded).
+   Animating `d` directly needs interpolable paths — both are written with
+   the same command sequence and point count so the browser can tween them. */
+#sidebarToggleIcon .panel {
+  transition: d .35s cubic-bezier(.4,0,.2,1);
+  fill: #0b0f14;   /* the app's ground, so the panel reads as a cut-out */
+}
+@media (prefers-reduced-motion: reduce) {
+  #sidebarToggleIcon .panel { transition: none; }
+}
+#sidebarToggle {
+  display:flex; align-items:center; justify-content:center;
+  width:34px; height:34px; flex-shrink:0;
+  border:none; background:transparent; cursor:pointer; padding:0;
+  color:rgba(255,255,255,.55);
+  border-radius:9px;
+  transition:color .2s, background .2s;
+}
+#sidebarToggle:hover { color:rgba(255,255,255,.9); background:rgba(255,255,255,.06); }
+#sidebarToggle:focus-visible { outline:1px solid rgba(255,255,255,.35); outline-offset:2px; }
+
+/* Collapsed state: the rail keeps the app chrome but hides every label.
+   width/padding transition on the container; labels fade out slightly
+   faster so they're gone before the rail finishes narrowing. */
+#appSidebar {
+  width:218px; padding:8px 14px 18px;
+  transition: width .32s cubic-bezier(.4,0,.2,1), padding .32s cubic-bezier(.4,0,.2,1);
+}
+#appSidebar.collapsed { width:64px; padding-left:8px; padding-right:8px; }
+#appSidebar .side-label { transition: opacity .18s ease, visibility .18s; }
+#appSidebar.collapsed .side-label { opacity:0; visibility:hidden; }
+/* In the rail, each row centres its own glyph inside the 48px content box.
+   `gap:0` matters: the hidden label is still a flex child (visibility, not
+   display), so a leftover gap would shove the monogram off-centre. */
+#appSidebar.collapsed .navitem { justify-content:center; padding:0; gap:0; }
+#appSidebar.collapsed .side-label { position:absolute; width:0; overflow:hidden; }
+#appSidebar.collapsed .side-hide { display:none !important; }
+#appSidebar.collapsed #sideUser { justify-content:center; padding:10px 0; gap:0; }
+#appSidebar.collapsed .brandlink { justify-content:center; padding:9px 0; gap:0; }
+@media (prefers-reduced-motion: reduce) {
+  #appSidebar, #appSidebar .side-label { transition:none; }
+}
+
 /* Buttons — reuse the landing page's glass rather than the light gradient */
 .glass, .glass.ghost {
   background:rgba(255,255,255,0.02) !important;
@@ -579,32 +624,49 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
         <!-- Sidebar stays put; scrolls only within itself on short screens. -->
         <!-- The sidebar itself never scrolls — only the content column does.
              No overflow here at all, by design. -->
-        <div style="width:218px; flex-shrink:0; padding:8px 14px 18px; display:flex; flex-direction:column; overflow:hidden; background:transparent;">
-          <a href="/" title="Back to silenthelp.org" style="display:flex; align-items:center; gap:11px; padding:9px 14px; margin-bottom:28px; text-decoration:none; border:1px solid rgba(255,255,255,.14); border-radius:9999px;">
+        <!-- width/padding live in the stylesheet (#appSidebar), not inline — an
+             inline width outranks the .collapsed rule, so the rail would never
+             actually narrow. -->
+        <div id="appSidebar" style="flex-shrink:0; display:flex; flex-direction:column; overflow:hidden; background:transparent;">
+          <div style="display:flex; align-items:center; gap:6px; margin-bottom:14px;">
+            <button id="sidebarToggle" onclick="App.toggleSidebar()" aria-label="Collapse sidebar" aria-expanded="true" title="Collapse sidebar">
+              <!-- Outer rounded rect + inner panel that morphs between a narrow
+                   rail and a wide panel. Both `d` values share a command
+                   sequence so the browser can interpolate between them. -->
+              <svg id="sidebarToggleIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M11 3H13C16.7712 3 18.6569 3 19.8284 4.17157C21 5.34315 21 7.22876 21 11V13C21 16.7712 21 18.6569 19.8284 19.8284C18.6569 21 16.7712 21 13 21H11C7.2288 21 5.3431 21 4.1716 19.8284C3 18.6569 3 16.7712 3 13V11C3 7.22876 3 5.34315 4.1716 4.17157C5.3431 3 7.2288 3 11 3Z"
+                      fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path class="panel" d="M14 6 C14 5.057 14 4.586 13.707 4.293 C13.414 4 12.943 4 12 4 H10 C7.172 4 5.757 4 4.879 4.879 C4 5.757 4 7.172 4 10 V14 C4 16.828 4 18.243 4.879 19.121 C5.757 20 7.172 20 10 20 H12 C12.943 20 13.414 20 13.707 19.707 C14 19.414 14 18.943 14 18 V6 Z"/>
+              </svg>
+            </button>
+          </div>
+          <a href="/" class="brandlink" title="Back to silenthelp.org" style="display:flex; align-items:center; gap:11px; padding:9px 14px; margin-bottom:28px; text-decoration:none; border:1px solid rgba(255,255,255,.14); border-radius:9999px;">
             <div class="hd" style="width:26px; height:26px; border-radius:50%; border:1px solid rgba(255,255,255,.3); display:flex; align-items:center; justify-content:center; font-size:13px; color:rgba(255,255,255,.85); flex-shrink:0;">S</div>
-            <span class="hd" style="font-size:15px; color:rgba(255,255,255,.9); letter-spacing:.01em;">SilentHelp</span>
+            <span class="hd side-label" style="font-size:15px; color:rgba(255,255,255,.9); letter-spacing:.01em; white-space:nowrap;">SilentHelp</span>
           </a>
-          <div class="navitem" data-screen="dashboard" onclick="App.go('dashboard')" style="display:flex; align-items:center; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;">Dashboard</div>
-          <div class="navitem" data-screen="analytics" onclick="App.go('analytics')" style="display:flex; align-items:center; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;">Analytics</div>
-          <div class="navitem" data-screen="reports" onclick="App.go('reports')" style="display:flex; align-items:center; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;">Findings</div>
-          <div class="navitem" data-screen="moments" onclick="App.go('moments')" style="display:flex; align-items:center; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;">Moments</div>
-          <div class="navitem" data-screen="chat" onclick="App.go('chat')" style="display:flex; align-items:center; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;">Coping Chat</div>
-          <div class="navitem" data-screen="helper" onclick="App.go('helper')" style="display:flex; align-items:center; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;">Help a Friend</div>
-          <div class="navitem" data-screen="connection" onclick="App.go('connection')" style="display:flex; align-items:center; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;">Connection</div>
-          <div class="navitem" data-screen="settings" onclick="App.go('settings')" style="display:flex; align-items:center; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;">Settings</div>
-          <div class="navitem" data-screen="account" onclick="App.go('account')" style="display:flex; align-items:center; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;">Account</div>
+          <!-- Each item carries a monogram that stays visible when the sidebar
+               is collapsed to a rail; the text label is what fades out. -->
+          <div class="navitem" data-screen="dashboard" onclick="App.go('dashboard')" title="Dashboard" style="display:flex; align-items:center; gap:12px; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;"><span class="hd" style="width:20px; text-align:center; flex-shrink:0; font-size:13px; opacity:.75;">D</span><span class="side-label" style="white-space:nowrap;">Dashboard</span></div>
+          <div class="navitem" data-screen="analytics" onclick="App.go('analytics')" title="Analytics" style="display:flex; align-items:center; gap:12px; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;"><span class="hd" style="width:20px; text-align:center; flex-shrink:0; font-size:13px; opacity:.75;">A</span><span class="side-label" style="white-space:nowrap;">Analytics</span></div>
+          <div class="navitem" data-screen="reports" onclick="App.go('reports')" title="Findings" style="display:flex; align-items:center; gap:12px; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;"><span class="hd" style="width:20px; text-align:center; flex-shrink:0; font-size:13px; opacity:.75;">F</span><span class="side-label" style="white-space:nowrap;">Findings</span></div>
+          <div class="navitem" data-screen="moments" onclick="App.go('moments')" title="Moments" style="display:flex; align-items:center; gap:12px; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;"><span class="hd" style="width:20px; text-align:center; flex-shrink:0; font-size:13px; opacity:.75;">M</span><span class="side-label" style="white-space:nowrap;">Moments</span></div>
+          <div class="navitem" data-screen="chat" onclick="App.go('chat')" title="Coping Chat" style="display:flex; align-items:center; gap:12px; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;"><span class="hd" style="width:20px; text-align:center; flex-shrink:0; font-size:13px; opacity:.75;">C</span><span class="side-label" style="white-space:nowrap;">Coping Chat</span></div>
+          <div class="navitem" data-screen="helper" onclick="App.go('helper')" title="Help a Friend" style="display:flex; align-items:center; gap:12px; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;"><span class="hd" style="width:20px; text-align:center; flex-shrink:0; font-size:13px; opacity:.75;">H</span><span class="side-label" style="white-space:nowrap;">Help a Friend</span></div>
+          <div class="navitem" data-screen="connection" onclick="App.go('connection')" title="Connection" style="display:flex; align-items:center; gap:12px; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;"><span class="hd" style="width:20px; text-align:center; flex-shrink:0; font-size:13px; opacity:.75;">N</span><span class="side-label" style="white-space:nowrap;">Connection</span></div>
+          <div class="navitem" data-screen="settings" onclick="App.go('settings')" title="Settings" style="display:flex; align-items:center; gap:12px; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;"><span class="hd" style="width:20px; text-align:center; flex-shrink:0; font-size:13px; opacity:.75;">S</span><span class="side-label" style="white-space:nowrap;">Settings</span></div>
+          <div class="navitem" data-screen="account" onclick="App.go('account')" title="Account" style="display:flex; align-items:center; gap:12px; height:44px; padding:0 16px; border-radius:9999px; font-size:14.5px; font-weight:500; cursor:pointer; margin-bottom:2px;"><span class="hd" style="width:20px; text-align:center; flex-shrink:0; font-size:13px; opacity:.75;">U</span><span class="side-label" style="white-space:nowrap;">Account</span></div>
           <div style="flex:1;"></div>
           <!-- "Demo the moments" — from the design's sidebar. These call the
                same App.openGentle / App.openUrgent the settings screen uses, so
                the real popups fire, not mockups. -->
-          <div style="font-size:9.5px; font-weight:600; letter-spacing:.16em; color:rgba(255,255,255,.45); margin:0 12px 10px;">DEMO THE MOMENTS</div>
-          <button class="liquid-glass" onclick="App.openGentle(true)" style="text-align:left; background:transparent; color:rgba(255,255,255,.85); border:none; border-radius:9999px; padding:9px 16px; font-size:12px; font-weight:500; cursor:pointer; margin-bottom:7px;">Quiet check-in</button>
-          <button class="liquid-glass" onclick="App.openUrgent(true)" style="text-align:left; background:transparent; color:rgba(255,255,255,.85); border:none; border-radius:9999px; padding:9px 16px; font-size:12px; font-weight:500; cursor:pointer; margin-bottom:12px;">Something surfacing</button>
+          <div class="side-hide" style="font-size:9.5px; font-weight:600; letter-spacing:.16em; color:rgba(255,255,255,.45); margin:0 12px 10px;">DEMO THE MOMENTS</div>
+          <button class="liquid-glass side-hide" onclick="App.openGentle(true)" style="text-align:left; background:transparent; color:rgba(255,255,255,.85); border:none; border-radius:9999px; padding:9px 16px; font-size:12px; font-weight:500; cursor:pointer; margin-bottom:7px;">Quiet check-in</button>
+          <button class="liquid-glass side-hide" onclick="App.openUrgent(true)" style="text-align:left; background:transparent; color:rgba(255,255,255,.85); border:none; border-radius:9999px; padding:9px 16px; font-size:12px; font-weight:500; cursor:pointer; margin-bottom:12px;">Something surfacing</button>
           <div id="snoozeChip" onclick="App.clearSnooze()" style="display:none; margin:0 2px 8px; padding:9px 12px; border-radius:9px; background:#fff8ea; border:1px solid #f0e2c0; font-size:11.5px; color:#a4701f; cursor:pointer; font-weight:600;"></div>
           <div id="sideUser" onclick="App.go('account')" style="display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; background:#fff; border:1px solid #e6ecf2; cursor:pointer;">
             <div id="sideAvatar" style="width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,.12); color:#fff; font-size:11px; font-weight:700; display:grid; place-items:center; box-shadow:inset 0 1px 1px rgba(255,255,255,.2);">·</div>
-            <div style="min-width:0;"><div id="sideName" style="font-size:12.5px; font-weight:600; color:#1a2632; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Not signed in</div>
-            <div style="font-size:10.5px; color:#9aa7b3; font-weight:300;">Your private space</div></div>
+            <div class="side-label" style="min-width:0;"><div id="sideName" style="font-size:12.5px; font-weight:600; color:#1a2632; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Not signed in</div>
+            <div style="font-size:10.5px; color:#9aa7b3; font-weight:300; white-space:nowrap;">Your private space</div></div>
           </div>
         </div>
 
@@ -1417,6 +1479,31 @@ const App = {
     } catch(e){ alert('Connection error — try again.'); }
   },
 
+  // Collapse the sidebar to an icon rail. The choice sticks across reloads —
+  // a nav that silently re-expands every visit is worse than not collapsing.
+  // The two `d` values are interpolable (same command sequence), so the
+  // morph is a plain CSS transition on the path rather than a JS animation.
+  SIDEBAR_PANEL_OPEN: "M14 6 C14 5.057 14 4.586 13.707 4.293 C13.414 4 12.943 4 12 4 H10 C7.172 4 5.757 4 4.879 4.879 C4 5.757 4 7.172 4 10 V14 C4 16.828 4 18.243 4.879 19.121 C5.757 20 7.172 20 10 20 H12 C12.943 20 13.414 20 13.707 19.707 C14 19.414 14 18.943 14 18 V6 Z",
+  SIDEBAR_PANEL_CLOSED: "M10 5.5 C10 4.793 10 4.439 9.780 4.220 C9.560 4 9.207 4 8.5 4 H8.5 C6.379 4 5.318 4 4.659 4.659 C4 5.318 4 6.379 4 8.5 V15.5 C4 17.621 4 18.682 4.659 19.341 C5.318 20 6.379 20 8.5 20 H8.5 C9.207 20 9.561 20 9.780 19.780 C10 19.561 10 19.207 10 18.5 V5.5 Z",
+
+  applySidebar(collapsed){
+    const bar = document.getElementById('appSidebar');
+    const btn = document.getElementById('sidebarToggle');
+    const panel = document.querySelector('#sidebarToggleIcon .panel');
+    if (!bar || !btn || !panel) return;
+    bar.classList.toggle('collapsed', collapsed);
+    panel.setAttribute('d', collapsed ? this.SIDEBAR_PANEL_CLOSED : this.SIDEBAR_PANEL_OPEN);
+    btn.setAttribute('aria-expanded', String(!collapsed));
+    const label = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+    btn.setAttribute('aria-label', label);
+    btn.setAttribute('title', label);
+  },
+  toggleSidebar(){
+    const collapsed = !document.getElementById('appSidebar').classList.contains('collapsed');
+    try { localStorage.setItem('sh_sidebar_collapsed', collapsed ? '1' : '0'); } catch(e){}
+    this.applySidebar(collapsed);
+  },
+
   paintNav(){
     // Matches the design's navStyle(): the active item gets .liquid-glass and
     // full white; inactive items are rgba(255,255,255,.6) with no fill.
@@ -2067,6 +2154,7 @@ const App = {
 
   async init(){
     this.paintNav();
+    try { this.applySidebar(localStorage.getItem('sh_sidebar_collapsed') === '1'); } catch(e){}
     // heatmap (cosmetic)
     const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
     const seed = [0.2,0.3,0.7,0.85,0.8,0.6,0.4,0.3,0.5,0.7,0.55,0.25];
