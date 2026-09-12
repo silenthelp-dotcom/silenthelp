@@ -564,6 +564,15 @@ function Hero() {
       height: "120%"
     }
   }), /*#__PURE__*/React.createElement("div", {
+    // The video is taller than the hero (120% of a min-h-screen box), so
+    // `overflow-hidden` was slicing the orb off with a hard horizontal edge
+    // right where the hero meets the next section. This fades the footage
+    // into the page's black ground over the last stretch of the hero, so the
+    // two sections read as one continuous surface instead of a seam.
+    className: "absolute inset-x-0 bottom-0 h-64 z-[5] pointer-events-none",
+    style: { background: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,.72) 55%, #000 100%)" },
+    "aria-hidden": true
+  }), /*#__PURE__*/React.createElement("div", {
     className: "relative z-10 flex flex-col flex-1"
   }, /*#__PURE__*/React.createElement(window.SectionDock, null), /*#__PURE__*/React.createElement("div", {
     className: "flex-1 flex flex-col items-center justify-center text-center pt-24 px-4"
