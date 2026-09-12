@@ -789,8 +789,8 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
               </div>
 
               <div style="margin-top:16px; background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:22px;">
-                <div style="font-size:13px; color:#3c4a57; font-weight:600; margin-bottom:2px;">Conversation funnel</div>
-                <div style="font-size:11.5px; color:#9aa7b3; font-weight:300; margin-bottom:16px;">How this week's support conversations moved from a first signal to real help.</div>
+                <div style="font-size:13px; color:#3c4a57; font-weight:600; margin-bottom:2px;">Detection funnel</div>
+                <div id="funnelNote" style="font-size:11.5px; color:#9aa7b3; font-weight:300; margin-bottom:16px;">Every signal SilentHelp saw this week, narrowing by how serious it was.</div>
                 <div style="display:flex; gap:24px;">
                   <div id="funnelChart" style="flex:1; display:flex; flex-direction:column; gap:8px;"></div>
                   <div id="funnelLegend" style="width:150px; flex-shrink:0; display:flex; flex-direction:column; gap:10px; justify-content:center;"></div>
@@ -1875,8 +1875,21 @@ const App = {
     // Neutral white/grey, not blue — bars above baseline read brighter.
     const dash = `<div style="position:absolute; left:0; right:0; top:${(1-a.baseline_tabs/max)*100}%; border-top:1px dashed rgba(255,255,255,.25);"></div>`;
     document.getElementById('tabBars').innerHTML = dash + bars.map(v=>{
-      const below = v < a.baseline_tabs; return `<div style="flex:1; height:${Math.max(6, v/max*100)}%; background:${below?'rgba(255,255,255,.85)':'rgba(255,255,255,.4)'}; border-radius:4px;"></div>`;
+      // Below baseline = the calm days, so those read in full gold; days above
+      // it recede. (Lower is better here — the label says so.)
+      const below = v < a.baseline_tabs; return `<div style="flex:1; height:${Math.max(6, v/max*100)}%; background:${below?'#e5b155':'rgba(229,177,85,.32)'}; border-radius:4px;"></div>`;
     }).join('');
+    if (a.funnel && a.funnel.stages){
+      this._funnelData = a.funnel.stages.map(s => ({
+        label: s.label,
+        value: s.value,
+        displayValue: s.value >= 1000 ? (s.value/1000).toFixed(1) + 'k' : String(s.value),
+      }));
+      const fn = document.getElementById('funnelNote');
+      if (fn) fn.textContent = a.funnel.demo
+        ? 'Sample data — fills in with your own detections once the agent is running.'
+        : "Every signal SilentHelp saw this week, narrowing by how serious it was.";
+    }
     this.renderFunnel();
   },
 
@@ -1884,15 +1897,19 @@ const App = {
   // that highlights in lockstep on hover (mirrors a linked chart+legend
   // component pair, done here as plain DOM + inline event handlers since
   // this app has no component framework).
-  _funnelData: [
-    { label: 'Visitors', value: 12400, displayValue: '12.4k' },
-    { label: 'Leads', value: 6800, displayValue: '6.8k' },
-    { label: 'Qualified', value: 3200, displayValue: '3.2k' },
-    { label: 'Proposals', value: 1500, displayValue: '1.5k' },
-    { label: 'Closed', value: 620, displayValue: '620' },
-  ],
+  // Filled from /api/analytics (store.detection_funnel) — the user's own
+  // recorded detections, narrowing by severity. Never hardcoded: the previous
+  // version of this shipped the chart library's sales-funnel sample data
+  // (Visitors/Leads/Qualified/...) which was both meaningless here and read as
+  // real numbers on a personal page.
+  _funnelData: [],
+  // Gold deepens as severity rises, so colour carries the funnel's meaning
+  // rather than decorating it. Anchored on the amber already used elsewhere in
+  // the app (the "watch-out window" accent) so this doesn't introduce a new hue.
+  FUNNEL_GOLD: ['#f7e3b4', '#f0cd84', '#e5b155', '#d18c2a', '#b8701c'],
   renderFunnel(){
     const data = this._funnelData;
+    if (!data.length) return;
     const max = data[0].value;
     const chart = document.getElementById('funnelChart');
     const legend = document.getElementById('funnelLegend');
@@ -1909,14 +1926,14 @@ const App = {
     chart.innerHTML = data.map((d,i) => {
       const pct = Math.max(6, d.value / max * 100);
       return `<div class="funnel-bar" data-i="${i}" style="cursor:pointer; transition:opacity .15s;" onmouseenter="App._funnelHover(${i})" onmouseleave="App._funnelHover(null)">
-        <div style="display:flex; justify-content:space-between; font-size:11.5px; color:#5e6f7e; margin-bottom:4px;"><span>${this.esc(d.label)}</span><span style="font-weight:600; color:#16202b;">${this.esc(d.displayValue)}</span></div>
-        <div style="height:22px; border-radius:6px; background:rgba(255,255,255,.08);"><div style="height:100%; width:${pct}%; border-radius:6px; background:rgba(255,255,255,.9);"></div></div>
+        <div style="display:flex; justify-content:space-between; font-size:11.5px; color:rgba(255,255,255,.55); margin-bottom:4px;"><span>${this.esc(d.label)}</span><span style="font-weight:600; color:rgba(255,255,255,.92);">${this.esc(d.displayValue)}</span></div>
+        <div style="height:22px; border-radius:6px; background:rgba(255,255,255,.06);"><div style="height:100%; width:${pct}%; border-radius:6px; background:${this.FUNNEL_GOLD[i] || this.FUNNEL_GOLD[this.FUNNEL_GOLD.length-1]};"></div></div>
       </div>`;
     }).join('');
     legend.innerHTML = data.map((d,i) =>
       `<div class="funnel-legend-item" data-i="${i}" style="display:flex; align-items:center; gap:8px; cursor:pointer; transition:opacity .15s;" onmouseenter="App._funnelHover(${i})" onmouseleave="App._funnelHover(null)">
-        <div style="width:10px; height:10px; border-radius:999px; background:rgba(255,255,255,.9); flex-shrink:0;"></div>
-        <div style="font-size:12px; color:#3c4a57;">${this.esc(d.label)} <span style="color:#9aa7b3;">· ${this.esc(d.displayValue)}</span></div>
+        <div style="width:10px; height:10px; border-radius:999px; background:${this.FUNNEL_GOLD[i] || this.FUNNEL_GOLD[this.FUNNEL_GOLD.length-1]}; flex-shrink:0;"></div>
+        <div style="font-size:12px; color:rgba(255,255,255,.8);">${this.esc(d.label)} <span style="color:rgba(255,255,255,.45);">· ${this.esc(d.displayValue)}</span></div>
       </div>`).join('');
     this._funnelHover = setHover;
   },
@@ -2174,7 +2191,7 @@ const App = {
     // light-theme blue (#eef4fb -> #0049c4) left over from an earlier design;
     // against this dark surface it read as a bright foreign block and the
     // background showed through the low end.
-    const hc = v => v<0.18?'rgba(255,255,255,.10)':v<0.42?'rgba(255,255,255,.24)':v<0.62?'rgba(255,255,255,.42)':v<0.82?'rgba(255,255,255,.66)':'rgba(255,255,255,.92)';
+    const hc = v => v<0.18?'rgba(255,255,255,.07)':v<0.42?'rgba(247,227,180,.30)':v<0.62?'rgba(240,205,132,.55)':v<0.82?'rgba(229,177,85,.80)':'#e5b155';
     // Hour columns are grouped into Morning/Afternoon/Evening (12 hourly
     // slots -> 3 groups of 4), each with its own header and a visible gap,
     // so the grid reads as three dayparts rather than one flat strip of 12.

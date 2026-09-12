@@ -1665,7 +1665,9 @@ def api_agent_prefs():
 
 @app.route("/api/analytics")
 def api_analytics():
-    return jsonify(store.analytics())
+    data = store.analytics()
+    data["funnel"] = store.detection_funnel()
+    return jsonify(data)
 
 
 @app.route("/api/findings")

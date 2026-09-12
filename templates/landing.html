@@ -585,8 +585,18 @@ function Hero() {
   }), /*#__PURE__*/React.createElement("div", {
     className: "relative z-10 flex flex-col flex-1"
   }, /*#__PURE__*/React.createElement(window.SectionDock, null), /*#__PURE__*/React.createElement("div", {
-    className: "flex-1 flex flex-col items-center justify-center text-center pt-24 px-4"
-  }, /*#__PURE__*/React.createElement(motion.div, rise(0.4), /*#__PURE__*/React.createElement("div", {
+    // pt-32, not pt-24: the top bar is a dock of 36px icons in a padded pill,
+    // taller than the text navbar this replaced, and at shorter viewport
+    // heights the "New ..." pill was colliding with it (the pill is static with
+    // no z-index, so the dock's animated icons drew straight over it).
+    className: "flex-1 flex flex-col items-center justify-center text-center pt-32 px-4"
+  }, /*#__PURE__*/React.createElement(motion.div, _extends({}, rise(0.4), {
+    // Hero content is vertically centred, so on a short viewport it rides up
+    // under the fixed top bar no matter how much top padding the column has.
+    // z-10 keeps this above the dock's own stacking context, and the margin is
+    // a hard floor the centring cannot pull it past.
+    className: "relative z-10 mt-2"
+  }), /*#__PURE__*/React.createElement("div", {
     className: "liquid-glass rounded-full flex items-center gap-3 pr-3"
   }, /*#__PURE__*/React.createElement("span", {
     className: "bg-white text-black rounded-full px-3 py-1 text-xs font-semibold font-body"

@@ -281,6 +281,54 @@ def analytics() -> Dict[str, Any]:
                 "week_change": week_change, "empty": False, "seeded": False}
 
 
+def detection_funnel() -> Dict[str, Any]:
+    """This week's detections, narrowing by severity.
+
+    Built from the user's OWN recorded events (level only — never text), so
+    every number here is real. Each stage is a subset of the one above it:
+    anything moderate also counts as low, and so on. That nesting is what
+    makes it read as a funnel rather than five unrelated bars.
+
+    Returns demo:true with an illustrative shape when nothing has been
+    recorded yet, matching how analytics() handles a fresh install.
+    """
+    with _LOCK:
+        data = _load()
+        cutoff = datetime.now() - timedelta(days=7)
+        levels = []
+        for e in data.get("events", []):
+            try:
+                if datetime.fromisoformat(e["ts"]) < cutoff:
+                    continue
+            except (ValueError, KeyError):
+                continue
+            levels.append(_LEVEL_ORDER.get(e.get("level"), 0))
+
+        if not levels:
+            return {
+                "demo": True,
+                "stages": [
+                    {"label": "Signals seen", "value": 128},
+                    {"label": "Low or above", "value": 41},
+                    {"label": "Moderate or above", "value": 17},
+                    {"label": "High or above", "value": 5},
+                    {"label": "Crisis", "value": 1},
+                ],
+            }
+
+        total = len(levels)
+        return {
+            "demo": False,
+            "stages": [
+                {"label": "Signals seen", "value": total},
+                {"label": "Low or above", "value": sum(1 for l in levels if l >= 1)},
+                {"label": "Moderate or above", "value": sum(1 for l in levels if l >= 2)},
+                {"label": "High or above", "value": sum(1 for l in levels if l >= 3)},
+                {"label": "Crisis", "value": sum(1 for l in levels if l >= 4)},
+            ],
+        }
+
+
 def findings() -> Dict[str, Any]:
     with _LOCK:
         data = _load()
