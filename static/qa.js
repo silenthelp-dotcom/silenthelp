@@ -251,7 +251,7 @@ Object.assign(Q, {
               stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${circ - dash}"
               style="transition:stroke-dashoffset 1s cubic-bezier(.16,1,.3,1)"/>
             <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#5b8cff"/><stop offset="100%" stop-color="#9d6bff"/>
+              <stop offset="0%" stop-color="#a0a0a0"/><stop offset="100%" stop-color="#c8c8c8"/>
             </linearGradient></defs>
           </svg>
           <div class="ring-num"><div class="n">${s.overall}%</div><div class="lbl">Readiness</div></div>
