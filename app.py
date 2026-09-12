@@ -587,6 +587,109 @@ def _maybe_auto_escalate(message: str) -> bool:
         return False
 
 
+# Words that mean the text is about the writer's own state, so it must never be
+# fast-rejected. Distress is overwhelmingly first-person; a sentence with no
+# self-reference at all ("the meeting is at 4") is the safe case to skip.
+_SELF_MARKERS = frozenset({
+    "i", "im", "i'm", "ive", "i've", "id", "i'd", "ill", "i'll",
+    "me", "my", "myself", "mine",
+})
+# Longer than this and we always ask the model — length correlates with someone
+# actually writing something out, which is exactly when recall matters most.
+_FAST_REJECT_MAX_WORDS = 12
+
+# Distress that carries no first-person marker and no single emotion word, so
+# neither of the other guards catches it ("nobody cares anymore", "cant sleep
+# again"). These are substring checks against the normalized text — presence of
+# any one of them means: ask the model, never fast-reject.
+_NEVER_SKIP_SUBSTRINGS = (
+    "nobody", "no one", "everyone", "anymore", "any more", "give up", "gave up",
+    "cant sleep", "can't sleep", "cannot sleep", "not sleeping", "no sleep",
+    "cant eat", "can't eat", "not eating", "cant breathe", "can't breathe",
+    "whats the point", "what's the point", "no point", "pointless", "hate",
+    "hurt", "die", "dead", "death", "kill", "end it", "over it", "done with",
+    "fed up", "breaking", "broke down", "falling apart", "shut down",
+    "help", "sorry", "fault", "blame", "worth", "fail", "failing", "failed",
+    "alone", "lonely", "quit", "escape", "disappear", "vanish", "goodbye",
+    "nothing matters", "doesnt matter", "doesn't matter", "who cares",
+    "cant do this", "can't do this", "cant take", "can't take",
+    "cant keep", "can't keep", "cant handle", "can't handle",
+    "too much", "so tired", "never enough", "always wrong",
+)
+
+
+# The emotion vocabulary with repeats collapsed, so comparisons happen in the
+# same space on both sides. Without this, "depressed" stays double-s while the
+# user's "depresing" collapses to single-s, and the edit distance is inflated
+# by the very normalization meant to help.
+_COLLAPSED_EMOTION_WORDS = frozenset(
+    layer1._collapse_repeats(w) for w in layer1._FUZZY_WORDS
+) | frozenset({
+    # Inflections people actually type that the base list omits.
+    "depresing", "depresion", "stresed", "anxius", "lonley", "hopless",
+    "exhuasted", "overwelmed", "panicing", "strugling", "worthles",
+})
+
+
+def _is_clearly_benign(message: str) -> bool:
+    """True only when text is safe to skip the semantic layer on.
+
+    Conservative by construction: any self-reference, any emotional vocabulary
+    (checked against Layer 1's own word list, fuzzily, so misspellings still
+    count), or any real length sends it to the model. Returns False whenever
+    there is doubt — a false "benign" here is a missed detection.
+    """
+    low = message.lower()
+    words = re.findall(r"[a-z']+", low)
+    if not words or len(words) > _FAST_REJECT_MAX_WORDS:
+        return False
+    if any(w in _SELF_MARKERS for w in words):
+        return False
+    if any(s in low for s in _NEVER_SKIP_SUBSTRINGS):
+        return False
+    # Reuse Layer 1's emotion vocabulary, matched the way L1 does it: collapse
+    # repeated letters ("sooo" -> "so") then allow one edit, so "depresed" and
+    # "exhuasted" block the skip too. Deliberately NOT layer1._fuzzy_scan(),
+    # which additionally requires first-person attribution — that would let
+    # "everything feels pointless" through, and the whole job here is to be
+    # more paranoid than L1, not less.
+    for w in words:
+        cw = layer1._collapse_repeats(w)
+        for canon in _COLLAPSED_EMOTION_WORDS:
+            # Longer words get 2 edits of slack: real misspellings of them run
+            # further off ("exhuasted" is 2 from "exhausted", "depresing" 2 from
+            # "depressing"), and at 8+ characters a 2-edit neighbourhood is
+            # still specific enough not to swallow unrelated words.
+            budget = 2 if len(canon) >= 8 else 1
+            if abs(len(cw) - len(canon)) > budget:
+                continue
+            if cw == canon or _edit_distance_at_most(cw, canon, budget):
+                return False
+    return True
+
+
+def _edit_distance_at_most(a: str, b: str, budget: int) -> bool:
+    """True if `a` can become `b` within `budget` insert/delete/substitute ops.
+    Full DP — the vocabulary is a fixed ~40 short words, so cost is irrelevant
+    and correctness is easier to see than in a hand-rolled two-pointer walk."""
+    if a == b:
+        return True
+    la, lb = len(a), len(b)
+    if abs(la - lb) > budget:
+        return False
+    prev = list(range(lb + 1))
+    for i in range(1, la + 1):
+        cur = [i] + [0] * lb
+        for j in range(1, lb + 1):
+            cur[j] = min(prev[j] + 1, cur[j - 1] + 1,
+                         prev[j - 1] + (a[i - 1] != b[j - 1]))
+        # Whole row already over budget → no path can come back under it.
+        if min(cur) > budget:
+            return False
+        prev = cur
+    return prev[lb] <= budget
+
+
 def _pipeline(message: str, record: bool = False, toggles: dict | None = None):
     """
     Graded layered detection. Honors the Settings toggles.
@@ -666,6 +769,32 @@ def _pipeline(message: str, record: bool = False, toggles: dict | None = None):
         if record:
             store.record_event(1, lvl, (l1["categories"] or ["unknown"])[0])
         return l1, judgment, action
+
+    # FAST PATH 3: obviously-benign text, rejected locally instead of spending a
+    # semantic round-trip on it. Measured: L1 hits answer in ~40ms, but text L1
+    # scores "none" was costing 4.3s waiting on the model — and the agent scans
+    # continuously, so that is the bulk of all calls and nearly all of them are
+    # ordinary sentences with nothing in them.
+    #
+    # This is deliberately CONSERVATIVE, because a wrong skip here is a missed
+    # detection, not just a slow one. It only fires when EVERY check passes:
+    #   - L1 found nothing at all, and
+    #   - the text carries no first-person marker (distress is almost always
+    #     self-referential: "i", "me", "my", "im", "i'm"), and
+    #   - it contains none of L1's emotion vocabulary, even fuzzily, and
+    #   - it is short enough to be a throwaway line, not a paragraph someone
+    #     poured themselves into.
+    # Anything else — longer text, any "i", any emotional word — still goes to
+    # the model exactly as before, so the cases that actually matter are
+    # unaffected.
+    if semantic_on and keyword_on and l1["level"] == 0 and _is_clearly_benign(message):
+        judgment = {
+            "risk_level": "none", "categories": [], "confidence": 0.85,
+            "rationale": "No Layer-1 signal, no self-reference, no emotional vocabulary.",
+            "_source": "fast_reject", "_l1_level": "none", "_l2_level": "(skipped-benign)",
+            "_l1_tier3": False, "surface": "none",
+        }
+        return l1, judgment, detection.decide_response({"risk_level": "none"})
 
     if semantic_on:
         judgment = detection.classify_message(message)

@@ -168,6 +168,14 @@ def record_app_usage(app_seconds: Dict[str, float]) -> None:
         _save(data)
 
 
+# Illustrative week shown on Analytics BEFORE any real tracking exists, so the
+# page demonstrates what it will show instead of sitting empty. Always returned
+# with demo:true and rendered behind a "SAMPLE PREVIEW" badge — it must never
+# be mistaken for the user's own data. Replaced by real metrics the moment the
+# agent reports a day.
+DEMO_TREND = [64, 70, 66, 74, 69, 78, 73]
+DEMO_BARS = [52, 60, 48, 70, 58, 40, 36]
+
 # Seed values match the design so a brand-new install still looks alive.
 _SEED_DASH = {
     "mental_battery": 76, "focus_score": 84, "tab_switches": 42,
@@ -253,13 +261,18 @@ def analytics() -> Dict[str, Any]:
             k = (date.today() - timedelta(days=i)).isoformat()
             bars.append(round(float(days[k]["signals"].get("tab_switches", 0))) if k in days else None)
 
-        # No real data yet → return an EMPTY state, not an invented curve. The
-        # old code seeded a fake week (e.g. a Saturday trend) even when nothing
-        # had been tracked, which read as made-up data. The UI shows an empty
-        # state instead ("install the agent to start tracking").
+        # No real data yet → hand back a DEMO week so the page shows what it
+        # will look like, flagged `demo:true` so the UI can label it as a
+        # preview. The numbers are illustrative, never presented as the user's:
+        # the badge and the note above the charts say so, and the moment real
+        # tracking starts this branch stops running.
+        #
+        # The earlier version of this returned fake data with NO flag, which
+        # read as the user's own stats — that is the failure being avoided
+        # here, not the preview itself.
         if not present:
-            return {"trend": [], "bars": [], "baseline_tabs": 45,
-                    "week_change": 0, "empty": True, "seeded": False}
+            return {"trend": DEMO_TREND, "bars": DEMO_BARS, "baseline_tabs": 45,
+                    "week_change": 9, "empty": False, "demo": True, "seeded": True}
 
         week_change = 0
         if len(present) >= 2:

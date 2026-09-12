@@ -740,7 +740,7 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
                 </div>
                 <button class="liquid-glass hov" onclick="App.openWrap()" style="background:transparent; color:rgba(255,255,255,.9); border:none; border-radius:9999px; padding:12px 22px; font-size:13.5px; font-weight:500; cursor:pointer; white-space:nowrap;">See your monthly Wrap →</button>
               </div>
-              <div id="anPreviewNote" style="display:none; font-size:12.5px; color:#8b99a6; margin-top:10px; font-weight:300;">This is what your analytics will look like — the real chart fills in as SilentHelp learns your days.</div>
+              <div id="anPreviewNote" style="display:none; font-size:12.5px; color:#8b99a6; margin-top:10px; font-weight:300;">Sample data — this is what your analytics will look like. Install the Mac agent and these fill in with your own rhythm once your baseline is set.</div>
 
               <!-- Empty state: shown when there's no real tracked data (no invented curve). -->
               <div id="anEmpty" style="display:none; margin-top:44px; text-align:center; padding:56px 24px; max-width:460px; margin-left:auto; margin-right:auto;">
@@ -783,7 +783,7 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
               <div style="margin-top:16px; background:#fff; border:1px solid #eef2f6; border-radius:16px; padding:22px;">
                 <div style="font-size:13px; color:#3c4a57; font-weight:600; margin-bottom:2px;">Typical day rhythm</div>
                 <div style="font-size:11.5px; color:#9aa7b3; font-weight:300; margin-bottom:14px;">Illustrative — fills in with your real hours as SilentHelp learns your week.</div>
-                <div id="heatmapGroups" style="display:flex; font-size:10.5px; color:#0049c4; font-weight:600; letter-spacing:.04em; margin-bottom:6px; padding-left:37px;"></div>
+                <div id="heatmapGroups" style="display:flex; font-size:10.5px; color:rgba(255,255,255,.55); font-weight:600; letter-spacing:.04em; margin-bottom:6px; padding-left:37px;"></div>
                 <div style="display:flex; flex-direction:column; gap:3px;" id="heatmap"></div>
                 <div id="heatmapLegend" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:14px; font-size:11px; color:#9aa7b3;"></div>
               </div>
@@ -1850,7 +1850,19 @@ const App = {
     }
     if (empty) empty.style.display = 'none';
     if (charts) charts.style.display = '';
-    document.getElementById('weekChange').textContent = (a.week_change>=0?'+':'') + a.week_change + '% vs last week';
+
+    // Demo week (no real tracking yet): show the charts so the page
+    // demonstrates itself, but badge them clearly. The badge and note are the
+    // whole reason this is honest rather than fabricated — if they ever stop
+    // rendering, the preview must not render either.
+    const badge = document.getElementById('anPreview');
+    const note = document.getElementById('anPreviewNote');
+    if (badge) badge.style.display = a.demo ? 'inline-block' : 'none';
+    if (note) note.style.display = a.demo ? 'block' : 'none';
+
+    document.getElementById('weekChange').textContent = a.demo
+      ? 'sample week'
+      : (a.week_change>=0?'+':'') + a.week_change + '% vs last week';
     const t = a.trend.map(v => typeof v==='number'?v:0);
     const xs = t.map((_,i)=> 20 + i*(840/6));
     const ys = t.map(v => 180 - Math.max(0,Math.min(100,v))/100*150);
@@ -1898,12 +1910,12 @@ const App = {
       const pct = Math.max(6, d.value / max * 100);
       return `<div class="funnel-bar" data-i="${i}" style="cursor:pointer; transition:opacity .15s;" onmouseenter="App._funnelHover(${i})" onmouseleave="App._funnelHover(null)">
         <div style="display:flex; justify-content:space-between; font-size:11.5px; color:#5e6f7e; margin-bottom:4px;"><span>${this.esc(d.label)}</span><span style="font-weight:600; color:#16202b;">${this.esc(d.displayValue)}</span></div>
-        <div style="height:22px; border-radius:6px; background:#eef4fb;"><div style="height:100%; width:${pct}%; border-radius:6px; background:#0049c4;"></div></div>
+        <div style="height:22px; border-radius:6px; background:rgba(255,255,255,.08);"><div style="height:100%; width:${pct}%; border-radius:6px; background:rgba(255,255,255,.9);"></div></div>
       </div>`;
     }).join('');
     legend.innerHTML = data.map((d,i) =>
       `<div class="funnel-legend-item" data-i="${i}" style="display:flex; align-items:center; gap:8px; cursor:pointer; transition:opacity .15s;" onmouseenter="App._funnelHover(${i})" onmouseleave="App._funnelHover(null)">
-        <div style="width:10px; height:10px; border-radius:999px; background:#0049c4; flex-shrink:0;"></div>
+        <div style="width:10px; height:10px; border-radius:999px; background:rgba(255,255,255,.9); flex-shrink:0;"></div>
         <div style="font-size:12px; color:#3c4a57;">${this.esc(d.label)} <span style="color:#9aa7b3;">· ${this.esc(d.displayValue)}</span></div>
       </div>`).join('');
     this._funnelHover = setHover;
@@ -2158,7 +2170,11 @@ const App = {
     // heatmap (cosmetic)
     const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
     const seed = [0.2,0.3,0.7,0.85,0.8,0.6,0.4,0.3,0.5,0.7,0.55,0.25];
-    const hc = v => v<0.18?'#eef4fb':v<0.42?'#cfe2fb':v<0.62?'#9cc7ff':v<0.82?'#4aa0ff':'#0049c4';
+    // White-on-dark ramp, matching the rest of the app. The old scale was a
+    // light-theme blue (#eef4fb -> #0049c4) left over from an earlier design;
+    // against this dark surface it read as a bright foreign block and the
+    // background showed through the low end.
+    const hc = v => v<0.18?'rgba(255,255,255,.10)':v<0.42?'rgba(255,255,255,.24)':v<0.62?'rgba(255,255,255,.42)':v<0.82?'rgba(255,255,255,.66)':'rgba(255,255,255,.92)';
     // Hour columns are grouped into Morning/Afternoon/Evening (12 hourly
     // slots -> 3 groups of 4), each with its own header and a visible gap,
     // so the grid reads as three dayparts rather than one flat strip of 12.
