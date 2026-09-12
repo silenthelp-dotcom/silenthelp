@@ -127,51 +127,106 @@ section{position:relative;scroll-margin-top:70px}
 .tag svg{width:12px;height:12px;opacity:.75}
 
 /* ═══════════════════════════════ NAV ═════════════════════════════════ */
-/* Liquid Glass Nav Pro — https://framer.com/m/Liquid-Glass-Nav-Pro-bjAIfL.js@qTWwt82O7SiWRgChNZRM */
-.nav{
-  position:fixed;top:16px;left:50%;transform:translateX(-50%);
-  width:min(var(--w), 720px);height:56px;z-index:100;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 10px 0 18px;border-radius:32px;
-  background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.12);
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,.1),
-    inset 0 -10px 18px -12px rgba(2,12,20,.35),
-    0 24px 48px -12px rgba(2,12,20,.55),
-    0 4px 12px -2px rgba(2,12,20,.25);
-  backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);
-  transition:transform .55s var(--ease), background .5s, opacity .45s, box-shadow .5s;
-  overflow:hidden;
-  isolation:isolate;
+/* Three-pill bar matching DialedWeb-style dock + CTAs */
+.nav-bar{
+  position:fixed;top:18px;left:50%;transform:translateX(-50%);
+  z-index:100;display:flex;align-items:center;gap:10px;
+  width:max-content;max-width:calc(100vw - 24px);
+  transition:transform .55s var(--ease), opacity .45s;
 }
-.nav::before{
-  content:"";position:absolute;inset:6px;border-radius:24px;pointer-events:none;z-index:0;
-  background:linear-gradient(180deg, rgba(255,255,255,.1) 0%, rgba(255,255,255,.02) 55%, rgba(255,255,255,.05) 100%);
-  box-shadow:
-    inset 0 1px 1px 0 rgba(255,255,255,.55),
-    inset 0 -1px 1px 0 rgba(255,255,255,.25),
-    inset 0 0 0 1px rgba(255,255,255,.14);
-  opacity:.9;
-}
-.nav > *{position:relative;z-index:1}
-.nav.hide{transform:translate(-50%,-140%)}
-.nav.solid{background:rgba(12,12,12,.55)}
-.nav .logo{display:flex;align-items:center;gap:8px}
-.nav .logo img{width:30px;height:30px;border-radius:50%;transition:transform .6s var(--ease)}
-.nav .logo:hover img{transform:rotate(360deg)}
-.nav .logo b{font-size:13.5px;font-weight:700;letter-spacing:-.01em}
-.nav ul{
-  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  display:flex;gap:16px;list-style:none;margin:0;padding:0;
-}
-.nav ul a{position:relative;font-size:13.5px;font-weight:500;color:#e6e6e6;transition:color .2s;padding:4px 0}
-.nav ul a::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:#fff;transform:scaleX(0);transform-origin:left;transition:transform .35s var(--ease)}
-.nav ul a:hover::after{transform:scaleX(1)}
-@media (max-width:900px){ .nav ul{display:none} }
+.nav-bar.hide{transform:translate(-50%,-140%)}
+.nav-bar.solid .dock-pill,.nav-bar.solid .nav-dl{background:rgba(12,12,12,.72)}
 
-/* Scroll progress hairline under the nav */
-.progress{position:fixed;top:0;left:0;height:2px;width:100%;z-index:101;transform-origin:left;transform:scaleX(0);background:linear-gradient(90deg,var(--accent),#fff);opacity:.8}
+.dock-pill{
+  display:flex;align-items:flex-end;gap:2px;
+  height:48px;padding:6px 10px 6px 10px;
+  border-radius:999px;
+  background:rgba(18,18,18,.55);
+  border:1px solid rgba(255,255,255,.18);
+  backdrop-filter:blur(16px) saturate(140%);
+  -webkit-backdrop-filter:blur(16px) saturate(140%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+  overflow:visible;
+}
+.dock-item{
+  position:relative;display:flex;align-items:flex-end;justify-content:center;
+  height:36px;width:36px;flex:none;
+}
+.dock-ico{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:36px;height:36px;border-radius:12px;
+  display:grid;place-items:center;
+  color:rgba(255,255,255,.78);
+  transition:background .35s ease, color .35s ease;
+  will-change:width,height;
+  overflow:hidden; /* icon never crosses its tile */
+  box-sizing:border-box;
+  padding:20%;
+}
+.dock-ico svg{
+  width:100%;height:100%;max-width:18px;max-height:18px;
+  stroke:currentColor;fill:none;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round;display:block;
+}
+.dock-item.is-hot .dock-ico,
+.dock-ico:hover{
+  background:rgba(255,255,255,.1);color:#fff;
+}
+.dock-tip{
+  position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%) scale(.94);
+  background:#fff;color:#000;font-size:11px;font-weight:600;letter-spacing:-.01em;
+  padding:4px 8px;border-radius:6px;white-space:nowrap;pointer-events:none;
+  opacity:0;transition:opacity .15s ease, transform .15s ease;
+}
+.dock-tip::after{
+  content:"";position:absolute;left:50%;top:100%;transform:translateX(-50%);
+  border:4px solid transparent;border-top-color:#fff;
+}
+.dock-item.is-hot .dock-tip{opacity:1;transform:translateX(-50%) scale(1)}
+.dock-sep{
+  width:1px;align-self:center;height:18px;margin:0 6px;
+  background:rgba(255,255,255,.2);flex:none;
+}
+
+.nav-dl{
+  display:inline-flex;align-items:center;justify-content:center;
+  height:48px;padding:0 20px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.22);
+  background:rgba(18,18,18,.45);
+  color:#fff;font-size:13.5px;font-weight:500;letter-spacing:-.01em;
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  transition:background .4s ease, border-color .4s ease, transform .4s cubic-bezier(.22,1,.36,1);
+}
+.nav-dl:hover{
+  background:rgba(255,255,255,.1);
+  border-color:rgba(255,255,255,.4);
+  transform:translateY(-1px);
+}
+
+.nav-cta{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  height:48px;padding:0 20px;border-radius:999px;
+  background:#fff;color:#0a0a0a;
+  font-size:13.5px;font-weight:600;letter-spacing:-.01em;
+  transition:background .4s ease, transform .4s cubic-bezier(.22,1,.36,1), box-shadow .4s ease;
+}
+.nav-cta:hover{
+  background:#f0f0f0;
+  transform:translateY(-1px);
+  box-shadow:0 10px 28px rgba(0,0,0,.35);
+}
+.nav-cta .arr{width:14px;height:14px;display:grid;place-items:center;transition:transform .4s cubic-bezier(.22,1,.36,1)}
+.nav-cta .arr svg{width:12px;height:12px}
+.nav-cta:hover .arr{transform:translate(2px,-2px)}
+
+@media (max-width:900px){
+  .dock-pill{display:none}
+  .nav-bar{gap:8px}
+  .nav-dl,.nav-cta{height:42px;padding:0 16px;font-size:12.5px}
+}
+
+/* legacy .nav hide hook used by scroll JS — map to .nav-bar */
+.nav{display:none !important}
 
 /* Vertical badge pinned to the right edge */
 .side{
@@ -940,13 +995,18 @@ h1,h2,h3,.words,.sec-head h2,.hero-head h1,.team h2,.fbrand h4,.cta-mid .big,.re
 
 
 
-/* ── Glassy button (Framer Glassy-button-wkgf) ─────────────────────── */
+/* ── Glassy button (Framer Glassy-button-wkgf) — icon clipped inside ─ */
 /* https://framer.com/m/Glassy-button-wkgf.js@kR90p8CxkIlZ7L6xYHsR */
 .glassy-wrap{display:inline-flex;flex-direction:column;align-items:center;gap:12px;margin-top:22px}
 .glassy-btn{
+  --gb: 88px;
+  --gb-pad: 5px;
+  box-sizing:border-box;
   position:relative;display:grid;place-items:center;
-  width:96px;height:96px;padding:4px;border-radius:40px;cursor:pointer;
-  text-decoration:none;color:#111;isolation:isolate;overflow:hidden;
+  width:var(--gb);height:var(--gb);padding:var(--gb-pad);
+  border-radius:50%;cursor:pointer;
+  text-decoration:none;color:#111;isolation:isolate;
+  overflow:hidden; /* hard clip — nothing leaves the chrome ring */
   background:linear-gradient(180deg,#fff 0%,#c9c9c9 9%,#a1a1a1 32%,#757575 73%,#fff 100%);
   box-shadow:
     0.07px 1px 0.5px rgba(0,0,0,0),
@@ -958,35 +1018,35 @@ h1,h2,h3,.words,.sec-head h2,.hero-head h1,.team h2,.fbrand h4,.cta-mid .big,.re
     2.2px 33px 16.5px rgba(0,0,0,.05),
     4px 60px 30px rgba(0,0,0,.1);
   transition:transform .45s cubic-bezier(.22,1,.36,1), box-shadow .45s ease, filter .45s ease;
-  will-change:transform;
 }
 .glassy-btn:hover{
-  transform:translateY(-3px) scale(1.03);
-  box-shadow:
-    0.07px 1px 0.5px rgba(0,0,0,0),
-    0.16px 2.4px 1.2px rgba(0,0,0,0),
-    0.29px 4.4px 2.2px rgba(0,0,0,.01),
-    0.48px 7.2px 3.6px rgba(0,0,0,.01),
-    0.78px 11.7px 5.9px rgba(0,0,0,.01),
-    1.28px 19.1px 9.6px rgba(0,0,0,.02),
-    2.2px 33px 16.5px rgba(0,0,0,.04),
-    4px 60px 30px rgba(0,0,0,.07);
-  filter:brightness(1.04);
+  transform:translateY(-2px) scale(1.02);
+  filter:brightness(1.03);
 }
 .glassy-btn:active{transform:translateY(0) scale(.98)}
 .glassy-btn-inner{
-  display:grid;place-items:center;width:100%;height:100%;border-radius:36px;
+  box-sizing:border-box;
+  display:grid;place-items:center;
+  width:100%;height:100%;
+  border-radius:50%;
+  padding:18%; /* keeps glyph clear of the inner rim */
   background:linear-gradient(150deg,#d0d0d0 0%,#ccc 50%,#c8c8c8 100%);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.65), inset 0 -1px 0 rgba(0,0,0,.08);
-  transition:background .4s ease;overflow:hidden;
+  transition:background .4s ease;
+  overflow:hidden; /* second clip — never cross inner border */
 }
 .glassy-btn:hover .glassy-btn-inner{
   background:linear-gradient(150deg,#d0d0d0 0%,#e8e8e8 50%,#c8c8c8 100%);
 }
 .glassy-btn svg{
-  width:36px;height:36px;max-width:42%;max-height:42%;stroke:#111;fill:none;stroke-width:1.6;
+  display:block;
+  width:100%;height:100%;
+  max-width:28px;max-height:28px;
+  margin:0;padding:0;
+  stroke:#111;fill:none;stroke-width:1.75;
   stroke-linecap:round;stroke-linejoin:round;
-  filter:drop-shadow(0 1px 0 rgba(255,255,255,.55));
+  overflow:visible;
+  /* no drop-shadow — that was bleeding past the rim */
 }
 .glassy-btn .apple{fill:#111;stroke:none}
 .glassy-label{
@@ -994,9 +1054,13 @@ h1,h2,h3,.words,.sec-head h2,.hero-head h1,.team h2,.fbrand h4,.cta-mid .big,.re
 }
 .cta-mid .cta-actions{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:8px}
 .cta-mid .cta-actions .btn{margin-top:0}
-.nav .glassy-btn{width:42px;height:42px;border-radius:21px;padding:2px;flex:none;overflow:hidden}
-.nav .glassy-btn-inner{border-radius:19px;overflow:hidden}
-.nav .glassy-btn svg{width:18px;height:18px;max-width:48%;max-height:48%}
+.nav .glassy-btn{
+  --gb: 40px;
+  --gb-pad: 3px;
+  flex:none;
+}
+.nav .glassy-btn-inner{padding:20%}
+.nav .glassy-btn svg{max-width:14px;max-height:14px;stroke-width:1.8}
 
 
 
@@ -1014,22 +1078,15 @@ h1,h2,h3,.words,.sec-head h2,.hero-head h1,.team h2,.fbrand h4,.cta-mid .big,.re
 <div class="progress" id="progress" aria-hidden="true"></div>
 
 <!-- ══════════════════════════════ NAV ═══════════════════════════════ -->
-<nav class="nav" id="nav" aria-label="Primary">
-  <a class="logo" href="https://silenthelp.org/" aria-label="SilentHelp home">
-    <img src="static/img/badge-256.png" alt="">
-    <b>SilentHelp</b>
-  </a>
-    <ul>
-    <li><a href="https://silenthelp.org/">Home</a></li>
-    <li><a href="#demo">Demo</a></li>
-    <li><a href="#how">How it works</a></li>
-    <li><a href="https://silenthelp.org/about">About</a></li>
-  </ul>
-<a class="glassy-btn" href="https://silenthelp.org/download/agent" aria-label="Download for Mac" title="Download for Mac"><span class="glassy-btn-inner"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11"/><path d="M7.5 10.5 12 15l4.5-4.5"/><path d="M5 19h14"/></svg></span></a>
-  <a class="btn" href="https://silenthelp.org/app">Start free
+<div class="nav-bar" id="nav" aria-label="Primary">
+  <div class="dock-pill" id="dock" role="navigation" aria-label="Sections">
+    <a class="dock-item" href="#top" data-label="Overview" aria-label="Overview"><span class="dock-tip">Overview</span><span class="dock-ico"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/></svg></span></a><a class="dock-item" href="#demo" data-label="Demo" aria-label="Demo"><span class="dock-tip">Demo</span><span class="dock-ico"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></a><a class="dock-item" href="#how" data-label="How it works" aria-label="How it works"><span class="dock-tip">How it works</span><span class="dock-ico"><svg viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="M3 16l9 5 9-5"/><path d="M3 12l9 5 9-5"/></svg></span></a><a class="dock-item" href="#numbers" data-label="Numbers" aria-label="Numbers"><span class="dock-tip">Numbers</span><span class="dock-ico"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span></a><a class="dock-item" href="#beneath" data-label="Signals" aria-label="Signals"><span class="dock-tip">Signals</span><span class="dock-ico"><svg viewBox="0 0 24 24"><path d="M12 3l7.5 3v5.5c0 5-3.3 9.2-7.5 10.5C7.8 20.7 4.5 16.5 4.5 11.5V6L12 3Z"/></svg></span></a><span class="dock-sep" aria-hidden="true"></span><a class="dock-item" href="#team" data-label="Team" aria-label="Team"><span class="dock-tip">Team</span><span class="dock-ico"><svg viewBox="0 0 24 24"><path d="M16 20v-1.5a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4V20"/><path d="M9.5 7a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/><path d="M21 20v-1.5a4 4 0 0 0-3-3.87"/><path d="M16.5 3.6a4 4 0 0 1 0 7.75"/></svg></span></a>
+  </div>
+  <a class="nav-dl" href="https://silenthelp.org/download/agent">Download for Mac</a>
+  <a class="nav-cta" href="https://silenthelp.org/app">Start free
     <span class="arr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></span>
   </a>
-</nav>
+</div>
 
 <aside class="side" aria-hidden="true"><b>SH.</b><span>Free forever</span></aside>
 
@@ -1460,7 +1517,7 @@ h1,h2,h3,.words,.sec-head h2,.hero-head h1,.team h2,.fbrand h4,.cta-mid .big,.re
         <div class="cta-actions">
           <div class="glassy-wrap">
           <a class="glassy-btn" href="https://silenthelp.org/download/agent" aria-label="Download for Mac">
-            <span class="glassy-btn-inner"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11"/><path d="M7.5 10.5 12 15l4.5-4.5"/><path d="M5 19h14"/></svg></span>
+            <span class="glassy-btn-inner"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 5v9"/><path d="M8.5 11.5 12 15l3.5-3.5"/><path d="M6 18.5h12"/></svg></span>
           </a>
           <span class="glassy-label">Download for Mac</span>
         </div>
@@ -1682,12 +1739,49 @@ h1,h2,h3,.words,.sec-head h2,.hero-head h1,.team h2,.fbrand h4,.cta-mid .big,.re
 
 
 
-  /* Liquid Glass Nav Pro wiring (Framer look + local liquid-glass.js) */
-  try {
-    if (typeof liquidGlass === 'function') {
-      liquidGlass(document.getElementById('nav'), { scale: -96, radius: 32, border: 0.12, blur: 14 });
+
+  /* ── DialedWeb dock magnification inside dock-pill ──────────────── */
+  (function initDock(){
+    var dock = document.getElementById('dock');
+    if (!dock) return;
+    var items = [].slice.call(dock.querySelectorAll('.dock-item'));
+    var base = 36, mag = 1.65, dist = 100;
+    var mouseX = null, cur = items.map(function(){ return base; }), target = items.map(function(){ return base; });
+    function gaussian(d){ return (mag - 1) * Math.exp(-(d * d) / (2 * dist * dist)) + 1; }
+    function computeTargets(){
+      items.forEach(function(it, i){
+        var rect = it.getBoundingClientRect();
+        var cx = rect.left + rect.width / 2;
+        var d = (mouseX == null) ? dist * 100 : Math.abs(mouseX - cx);
+        target[i] = Math.min(base * mag, base * gaussian(d));
+      });
     }
-  } catch (e) {}
+    function tick(){
+      items.forEach(function(it, i){
+        cur[i] += (target[i] - cur[i]) * 0.26;
+        var s = cur[i];
+        var ico = it.querySelector('.dock-ico');
+        it.style.width = s + 'px';
+        ico.style.width = s + 'px';
+        ico.style.height = s + 'px';
+        ico.style.borderRadius = Math.max(10, s * 0.32) + 'px';
+      });
+      requestAnimationFrame(tick);
+    }
+    computeTargets(); tick();
+    dock.addEventListener('pointermove', function(e){ mouseX = e.clientX; computeTargets(); });
+    dock.addEventListener('pointerleave', function(){
+      mouseX = null; computeTargets();
+      items.forEach(function(it){ it.classList.remove('is-hot'); });
+    });
+    items.forEach(function(it){
+      it.addEventListener('pointerenter', function(){
+        items.forEach(function(x){ x.classList.remove('is-hot'); });
+        it.classList.add('is-hot');
+      });
+      it.addEventListener('pointerleave', function(){ it.classList.remove('is-hot'); });
+    });
+  })();
 
   /* ── Hero ParticleText — port of Framer ParticleText-2NZQ ────────
      Source: https://framer.com/m/ParticleText-2NZQ.js@otOSwmqP2acS2BjTve4l

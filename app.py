@@ -895,13 +895,8 @@ def _pipeline(message: str, record: bool = False, toggles: dict | None = None):
 
 @app.route("/")
 def landing():
-    # Front page — Lithos hero rebuilt with looping video + liquid-glass chrome.
-    #
-    # Served as a STATIC file, not render_template(): the page is React/JSX
-    # compiled in the browser by Babel, and JSX's `{{ ... }}` (an object literal
-    # inside a prop) is indistinguishable from Jinja's print syntax, so Jinja
-    # raises TemplateSyntaxError on it. There are no server-side variables in
-    # this page, so there is nothing to render anyway.
+    # Front page — dialedweb landing (ParticleText hero, pill dock nav).
+    # Served as a static HTML file (not Jinja) so inline JS/CSS stay untouched.
     return send_from_directory(app.template_folder, "landing.html")
 
 
