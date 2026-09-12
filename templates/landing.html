@@ -561,7 +561,14 @@ function Hero() {
     className: "absolute left-1/2 top-0 -translate-x-1/2 object-cover object-top z-0",
     style: {
       width: "120%",
-      height: "120%"
+      height: "120%",
+      // Fade the video's OWN pixels to transparent before the hero clips it.
+      // An overlay gradient can't fully hide the seam: it darkens uniformly,
+      // but the footage's already-dim outer regions still terminate on a hard
+      // line at the overflow boundary. Masking removes those pixels instead,
+      // so there is no edge left to see at any viewport height.
+      WebkitMaskImage: "linear-gradient(to bottom, #000 0%, #000 58%, rgba(0,0,0,0) 84%)",
+      maskImage: "linear-gradient(to bottom, #000 0%, #000 58%, rgba(0,0,0,0) 84%)"
     }
   }), /*#__PURE__*/React.createElement("div", {
     // The video is taller than the hero (120% of a min-h-screen box), so
@@ -569,8 +576,11 @@ function Hero() {
     // right where the hero meets the next section. This fades the footage
     // into the page's black ground over the last stretch of the hero, so the
     // two sections read as one continuous surface instead of a seam.
-    className: "absolute inset-x-0 bottom-0 h-64 z-[5] pointer-events-none",
-    style: { background: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,.72) 55%, #000 100%)" },
+    className: "absolute inset-x-0 bottom-0 h-[300px] z-[5] pointer-events-none",
+    // Secondary to the video's own mask above — this just settles the last
+    // stretch onto solid black so the hero and the next section share one
+    // continuous ground.
+    style: { background: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,.6) 55%, #000 100%)" },
     "aria-hidden": true
   }), /*#__PURE__*/React.createElement("div", {
     className: "relative z-10 flex flex-col flex-1"
