@@ -696,8 +696,18 @@ section{position:relative;scroll-margin-top:70px}
 .wires{display:block;width:100%;height:auto;margin-top:4px}
 .wires path{fill:none;stroke:rgba(255,255,255,.32);stroke-width:1.3;stroke-dasharray:1000;stroke-dashoffset:1000;transition:stroke-dashoffset 1.6s var(--ease)}
 .in .wires path{stroke-dashoffset:0}
-.wires .pulse{stroke:var(--accent);stroke-width:2;stroke-dasharray:70 900;stroke-dashoffset:0;animation:none;filter:drop-shadow(0 0 6px var(--accent));opacity:0}
-.in .wires .pulse{animation:dash 4s linear 1.6s infinite;opacity:1}
+.wires .pulse{
+  stroke:#fff;stroke-width:2.2;stroke-linecap:round;
+  stroke-dasharray:56 1200;stroke-dashoffset:0;
+  animation:none;
+  filter:drop-shadow(0 0 7px rgba(255,255,255,.85));
+  opacity:0;
+}
+.in .wires .pulse{opacity:1}
+.in .wires .pulse.p1,
+.in .wires .pulse.p2,
+.in .wires .pulse.p3,
+.in .wires .pulse.p4{animation:dash 2.8s linear 0.15s infinite}
 .wires circle{fill:#111;stroke:rgba(255,255,255,.5);stroke-width:1.3}
 .biz{
   margin:-4px auto 0;width:max-content;display:flex;align-items:center;gap:8px;
@@ -897,7 +907,7 @@ footer{padding:90px 0 40px}
 
 /* ═══════════════════════════════ MOTION ══════════════════════════════ */
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes dash{to{stroke-dashoffset:-970}}
+@keyframes dash{to{stroke-dashoffset:-1400}}
 @keyframes marquee{to{transform:translateY(-50%)}}
 
 /* Scroll reveal variants. `.rv` rises, `.rv-l/.rv-r` slide in from the
@@ -1618,12 +1628,17 @@ body::after{
           <div class="node glow rv"><span class="n">L4</span><span class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><div class="viz"><div class="viz-days"><i></i><i></i><i></i><i></i></div></div><div class="lab">Trend gate<small>one bad day ≠ a pattern</small></div></div>
         </div>
         <svg class="wires" viewBox="0 0 680 132" aria-hidden="true">
-          <path d="M85 0 V44 L125 84 H555 L595 44 V0"/>
-          <path d="M255 0 V44 L277 84"/>
-          <path d="M425 0 V44 L403 84"/>
-          <path d="M340 84 V132"/>
-          <path class="pulse" d="M85 0 V44 L125 84 H555 L595 44 V0"/>
+          <!-- static traces: each layer → hub → You in control -->
+          <path d="M85 0 V48 L340 84 V132"/>
+          <path d="M255 0 V56 L340 84 V132"/>
+          <path d="M425 0 V56 L340 84 V132"/>
+          <path d="M595 0 V48 L340 84 V132"/>
           <circle cx="340" cy="84" r="4"/>
+          <!-- white pulses from each layer into the center -->
+          <path class="pulse p1" d="M85 0 V48 L340 84 V132"/>
+          <path class="pulse p2" d="M255 0 V56 L340 84 V132"/>
+          <path class="pulse p3" d="M425 0 V56 L340 84 V132"/>
+          <path class="pulse p4" d="M595 0 V48 L340 84 V132"/>
         </svg>
         <div class="biz"><span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>You — in control</div>
       </div>

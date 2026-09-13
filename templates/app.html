@@ -544,28 +544,32 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
           <div style="width:100%; max-width:500px;">
             <img src="/static/img/badge-256.png" alt="SilentHelp" style="width:64px; height:64px; border-radius:50%; margin-bottom:24px;" />
             <div class="hd" style="font-size:clamp(2.4rem,4vw,3.2rem); color:#fff; letter-spacing:-.02em; line-height:1;">Your own quiet space.</div>
-            <div style="font-size:16px; color:rgba(255,255,255,.6); margin-top:16px; font-weight:300; line-height:1.6;">Sign in so everything here — your battery, chat, and history — is yours alone. Nobody else can see it.</div>
+            <div style="font-size:16px; color:rgba(255,255,255,.6); margin-top:16px; font-weight:300; line-height:1.6;">Sign in or create a space — your battery, chat, and history stay yours alone. Nobody else can see it.</div>
 
             <div id="legacyGate">
-            <div style="margin-top:38px;">
+            <div id="gateModeSwitch" style="display:flex; gap:8px; margin-top:32px; padding:4px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);">
+              <button type="button" id="gateTabLogin" class="gate-tab on" onclick="App.setGateMode('login')" style="flex:1; height:42px; border:none; border-radius:999px; font-size:14px; font-weight:600; cursor:pointer; background:#fff; color:#000;">Sign in</button>
+              <button type="button" id="gateTabSignup" class="gate-tab" onclick="App.setGateMode('signup')" style="flex:1; height:42px; border:none; border-radius:999px; font-size:14px; font-weight:600; cursor:pointer; background:transparent; color:rgba(255,255,255,.7);">Sign up</button>
+            </div>
+
+            <div id="gateNameWrap" style="margin-top:28px; display:none;">
               <label style="font-size:13px; color:rgba(255,255,255,.7); font-weight:400;">Your name</label>
-              <input id="gateName" placeholder="What should SilentHelp call you?" style="width:100%; height:54px; margin-top:9px; border-radius:14px; padding:0 18px; font-size:15px; outline:none;" />
+              <input id="gateName" name="name" autocomplete="name" placeholder="What should SilentHelp call you?" style="width:100%; height:54px; margin-top:9px; border-radius:14px; padding:0 18px; font-size:15px; outline:none; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.12); color:#fff;" />
             </div>
             <div style="margin-top:20px;">
               <label style="font-size:13px; color:rgba(255,255,255,.7); font-weight:400;">Email address</label>
-              <input id="gateEmail" type="email" placeholder="you@email.com" style="width:100%; height:54px; margin-top:9px; border-radius:14px; padding:0 18px; font-size:15px; outline:none;" />
+              <input id="gateEmail" name="email" type="email" autocomplete="username" placeholder="you@email.com" style="width:100%; height:54px; margin-top:9px; border-radius:14px; padding:0 18px; font-size:15px; outline:none; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.12); color:#fff;" />
             </div>
             <div style="margin-top:20px;">
               <label style="font-size:13px; color:rgba(255,255,255,.7); font-weight:400;">Password</label>
-              <input id="gatePass" type="password" placeholder="6+ characters" style="width:100%; height:54px; margin-top:9px; border-radius:14px; padding:0 18px; font-size:15px; outline:none;" />
+              <input id="gatePass" name="password" type="password" autocomplete="current-password" placeholder="Your password" style="width:100%; height:54px; margin-top:9px; border-radius:14px; padding:0 18px; font-size:15px; outline:none; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.12); color:#fff;" />
             </div>
             <div id="gateErr" style="font-size:13px; color:#f0a58a; margin-top:14px; display:none;"></div>
 
-            <button class="sh-primary" onclick="App.gateAuth('signup')" style="width:100%; margin-top:26px; height:56px; border:none; border-radius:9999px; font-size:16px; font-weight:600; cursor:pointer;">Create my space</button>
-            <button class="sh-glass" onclick="App.gateAuth('login')" style="width:100%; margin-top:12px; height:52px; border:none; border-radius:9999px; font-size:15px; font-weight:500; cursor:pointer;">I already have an account — sign in</button>
+            <button id="gatePrimary" class="sh-primary" onclick="App.gateAuth()" style="width:100%; margin-top:26px; height:56px; border:none; border-radius:9999px; font-size:16px; font-weight:600; cursor:pointer;">Sign in</button>
 
             <div style="text-align:center; margin-top:16px;">
-              <a href="#" onclick="event.preventDefault(); App.openForgot()" style="font-size:13px; color:rgba(255,255,255,.55); text-decoration:none;">Forgot your password?</a>
+              <a href="#" id="gateForgotLink" onclick="event.preventDefault(); App.openForgot()" style="font-size:13px; color:rgba(255,255,255,.55); text-decoration:none;">Forgot your password?</a>
             </div>
 
             </div><!-- /legacyGate -->
@@ -1271,7 +1275,7 @@ const App = {
     document.getElementById('appview').style.display = (gate || onb) ? 'none' : 'flex';
     // The sign-in split screen is full-bleed, so let the frame break its cap.
     document.getElementById('appframe').classList.toggle('frame-fullbleed', gate);
-    if (gate) return;
+    if (gate){ try{ this.initGateAuth(); }catch(e){} return; }
     document.querySelectorAll('.appscreen').forEach(el => el.style.display = 'none');
     const el = document.getElementById('scr-' + screen);
     if (el) el.style.display = 'block';
@@ -1358,17 +1362,75 @@ const App = {
     } catch(e){ err.style.display='block'; err.textContent = 'Connection error.'; }
   },
   async logOut(){ await this.api('/api/logout', {}); location.reload(); },
+  _gateMode: 'login',
+  setGateMode(mode){
+    this._gateMode = (mode === 'signup') ? 'signup' : 'login';
+    const loginTab = document.getElementById('gateTabLogin');
+    const signupTab = document.getElementById('gateTabSignup');
+    const nameWrap = document.getElementById('gateNameWrap');
+    const primary = document.getElementById('gatePrimary');
+    const pass = document.getElementById('gatePass');
+    const err = document.getElementById('gateErr');
+    if (err) err.style.display = 'none';
+    const onLogin = this._gateMode === 'login';
+    if (loginTab){
+      loginTab.style.background = onLogin ? '#fff' : 'transparent';
+      loginTab.style.color = onLogin ? '#000' : 'rgba(255,255,255,.7)';
+    }
+    if (signupTab){
+      signupTab.style.background = !onLogin ? '#fff' : 'transparent';
+      signupTab.style.color = !onLogin ? '#000' : 'rgba(255,255,255,.7)';
+    }
+    if (nameWrap) nameWrap.style.display = onLogin ? 'none' : 'block';
+    if (primary) primary.textContent = onLogin ? 'Sign in' : 'Create my space';
+    if (pass){
+      pass.autocomplete = onLogin ? 'current-password' : 'new-password';
+      pass.placeholder = onLogin ? 'Your password' : '6+ characters';
+    }
+  },
+  initGateAuth(){
+    try {
+      const saved = localStorage.getItem('sh_gate_email') || '';
+      const emailEl = document.getElementById('gateEmail');
+      if (emailEl && saved) emailEl.value = saved;
+      this.setGateMode('login');
+      const pass = document.getElementById('gatePass');
+      const submit = function(ev){ if (ev.key === 'Enter'){ ev.preventDefault(); App.gateAuth(); } };
+      if (emailEl) emailEl.addEventListener('keydown', submit);
+      if (pass) pass.addEventListener('keydown', submit);
+      const nameEl = document.getElementById('gateName');
+      if (nameEl) nameEl.addEventListener('keydown', submit);
+    } catch (e) {}
+  },
   async gateAuth(kind){
+    const mode = kind || this._gateMode || 'login';
     const email = (document.getElementById('gateEmail').value || '').trim();
     const password = document.getElementById('gatePass').value || '';
     const name = (document.getElementById('gateName').value || '').trim();
     const err = document.getElementById('gateErr');
-    if (kind === 'signup' && !name){ err.style.display='block'; err.textContent = 'Add your name so SilentHelp knows what to call you.'; return; }
+    if (!email || !password){
+      err.style.display='block'; err.textContent = 'Enter your email and password.'; return;
+    }
+    if (mode === 'signup' && !name){ err.style.display='block'; err.textContent = 'Add your name so SilentHelp knows what to call you.'; return; }
     try {
-      const res = await fetch('/api/' + (kind === 'signup' ? 'signup' : 'login'), {
+      const res = await fetch('/api/' + (mode === 'signup' ? 'signup' : 'login'), {
         method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, password, name }) });
       const d = await res.json();
-      if (!res.ok) { err.style.display='block'; err.textContent = d.error || 'Could not sign in.'; return; }
+      if (!res.ok) {
+        err.style.display='block';
+        err.textContent = d.error || (mode === 'signup' ? 'Could not create your space.' : 'Could not sign in.');
+        // If account exists, nudge to Sign in; if missing, nudge to Sign up.
+        const msg = (d.error || '').toLowerCase();
+        if (mode === 'login' && (msg.includes('not found') || msg.includes('no account') || msg.includes('unknown'))) {
+          err.textContent += ' Need an account? Switch to Sign up.';
+        }
+        if (mode === 'signup' && (msg.includes('exists') || msg.includes('already'))) {
+          err.textContent += ' Try Sign in instead.';
+          this.setGateMode('login');
+        }
+        return;
+      }
+      try { localStorage.setItem('sh_gate_email', email); } catch (e) {}
       location.reload();
     } catch(e){ err.style.display='block'; err.textContent = 'Connection error — is the app reachable?'; }
   },
