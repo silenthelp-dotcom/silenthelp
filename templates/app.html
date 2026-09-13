@@ -1059,21 +1059,18 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
       </div>
     </div>
 
-    <!-- ════ GENTLE POPUP ════ -->
-    <div id="popup-gentle" style="display:none; position:absolute; inset:0; z-index:40; background:rgba(0,0,0,.5); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); align-items:center; justify-content:center; animation:fadeBg .3s ease;">
-      <div style="position:relative; width:430px; background:#fff; border:1px solid #eef2f6; border-radius:20px; padding:32px; box-shadow:0 40px 100px rgba(20,40,80,.35); animation:screenIn .5s cubic-bezier(.16,1,.3,1);">
-        <button onclick="App.closePopup()" aria-label="Close" title="Close" class="hov" style="position:absolute; top:16px; right:16px; width:30px; height:30px; border-radius:50%; border:none; background:#f2f5f9; color:#6b7885; font-size:16px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
-        <img src="/static/img/badge-128.png" alt="SilentHelp" style="width:54px; height:54px; border-radius:50%; margin-bottom:22px; box-shadow:0 12px 30px rgba(20,30,60,.28);" />
-        <div class="pf" style="font-size:26px; color:#0e1822; line-height:1.1;">A quiet check-in</div>
-        <div id="gentleDesc" style="font-size:14px; color:#5e6f7e; line-height:1.65; margin-top:14px; font-weight:300;">Your last few days look a little more scattered than your usual — later nights, more restless switching. No alarm. Just wanted to gently ask: how are you doing?</div>
-        <div style="display:flex; align-items:center; gap:8px; font-size:11.5px; color:#8b99a6; margin:18px 0 24px; font-weight:300;"><div style="width:5px; height:5px; border-radius:50%; background:#1f9d55;"></div>Noticed on-device · nothing was sent anywhere</div>
-        <div style="display:flex; gap:11px;">
-          <button class="glass ghost" onclick="App.closePopup()" style="flex:1; border-radius:12px; padding:14px; font-size:14px; font-weight:600;">Not now</button>
-          <button class="glass" onclick="App.goChatFromPopup()" style="flex:1; border-radius:12px; padding:14px; font-size:14px; font-weight:600;">Talk it through</button>
+    <!-- ════ GENTLE POPUP (SilentHelp notification card) ════ -->
+    <div id="popup-gentle" style="display:none; position:absolute; inset:0; z-index:40; background:rgba(0,0,0,.55); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); align-items:center; justify-content:center; animation:fadeBg .3s ease;">
+      <div role="dialog" aria-labelledby="gentleBrand" aria-describedby="gentleDesc" style="position:relative; width:min(420px,calc(100vw - 32px)); background:linear-gradient(180deg,#1a1a1a 0%,#121212 100%); border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:22px 22px 20px; box-shadow:0 28px 80px rgba(0,0,0,.65); animation:screenIn .45s cubic-bezier(.16,1,.3,1);">
+        <div id="gentleBrand" style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+          <span aria-hidden="true" style="width:10px; height:10px; border-radius:50%; background:#fff; flex:none;"></span>
+          <span style="font-size:12px; font-weight:700; letter-spacing:.08em; color:#fff; text-transform:uppercase;">SilentHelp</span>
         </div>
-        <div style="display:flex; justify-content:center; gap:18px; margin-top:16px; font-size:12px; color:#9aa7b3;">
-          <span onclick="App.snooze(1)" style="cursor:pointer; text-decoration:underline; text-underline-offset:3px;">Ignore for 1 hour</span>
-          <span onclick="App.snooze(2)" style="cursor:pointer; text-decoration:underline; text-underline-offset:3px;">Ignore for 2 hours</span>
+        <div id="gentleDesc" style="font-size:15px; color:rgba(255,255,255,.92); line-height:1.55; font-weight:400;">Hey — that sounded heavy. You don't have to carry it alone tonight. Want to talk it through?</div>
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:18px;">
+          <button onclick="App.goChatFromPopup()" style="flex:1 1 auto; min-width:120px; height:40px; border:none; border-radius:999px; padding:0 16px; font-size:13px; font-weight:600; cursor:pointer; background:#fff; color:#000;">Talk it through</button>
+          <button onclick="App.snooze(1)" style="flex:0 1 auto; height:40px; border-radius:999px; padding:0 14px; font-size:13px; font-weight:500; cursor:pointer; background:transparent; color:#fff; border:1px solid rgba(255,255,255,.28);">Ignore 1h</button>
+          <button onclick="App.closePopup()" style="flex:0 1 auto; height:40px; border-radius:999px; padding:0 14px; font-size:13px; font-weight:500; cursor:pointer; background:transparent; color:#fff; border:1px solid rgba(255,255,255,.28);">Dismiss</button>
         </div>
       </div>
     </div>

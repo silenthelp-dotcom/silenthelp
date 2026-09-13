@@ -98,7 +98,7 @@ section{position:relative;scroll-margin-top:70px}
   background:linear-gradient(100deg,transparent,rgba(0,0,0,.08),transparent);
   transform:skewX(-20deg);transition: left .9s cubic-bezier(.22,1,.36,1);
 }
-.btn:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(255,255,255,.14)}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.35)}
 .btn:hover::after{left:110%}
 .btn .arr{
   width:26px;height:26px;border-radius:50%;background:#000;color:#fff;
@@ -239,17 +239,7 @@ section{position:relative;scroll-margin-top:70px}
 
 /* ═══════════════════════════════ HERO ════════════════════════════════ */
 .hero{position:relative;padding:118px 0 40px;overflow:hidden}
-.hero .grid-bg{
-  position:absolute;inset:0;pointer-events:none;
-  background-image:
-    linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);
-  background-size:102px 102px;background-position:center top;
-  -webkit-mask-image:linear-gradient(#000 0%,rgba(0,0,0,.6) 35%,transparent 62%);
-  mask-image:linear-gradient(#000 0%,rgba(0,0,0,.6) 35%,transparent 62%);
-  animation:gridDrift 30s linear infinite;
 }
-@keyframes gridDrift{to{background-position:center 102px}}
 .hero .beam{
   position:absolute;left:-12%;top:-40%;width:48%;height:130%;pointer-events:none;
   background:linear-gradient(112deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,.05) 30%,transparent 55%);
@@ -288,14 +278,6 @@ section{position:relative;scroll-margin-top:70px}
 .plabel .stack > span:first-child{font-size:14px;font-weight:500;line-height:1.1}
 .plabel .stack > span:last-child{font-size:10.5px;color:var(--muted);font-weight:400;margin-top:3px}
 
-/* Cursor glow: cards light up under the pointer (dialedweb's grid glow). */
-.glow{position:relative}
-.glow::after{
-  content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;opacity:0;
-  background:radial-gradient(260px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.12),transparent 60%);
-  transition:opacity .4s;
-}
-.glow:hover::after{opacity:1}
 
 /* Product mocks inside the bento */
 .mock{position:absolute;inset:14px 14px 48px;display:flex;flex-direction:column;gap:6px;font-size:10.5px;line-height:1.3}
@@ -654,7 +636,7 @@ section{position:relative;scroll-margin-top:70px}
   background:var(--card);padding:44px 40px 46px;overflow:hidden;position:relative;
 }
 .diagram::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.35;
-  background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);
+  background-image:none;
   background-size:48px 48px;-webkit-mask-image:radial-gradient(ellipse at 50% 30%,#000 20%,transparent 75%);mask-image:radial-gradient(ellipse at 50% 30%,#000 20%,transparent 75%)}
 .diagram .inner{max-width:680px;margin:0 auto;position:relative}
 .nodes{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
@@ -667,7 +649,7 @@ section{position:relative;scroll-margin-top:70px}
   transition:transform .5s var(--ease),border-color .3s;
 }
 .node:hover{transform:translateY(-5px);border-color:rgba(255,255,255,.55);box-shadow:0 16px 40px rgba(0,0,0,.5)}
-.node .ic{width:36px;height:36px;border-radius:50%;background:#141414;border:1px solid var(--line-2);display:grid;place-items:center;box-shadow:0 0 18px rgba(255,255,255,.35)}
+.node .ic{width:36px;height:36px;border-radius:50%;background:#141414;border:1px solid var(--line-2);display:grid;place-items:center;box-shadow:none}
 .node .ic svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:1.7}
 .node .viz{flex:1;display:flex;align-items:center;justify-content:center;min-height:44px}
 .node .lab{font-size:12px;font-weight:600}
@@ -733,12 +715,6 @@ section{position:relative;scroll-margin-top:70px}
   padding:56px 28px 64px;text-align:center;min-height:226px;overflow:hidden;transition:transform .5s var(--ease)
 }
 .kpi:hover{transform:translateY(-4px)}
-.kpi::before{
-  content:"";position:absolute;inset:0;pointer-events:none;opacity:.55;
-  background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);
-  background-size:44px 44px;background-position:center;
-  -webkit-mask-image:radial-gradient(ellipse at center,#000 20%,transparent 72%);mask-image:radial-gradient(ellipse at center,#000 20%,transparent 72%);
-}
 .kpi .num{
   position:relative;font-size:60px;font-weight:700;letter-spacing:-.035em;line-height:1;font-variant-numeric:tabular-nums;
   background:linear-gradient(180deg,#fff 15%,#8a8a8a 60%,#333 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
@@ -764,7 +740,7 @@ section{position:relative;scroll-margin-top:70px}
 .tcard:hover{transform:translateY(-4px);border-color:var(--line-2)}
 .tcard::before{
   content:"";position:absolute;inset:0;pointer-events:none;opacity:.35;
-  background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);
+  background-image:none;
   background-size:44px 44px;-webkit-mask-image:linear-gradient(#000,transparent 70%);mask-image:linear-gradient(#000,transparent 70%);
 }
 .tcard > *{position:relative}
@@ -935,7 +911,7 @@ footer{padding:90px 0 40px}
 .btn,.nav ul a,.tile,.glow,.node,.kpi,.tcard,.rrow,.fcol a,.social a,.car-nav button,.reel-thumb,.reel-strip button,.reel-list li{
   transition: transform .55s cubic-bezier(.22,1,.36,1), box-shadow .55s ease, border-color .5s ease, background-color .5s ease, color .45s ease, opacity .45s ease;
 }
-.btn:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(255,255,255,.14)}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.35)}
 .btn.ghost:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.4);box-shadow:0 8px 22px rgba(0,0,0,.3)}
 .tile:hover{border-color:rgba(255,255,255,.32);box-shadow:0 10px 28px rgba(0,0,0,.4)}
 .tile:hover video{transform:scale(1.03);transition:transform .7s cubic-bezier(.22,1,.36,1)}
@@ -1099,11 +1075,21 @@ h1,h2,h3,.words,.sec-head h2,.hero-head h1,.team h2,.fbrand h4,.cta-mid .big,.re
 
 
 
-/* Hero headline font only */
+/* Hero + story use Numbers-section type (Inter) */
 .hero-head h1.words,.hero-head h1{
-  font-family:"Instrument Serif", Georgia, "Iowan Old Style", serif !important;
-  font-weight:400 !important;
-  letter-spacing:-.02em !important;
+  font-family:var(--font)!important;
+  font-weight:700 !important;
+  letter-spacing:-.035em !important;
+}
+.story-pin-head{
+  font-family:var(--font)!important;
+  font-weight:700 !important;
+  letter-spacing:-.035em !important;
+}
+.story-pin-head em{
+  font-style:normal;
+  font-weight:700;
+  color:rgba(255,255,255,.72);
 }
 
 
@@ -1162,7 +1148,6 @@ html.lenis, html.lenis body{height:auto}
   --sec-glow:0;
 }
 .sec-head h2, .reel .sec-head h2{
-  text-shadow:0 0 calc(40px * var(--sec-glow,0)) rgba(255,255,255,calc(.18 * var(--sec-glow,0)));
 }
 
 /* soft film grain overlay — emotional, not noisy */
@@ -1212,8 +1197,8 @@ body::after{
   max-width:min(920px,92vw);
   text-align:center;
   padding:0 24px;
-  font-family:var(--serif);
-  font-weight:400;
+  font-family:var(--font);
+  font-weight:700;
   font-size:clamp(34px,5.6vw,68px);
   line-height:1.08;
   letter-spacing:-.03em;
@@ -1362,7 +1347,6 @@ body::after{
 
 <!-- ══════════════════════════════ HERO ══════════════════════════════ -->
 <section class="hero" id="top">
-  <div class="grid-bg" aria-hidden="true"></div>
   <div class="beam" aria-hidden="true"></div>
   <div class="wrap">
     <div class="hero-head">
@@ -1372,7 +1356,7 @@ body::after{
 
     <div class="bento" data-stagger>
       <div class="col">
-        <a class="tile sq glow rv" href="#demo" data-slide="0" aria-label="Coping chat — watch in the demo">
+        <a class="tile sq rv" href="#demo" data-slide="0" aria-label="Coping chat — watch in the demo">
           <div class="mock">
             <div class="win"><i></i><i></i><i></i></div>
             <div class="bubble me">i feel so alone and hopeless</div>
@@ -1383,7 +1367,7 @@ body::after{
           <div class="shade"></div>
           <div class="plabel"><span class="star">✦</span>Coping chat<span class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span></div>
         </a>
-        <a class="tile sq glow rv" href="#demo" data-slide="1" aria-label="Help a Friend — watch in the demo">
+        <a class="tile sq rv" href="#demo" data-slide="1" aria-label="Help a Friend — watch in the demo">
           <div class="mock">
             <div class="win"><i></i><i></i><i></i></div>
             <div class="bubble me" style="align-self:flex-start;background:#1d1d1f;border-radius:10px 10px 10px 3px">a friend sent: "i can't do this anymore"</div>
@@ -1395,7 +1379,7 @@ body::after{
       </div>
 
             <div class="col mid">
-        <div class="tile fill glow rv particle-hero" role="img" aria-label="SilentHelp">
+        <div class="tile fill rv particle-hero" role="img" aria-label="SilentHelp">
           <div class="letter-drop" id="letter-drop" aria-hidden="true"></div>
           <div class="quantum-mount" id="quantum-matrix" aria-hidden="true"></div>
           <canvas id="particle-text" aria-hidden="true"></canvas>
@@ -1405,12 +1389,12 @@ body::after{
 </div>
 
       <div class="col">
-        <div class="tile small glow rv">
+        <div class="tile small rv">
           <a class="btn" href="https://silenthelp.org/stage">See it run
             <span class="arr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></span>
           </a>
         </div>
-        <a class="tile fill glow rv" href="#demo" data-slide="2" aria-label="The Mac agent — watch in the demo">
+        <a class="tile fill rv" href="#demo" data-slide="2" aria-label="The Mac agent — watch in the demo">
           <video src="/static/video/caps.mp4" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video>
           <div class="shade"></div>
           <div class="plabel"><span class="stack"><span><span class="star">✦</span>&nbsp;Mac agent <span class="ok" style="display:inline-grid;vertical-align:-2px;margin-left:4px"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span></span><span>Watching four layers, quietly, on your Mac</span></span></div>
@@ -1622,10 +1606,10 @@ body::after{
     <div class="diagram rv-s" id="diagram">
       <div class="inner">
         <div class="nodes" data-stagger>
-          <div class="node glow rv"><span class="n">L1</span><span class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg></span><div class="viz"><div class="viz-kw">i feel so <mark>alone</mark></div></div><div class="lab">Keyword<small>~15 ms · local regex · no AI</small></div></div>
-          <div class="node glow rv"><span class="n">L2</span><span class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a4 4 0 0 0-4 4v1a4 4 0 0 0-3 4 4 4 0 0 0 3 4v1a4 4 0 0 0 8 0v-1a4 4 0 0 0 3-4 4 4 0 0 0-3-4V7a4 4 0 0 0-4-4Z"/><path d="M12 3v18"/></svg></span><div class="viz"><div class="viz-meter"><div class="trk"></div><span class="lb">joke</span><span class="lb r">serious</span><div class="nd"></div></div></div><div class="lab">Semantic<small>reads intent, decides severity</small></div></div>
-          <div class="node glow rv"><span class="n">L3</span><span class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l2.5-6 3 12 2.5-8 1.5 2H21"/></svg></span><div class="viz"><div class="viz-bars"><i></i><i></i><i></i><i></i><i></i><i></i></div></div><div class="lab">Behavioral<small>rhythm vs. your baseline · no text</small></div></div>
-          <div class="node glow rv"><span class="n">L4</span><span class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><div class="viz"><div class="viz-days"><i></i><i></i><i></i><i></i></div></div><div class="lab">Trend gate<small>one bad day ≠ a pattern</small></div></div>
+          <div class="node rv"><span class="n">L1</span><span class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg></span><div class="viz"><div class="viz-kw">i feel so <mark>alone</mark></div></div><div class="lab">Keyword<small>~15 ms · local regex · no AI</small></div></div>
+          <div class="node rv"><span class="n">L2</span><span class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a4 4 0 0 0-4 4v1a4 4 0 0 0-3 4 4 4 0 0 0 3 4v1a4 4 0 0 0 8 0v-1a4 4 0 0 0 3-4 4 4 0 0 0-3-4V7a4 4 0 0 0-4-4Z"/><path d="M12 3v18"/></svg></span><div class="viz"><div class="viz-meter"><div class="trk"></div><span class="lb">joke</span><span class="lb r">serious</span><div class="nd"></div></div></div><div class="lab">Semantic<small>reads intent, decides severity</small></div></div>
+          <div class="node rv"><span class="n">L3</span><span class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l2.5-6 3 12 2.5-8 1.5 2H21"/></svg></span><div class="viz"><div class="viz-bars"><i></i><i></i><i></i><i></i><i></i><i></i></div></div><div class="lab">Behavioral<small>rhythm vs. your baseline · no text</small></div></div>
+          <div class="node rv"><span class="n">L4</span><span class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><div class="viz"><div class="viz-days"><i></i><i></i><i></i><i></i></div></div><div class="lab">Trend gate<small>one bad day ≠ a pattern</small></div></div>
         </div>
         <svg class="wires" viewBox="0 0 680 132" aria-hidden="true">
           <!-- static traces: each layer → hub → You in control -->
@@ -1655,19 +1639,19 @@ body::after{
       <p class="rv d2">Privacy-first by design. Measured on the device, never in the cloud.</p>
     </div>
     <div class="kpis" data-stagger>
-      <div class="kpi glow rv">
+      <div class="kpi rv">
         <div class="num" data-count data-from="250" data-to="1" data-prefix="&lt;" data-suffix="ms">&lt;1ms</div>
         <div class="lbl">on-device scan</div>
         <p>every message checked locally, before anything leaves your Mac.</p>
         <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
       </div>
-      <div class="kpi glow rv">
+      <div class="kpi rv">
         <div class="num" data-count data-from="4096" data-to="0" data-suffix=" bytes">0 bytes</div>
         <div class="lbl">raw text stored</div>
         <p>only a category and a level are recorded — never what you wrote.</p>
         <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.2-2.9 7.8-7 9-4.1-1.2-7-4.8-7-9V6l7-3Z"/></svg></span>
       </div>
-      <div class="kpi glow rv">
+      <div class="kpi rv">
         <div class="num" data-count data-from="0" data-to="4">4</div>
         <div class="lbl">detection layers</div>
         <p>keyword, semantic, behavioral, and a trend gate that ignores one bad day.</p>
@@ -1688,37 +1672,37 @@ body::after{
 
     <div class="car-wrap rv d2">
       <div class="carousel" id="carousel" data-lenis-prevent>
-        <article class="tcard glow">
+        <article class="tcard">
           <div class="avatar"><svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M12 3a6 6 0 0 0-3 11.2V17h6v-2.8A6 6 0 0 0 12 3Z"/><path d="M10 21h4"/></svg></div>
           <div class="name">The student at 1 a.m.</div>
           <div class="role">Studying, scrolling, not sleeping</div>
           <p class="quote">SilentHelp reads the rhythm — late nights, restless tab switching, typing pace — against your own baseline. Layer three reads no words at all. It just checks in.</p>
         </article>
-        <article class="tcard glow">
+        <article class="tcard">
           <div class="avatar"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/></svg></div>
           <div class="name">The one who jokes</div>
           <div class="role">"this test is killing me 😂"</div>
           <p class="quote">Nothing happens. SilentHelp reads meaning, not keywords — so it never cries wolf, and students keep trusting it when it does speak up.</p>
         </article>
-        <article class="tcard glow">
+        <article class="tcard">
           <div class="avatar"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg></div>
           <div class="name">The friend who got a text</div>
           <div class="role">Help a Friend</div>
           <p class="quote">Paste what they sent. SilentHelp coaches you on what to say, what not to say, and when it's time to bring in a trusted adult.</p>
         </article>
-        <article class="tcard glow">
+        <article class="tcard">
           <div class="avatar"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/></svg></div>
           <div class="name">The parent who wonders</div>
           <div class="role">Families</div>
           <p class="quote">Nothing is reported behind your teen's back. What you get is a teen with support that's actually theirs — which is the only kind they'll use.</p>
         </article>
-        <article class="tcard glow">
+        <article class="tcard">
           <div class="avatar"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13"/><path d="M2 19h20"/><path d="M8 9h8M8 13h5"/></svg></div>
           <div class="name">The school counselor</div>
           <div class="role">Schools</div>
           <p class="quote">When a student chooses to reach out, the message arrives already drafted — with a category and a level, never a transcript.</p>
         </article>
-        <article class="tcard glow">
+        <article class="tcard">
           <div class="avatar"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.2-2.9 7.8-7 9-4.1-1.2-7-4.8-7-9V6l7-3Z"/><path d="M12 8v5M12 16h.01"/></svg></div>
           <div class="name">The one in crisis</div>
           <div class="role">988 · Suicide &amp; Crisis Lifeline</div>
@@ -1942,7 +1926,7 @@ body::after{
     })(t0);
   }
 
-  /* ── Cursor glow on cards ─────────────────────────────────────── */
+  /* ── Cursor on cards ─────────────────────────────────────── */
   document.addEventListener('pointermove', function(e){
     var g = e.target.closest && e.target.closest('.glow');
     if (!g) return;
@@ -2026,7 +2010,7 @@ body::after{
         var pp = (r.top + r.height / 2 - innerHeight / 2) / innerHeight;
         h.style.setProperty('--px', (pp * -56).toFixed(1) + 'px');
       });
-      // section emotional glow as they center
+      // section emotional as they center
       if (!reduce) cinemaSecs.forEach(function(sec){
         var r = sec.getBoundingClientRect();
         var mid = r.top + r.height * 0.35;
