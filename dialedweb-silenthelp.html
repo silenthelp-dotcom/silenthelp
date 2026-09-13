@@ -725,6 +725,65 @@ section{position:relative;scroll-margin-top:70px}
 .kpi .ico svg{width:14px;height:14px;stroke:#ddd}
 @media (max-width:900px){ .kpis{grid-template-columns:1fr} }
 
+
+/* ── Perspective carousel (Built for the Ones Who Go Quiet) ───────── */
+.pcar-wrap{position:relative;margin-top:40px;height:min(560px,72vh);isolation:isolate}
+.pcar{
+  position:relative;height:100%;width:100%;overflow:hidden;
+  outline:none; border-radius:24px;
+  background:radial-gradient(ellipse 60% 50% at 50% 55%, rgba(255,255,255,.04), transparent 70%);
+}
+.pcar-viewport{position:absolute;inset:0;perspective:1200px;overflow:hidden}
+.pcar-track{
+  position:absolute;left:50%;top:48%;display:flex;align-items:center;
+  transform:translateY(-50%); will-change:transform;
+  transition:transform .9s cubic-bezier(.22,1,.36,1);
+}
+.pcar-slide{
+  flex:none; width:var(--pw,220px); perspective:1200px;
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+  transform-style:preserve-3d;
+  transition:transform .9s cubic-bezier(.22,1,.36,1), opacity .6s ease, filter .6s ease;
+}
+.pcar-slide button{
+  all:unset; cursor:pointer; display:block; width:100%; aspect-ratio:3/4;
+  border-radius:14px; overflow:hidden;
+  box-shadow:0 24px 60px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.08);
+}
+.pcar-slide img{width:100%;height:100%;object-fit:cover;display:block; filter:grayscale(1) contrast(1.05); user-select:none; -webkit-user-drag:none}
+.pcar-slide .plab{
+  font-size:13px; font-weight:600; letter-spacing:-.01em; color:#fff;
+  white-space:nowrap; opacity:0; filter:blur(2px);
+  transition:opacity .6s ease, filter .6s ease;
+}
+.pcar-slide.is-active .plab{opacity:1; filter:blur(0)}
+.pcar-slide.is-active{z-index:2}
+.pcar-controls{
+  position:absolute; left:50%; bottom:18px; transform:translateX(-50%);
+  z-index:5; display:flex; align-items:center; gap:10px;
+  padding:6px 10px; border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(20,20,20,.72); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+}
+.pcar-controls button{
+  width:36px; height:36px; border-radius:50%; border:none; cursor:pointer;
+  background:transparent; color:#fff; display:grid; place-items:center;
+  transition:background .2s, opacity .2s;
+}
+.pcar-controls button:hover{background:rgba(255,255,255,.1)}
+.pcar-controls button:disabled{opacity:.35; cursor:not-allowed}
+.pcar-controls svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pcar-dots{display:flex; gap:6px; align-items:center; padding:0 4px}
+.pcar-dots button{
+  width:8px; height:8px; border-radius:999px; border:none; padding:0; cursor:pointer;
+  background:#fff; opacity:.3; transition:width .3s, opacity .3s;
+}
+.pcar-dots button.on{width:28px; opacity:1}
+@media (max-width:700px){
+  .pcar-wrap{height:480px}
+  .pcar{--pw:160px}
+}
+
 /* ── Who it's for: carousel ─────────────────────────────────────────── */
 .car-wrap{margin-top:36px}
 .carousel{
@@ -755,7 +814,7 @@ section{position:relative;scroll-margin-top:70px}
 .tcard .quote{font-size:13.5px;line-height:1.42;margin-top:16px;color:#ececec;flex:1}
 .tcard.join{flex:0 0 300px;background:linear-gradient(180deg,#141414,#0b0b0b);border-color:rgba(255,255,255,.35)}
 .tcard.join .btn{margin-top:18px;align-self:flex-start;flex:none}
-.car-nav{display:flex;align-items:center;gap:6px;justify-content:flex-end;border-top:1px solid var(--line);margin-top:26px;padding-top:12px}
+.car-nav{display:none!important;display:flex;align-items:center;gap:6px;justify-content:flex-end;border-top:1px solid var(--line);margin-top:26px;padding-top:12px}
 .car-nav button{width:26px;height:26px;border-radius:50%;background:#141414;border:1px solid var(--line);display:grid;place-items:center;transition:background .2s,transform .3s var(--ease)}
 .car-nav button:hover{background:#1f1f1f;transform:scale(1.1)}
 .car-nav svg{width:10px;height:10px;stroke:#fff;fill:none;stroke-width:1.8}
@@ -1670,49 +1729,54 @@ body::after{
       <p class="rv d2">Real Moments. Real Signals. Support That Arrives Before the Ask.</p>
     </div>
 
-    <div class="car-wrap rv d2">
-      <div class="carousel" id="carousel" data-lenis-prevent>
-        <article class="tcard">
-          <div class="avatar"><svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M12 3a6 6 0 0 0-3 11.2V17h6v-2.8A6 6 0 0 0 12 3Z"/><path d="M10 21h4"/></svg></div>
-          <div class="name">The student at 1 a.m.</div>
-          <div class="role">Studying, scrolling, not sleeping</div>
-          <p class="quote">SilentHelp reads the rhythm — late nights, restless tab switching, typing pace — against your own baseline. Layer three reads no words at all. It just checks in.</p>
-        </article>
-        <article class="tcard">
-          <div class="avatar"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/></svg></div>
-          <div class="name">The one who jokes</div>
-          <div class="role">"this test is killing me 😂"</div>
-          <p class="quote">Nothing happens. SilentHelp reads meaning, not keywords — so it never cries wolf, and students keep trusting it when it does speak up.</p>
-        </article>
-        <article class="tcard">
-          <div class="avatar"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg></div>
-          <div class="name">The friend who got a text</div>
-          <div class="role">Help a Friend</div>
-          <p class="quote">Paste what they sent. SilentHelp coaches you on what to say, what not to say, and when it's time to bring in a trusted adult.</p>
-        </article>
-        <article class="tcard">
-          <div class="avatar"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/></svg></div>
-          <div class="name">The parent who wonders</div>
-          <div class="role">Families</div>
-          <p class="quote">Nothing is reported behind your teen's back. What you get is a teen with support that's actually theirs — which is the only kind they'll use.</p>
-        </article>
-        <article class="tcard">
-          <div class="avatar"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13"/><path d="M2 19h20"/><path d="M8 9h8M8 13h5"/></svg></div>
-          <div class="name">The school counselor</div>
-          <div class="role">Schools</div>
-          <p class="quote">When a student chooses to reach out, the message arrives already drafted — with a category and a level, never a transcript.</p>
-        </article>
-        <article class="tcard">
-          <div class="avatar"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.2-2.9 7.8-7 9-4.1-1.2-7-4.8-7-9V6l7-3Z"/><path d="M12 8v5M12 16h.01"/></svg></div>
-          <div class="name">The one in crisis</div>
-          <div class="role">988 · Suicide &amp; Crisis Lifeline</div>
-          <p class="quote">When it's truly serious, a calm full-screen check-in surfaces real human help immediately. Crisis always bypasses the trend gate.</p>
-        </article>
+    <div class="pcar-wrap rv d2">
+      <div class="pcar" id="pcar" tabindex="0" role="region" aria-roledescription="carousel" aria-label="Who SilentHelp is for" data-lenis-prevent>
+        <div class="pcar-viewport">
+          <div class="pcar-track" id="pcar-track">
+        <div class="pcar-slide" data-i="0" style="--i:0">
+          <button type="button" aria-label="Show The student at 1 a.m." data-goto="0">
+            <img src="static/img/personas/01-student.png" alt="The student at 1 a.m." draggable="false" loading="lazy"/>
+          </button>
+          <p class="plab">The student at 1 a.m.<span style="display:block;font-weight:400;color:rgba(255,255,255,.5);font-size:11.5px;margin-top:3px">Studying, scrolling, not sleeping</span></p>
+        </div>
+        <div class="pcar-slide" data-i="1" style="--i:1">
+          <button type="button" aria-label="Show The one who jokes" data-goto="1">
+            <img src="static/img/personas/02-joker.png" alt="The one who jokes" draggable="false" loading="lazy"/>
+          </button>
+          <p class="plab">The one who jokes<span style="display:block;font-weight:400;color:rgba(255,255,255,.5);font-size:11.5px;margin-top:3px">"this test is killing me 😂"</span></p>
+        </div>
+        <div class="pcar-slide" data-i="2" style="--i:2">
+          <button type="button" aria-label="Show The friend who got a text" data-goto="2">
+            <img src="static/img/personas/03-friend.png" alt="The friend who got a text" draggable="false" loading="lazy"/>
+          </button>
+          <p class="plab">The friend who got a text<span style="display:block;font-weight:400;color:rgba(255,255,255,.5);font-size:11.5px;margin-top:3px">Help a Friend</span></p>
+        </div>
+        <div class="pcar-slide" data-i="3" style="--i:3">
+          <button type="button" aria-label="Show The parent who wonders" data-goto="3">
+            <img src="static/img/personas/04-parent.png" alt="The parent who wonders" draggable="false" loading="lazy"/>
+          </button>
+          <p class="plab">The parent who wonders<span style="display:block;font-weight:400;color:rgba(255,255,255,.5);font-size:11.5px;margin-top:3px">Families</span></p>
+        </div>
+        <div class="pcar-slide" data-i="4" style="--i:4">
+          <button type="button" aria-label="Show The school counselor" data-goto="4">
+            <img src="static/img/personas/05-counselor.png" alt="The school counselor" draggable="false" loading="lazy"/>
+          </button>
+          <p class="plab">The school counselor<span style="display:block;font-weight:400;color:rgba(255,255,255,.5);font-size:11.5px;margin-top:3px">Schools</span></p>
+        </div>
+        <div class="pcar-slide" data-i="5" style="--i:5">
+          <button type="button" aria-label="Show The one in crisis" data-goto="5">
+            <img src="static/img/personas/06-crisis.png" alt="The one in crisis" draggable="false" loading="lazy"/>
+          </button>
+          <p class="plab">The one in crisis<span style="display:block;font-weight:400;color:rgba(255,255,255,.5);font-size:11.5px;margin-top:3px">988 · Suicide & Crisis Lifeline</span></p>
+        </div>
+          </div>
+        </div>
+        <div class="pcar-controls">
+          <button type="button" id="pcar-prev" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <div class="pcar-dots" id="pcar-dots" aria-hidden="false"></div>
+          <button type="button" id="pcar-next" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+        </div>
       </div>
-    </div>
-    <div class="car-nav">
-      <button type="button" id="car-prev" aria-label="Previous"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
-      <button type="button" id="car-next" aria-label="Next"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
     </div>
 
     <!-- ═══════════════════════════ TEAM ═══════════════════════════ -->
@@ -2029,10 +2093,72 @@ body::after{
   }
   onScroll(window.scrollY);
 
-  /* ── Carousel arrows ──────────────────────────────────────────── */
-  var car = $('#carousel'), step = 256;
-  $('#car-prev').addEventListener('click', function(){ car.scrollBy({ left: -step * 1.4, behavior: 'smooth' }); });
-  $('#car-next').addEventListener('click', function(){ car.scrollBy({ left:  step * 1.4, behavior: 'smooth' }); });
+
+  /* ── Perspective carousel ─────────────────────────────────────── */
+  (function(){
+    var root = document.getElementById('pcar');
+    if (!root) return;
+    var track = document.getElementById('pcar-track');
+    var slides = Array.prototype.slice.call(root.querySelectorAll('.pcar-slide'));
+    var dotsWrap = document.getElementById('pcar-dots');
+    var prev = document.getElementById('pcar-prev');
+    var next = document.getElementById('pcar-next');
+    var i = 0, n = slides.length;
+    var slideW = 220, rot = 58, scaleInactive = 0.84;
+
+    function measure(){
+      var cs = getComputedStyle(root);
+      var w = parseFloat(cs.getPropertyValue('--pw')) || 0;
+      slideW = w > 0 ? w : (window.innerWidth < 700 ? 160 : 220);
+      slides.forEach(function(s){ s.style.width = slideW + 'px'; });
+    }
+
+    slides.forEach(function(_, idx){
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-label', 'Show slide ' + (idx+1));
+      b.addEventListener('click', function(){ go(idx); });
+      dotsWrap.appendChild(b);
+    });
+    var dots = Array.prototype.slice.call(dotsWrap.children);
+
+    function go(nextI){
+      i = Math.max(0, Math.min(n-1, nextI));
+      var x = -(i * slideW + slideW / 2);
+      track.style.transform = 'translateX(' + x + 'px) translateY(-50%)';
+      slides.forEach(function(s, idx){
+        var d = i - idx;
+        var active = idx === i;
+        s.style.transform = 'rotateY(' + (d * rot) + 'deg) scale(' + (active ? 1 : scaleInactive) + ')';
+        s.classList.toggle('is-active', active);
+        s.style.opacity = Math.abs(d) > 2 ? 0.25 : 1;
+        s.style.filter = active ? 'none' : 'brightness(0.75)';
+      });
+      dots.forEach(function(d, idx){ d.classList.toggle('on', idx === i); });
+      prev.disabled = i === 0;
+      next.disabled = i === n - 1;
+    }
+
+    root.querySelectorAll('[data-goto]').forEach(function(btn){
+      btn.addEventListener('click', function(){ go(+btn.getAttribute('data-goto')); });
+    });
+    prev.addEventListener('click', function(){ go(i-1); });
+    next.addEventListener('click', function(){ go(i+1); });
+    root.addEventListener('keydown', function(e){
+      if (e.key === 'ArrowLeft'){ e.preventDefault(); go(i-1); }
+      if (e.key === 'ArrowRight'){ e.preventDefault(); go(i+1); }
+    });
+    var sx = 0;
+    root.addEventListener('pointerdown', function(e){ sx = e.clientX; });
+    root.addEventListener('pointerup', function(e){
+      var dx = e.clientX - sx;
+      if (Math.abs(dx) > 40) go(i + (dx < 0 ? 1 : -1));
+    });
+
+    measure();
+    go(0);
+    window.addEventListener('resize', function(){ measure(); go(i); });
+  })();
 
   /* ── Spotlight: same conversation, two readings ───────────────── */
   var lithos = $('#lithos');

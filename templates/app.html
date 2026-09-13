@@ -339,6 +339,22 @@ button[style*="color:#0a6dff"] { color:#000 !important; }
    desktop showing down both sides (see bug report). Pin them to the viewport
    so the escalation actually covers the whole screen. */
 #popup-urgent, #popup-gentle { position:fixed !important; inset:0 !important; z-index:120 !important; }
+
+/* ── SilentHelp notification card (lock B&W mock) ───────────────── */
+#popup-gentle { position:fixed !important; inset:0 !important; z-index:200 !important;
+  display:none; align-items:center; justify-content:center;
+  background:rgba(0,0,0,.55) !important; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+#popup-gentle .sh-notify,
+#popup-gentle > div[role="dialog"]{
+  background:linear-gradient(180deg,#1a1a1a 0%,#121212 100%) !important;
+  border:1px solid rgba(255,255,255,.12) !important;
+  border-radius:16px !important;
+  color:#fff !important;
+  box-shadow:0 28px 80px rgba(0,0,0,.65) !important;
+}
+#popup-gentle #gentleDesc { color:rgba(255,255,255,.92) !important; }
+#popup-gentle button { font-family:inherit; }
+
 /* Popup close buttons sit on the hero footage. #popup-urgent's own close
    button is now styled inline (see its markup) to sit on the video directly;
    this covers #popup-gentle's, which still uses the old light-card look. */
@@ -476,6 +492,40 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
 /* Small blue text accents (labels, links) lift instead — #007aff goes muddy
    on black but these are not buttons. */
 [style*="color:#007aff"] { color:#6fb0ff !important; }
+
+/* ── App-wide sync with landing B&W ─────────────────────────────── */
+:root {
+  --bg:#010101; --bg-2:#050505; --card:#0c0c0c; --card-2:#141414;
+  --text:#fff; --text-2:#9b9b9b; --accent:#fff;
+}
+body, #appview, #appframe, .appscreen { background:#010101 !important; color:#fff !important; }
+#sideUser, .appscreen [style*="background:#fff"]:not(button):not([style*="color:#000"]),
+.appscreen [style*="background:#ffffff"]:not(button):not([style*="color:#000"]) {
+  background:#0c0c0c !important; border-color:rgba(255,255,255,.1) !important; color:#fff !important;
+}
+.appscreen .pf, .appscreen [style*="color:#0e1822"], .appscreen [style*="color:#16202b"] {
+  color:#fff !important;
+}
+.appscreen [style*="color:#7a8b99"], .appscreen [style*="color:#5e6f7e"], .appscreen [style*="color:#3c4a57"] {
+  color:#9b9b9b !important;
+}
+.appscreen input, .appscreen textarea {
+  background:rgba(255,255,255,.04) !important; color:#fff !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+}
+.appscreen [style*="background:#eef5ff"], .appscreen [style*="background:#fff6ec"], .appscreen [style*="background:#fff8ea"] {
+  background:rgba(255,255,255,.06) !important; border-color:rgba(255,255,255,.12) !important; color:#ddd !important;
+}
+.appscreen [style*="color:#007aff"], .appscreen [style*="color:#a4701f"], .appscreen [style*="color:#8a5d18"] {
+  color:#fff !important;
+}
+#scr-onboarding .pf { color:#fff !important; }
+#scr-onboarding [style*="color:#0e1822"] { color:#fff !important; }
+#scr-onboarding [style*="color:#16202b"] { color:#fff !important; }
+#scr-onboarding [style*="color:#7a8b99"] { color:#9b9b9b !important; }
+#scr-onboarding [style*="background:#eef5ff"] { background:rgba(255,255,255,.08) !important; color:#fff !important; }
+#snoozeChip { background:rgba(255,255,255,.08) !important; border-color:rgba(255,255,255,.15) !important; color:#ddd !important; }
+
 </style>
 </head>
 <body>
@@ -1061,7 +1111,7 @@ input::placeholder, textarea::placeholder { color:#7b879d !important; }
 
     <!-- ════ GENTLE POPUP (SilentHelp notification card) ════ -->
     <div id="popup-gentle" style="display:none; position:absolute; inset:0; z-index:40; background:rgba(0,0,0,.55); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); align-items:center; justify-content:center; animation:fadeBg .3s ease;">
-      <div role="dialog" aria-labelledby="gentleBrand" aria-describedby="gentleDesc" style="position:relative; width:min(420px,calc(100vw - 32px)); background:linear-gradient(180deg,#1a1a1a 0%,#121212 100%); border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:22px 22px 20px; box-shadow:0 28px 80px rgba(0,0,0,.65); animation:screenIn .45s cubic-bezier(.16,1,.3,1);">
+      <div role="dialog" class="sh-notify" aria-labelledby="gentleBrand" aria-describedby="gentleDesc" style="position:relative; width:min(420px,calc(100vw - 32px)); background:linear-gradient(180deg,#1a1a1a 0%,#121212 100%); border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:22px 22px 20px; box-shadow:0 28px 80px rgba(0,0,0,.65); animation:screenIn .45s cubic-bezier(.16,1,.3,1);">
         <div id="gentleBrand" style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
           <span aria-hidden="true" style="width:10px; height:10px; border-radius:50%; background:#fff; flex:none;"></span>
           <span style="font-size:12px; font-weight:700; letter-spacing:.08em; color:#fff; text-transform:uppercase;">SilentHelp</span>
@@ -1593,9 +1643,11 @@ const App = {
   openGentle(force){
     if (!force && this.snoozed()) return;   // user asked for quiet
     this.gentleShown = true;
-    const d = document.getElementById('gentleDesc'), t = this.triggerLine();
-    if (d && t) d.innerHTML = t + '<br/><br/>No alarm — just checking in. How are you doing?';
-    document.getElementById('popup-gentle').style.display = 'flex';
+    const d = document.getElementById('gentleDesc');
+    // Product notification copy (matches Mac agent + landing demo mock).
+    if (d) d.textContent = "Hey — that sounded heavy. You don't have to carry it alone tonight. Want to talk it through?";
+    const el = document.getElementById('popup-gentle');
+    if (el){ el.style.display = 'flex'; el.style.alignItems = 'center'; el.style.justifyContent = 'center'; }
   },
   openUrgent(force){
     // Crisis-level moments intentionally IGNORE the snooze — safety first.

@@ -370,129 +370,123 @@ final class Popup {
         }
         lastShowAt = Date()
 
-        let w: CGFloat = 380
-        let pad: CGFloat = 20
+        // Match the SilentHelp web notification card:
+        // white dot + SILENTHELP, body copy, then three pills —
+        // Talk it through (solid white) · Ignore 1h · Dismiss.
+        let w: CGFloat = 400
+        let pad: CGFloat = 22
         let innerW = w - pad * 2
-        let btnH: CGFloat = 30
+        let btnH: CGFloat = 40
+        let brandH: CGFloat = 18
 
-        // Same palette as the web app's popup: white headline text, amber
-        // reserved for the crisis moment (matches its "You're not alone —
-        // 988" line), a cooler off-white for the gentle case. No red/green —
-        // those never appeared anywhere else in the product's language.
-        let accent = crisis ? NSColor(calibratedRed: 1, green: 0.843, blue: 0.6, alpha: 1)   // #ffd79a
-                            : NSColor(calibratedRed: 0.82, green: 0.84, blue: 0.87, alpha: 1)
+        let bodyText = message.isEmpty
+            ? "Hey — that sounded heavy. You don't have to carry it alone tonight. Want to talk it through?"
+            : message
 
-        // Build labels first and measure them so the window is sized to fit.
-        let head = NSTextField(wrappingLabelWithString: title)
-        head.font = .systemFont(ofSize: 15, weight: .bold)
-        head.textColor = accent
-        head.preferredMaxLayoutWidth = innerW
-        let hH = head.sizeThatFits(NSSize(width: innerW, height: .greatestFiniteMagnitude)).height
-
-        let body = NSTextField(wrappingLabelWithString: message)
-        body.font = .systemFont(ofSize: 13)
-        body.textColor = NSColor(white: 0.86, alpha: 1)
+        let body = NSTextField(wrappingLabelWithString: bodyText)
+        body.font = .systemFont(ofSize: 15, weight: .regular)
+        body.textColor = NSColor(white: 0.92, alpha: 1)
         body.preferredMaxLayoutWidth = innerW
-        let bH = body.sizeThatFits(NSSize(width: innerW, height: .greatestFiniteMagnitude)).height
+        let bH = max(44, body.sizeThatFits(NSSize(width: innerW, height: .greatestFiniteMagnitude)).height)
 
-        let total = pad + hH + 12 + bH + 16 + btnH + 8 + btnH + pad
-
-        // Lay out bottom-up (AppKit y grows upward). Bottom row: snooze buttons.
-        let third = (innerW - 16) / 3
-        let snooze1 = NSButton(title: "Ignore 1h", target: self, action: #selector(ignore1h))
-        snooze1.bezelStyle = .rounded
-        snooze1.frame = NSRect(x: pad, y: pad, width: third, height: btnH)
-
-        let snooze2 = NSButton(title: "Ignore 2h", target: self, action: #selector(ignore2h))
-        snooze2.bezelStyle = .rounded
-        snooze2.frame = NSRect(x: pad + third + 8, y: pad, width: third, height: btnH)
-
-        let dismiss = NSButton(title: "Dismiss", target: self, action: #selector(close(_:)))
-        dismiss.bezelStyle = .rounded
-        dismiss.frame = NSRect(x: pad + (third + 8) * 2, y: pad, width: third, height: btnH)
-
-        // Main action row above the snooze row.
-        let talk = NSButton(title: crisis ? "Get support" : "Talk it through", target: self, action: #selector(openChat(_:)))
-        talk.bezelStyle = .rounded
-        talk.frame = NSRect(x: pad, y: pad + btnH + 8, width: innerW, height: btnH)
-        talk.keyEquivalent = "\r"
-        // The web app's primary action is a solid white pill on the dark
-        // ground — .rounded's default is grey/system-tinted, so it read as a
-        // stock alert button rather than this product's own CTA. Keeping
-        // the native bezel (still reads as trusted OS chrome) but forcing
-        // its tint to the same white makes the two surfaces feel related.
-        if let cell = talk.cell as? NSButtonCell {
-            cell.backgroundColor = .white
-        }
-        talk.contentTintColor = .black
-
-        body.frame = NSRect(x: pad, y: pad + btnH + 8 + btnH + 16, width: innerW, height: bH)
-        head.frame = NSRect(x: pad, y: pad + btnH + 8 + btnH + 16 + bH + 12, width: innerW, height: hH)
+        let brandRowH: CGFloat = 24
+        let gapBrandBody: CGFloat = 14
+        let gapBodyBtns: CGFloat = 18
+        let total = pad + brandRowH + gapBrandBody + bH + gapBodyBtns + btnH + pad
 
         let content = NSView(frame: NSRect(x: 0, y: 0, width: w, height: total))
         content.wantsLayer = true
-        // Same near-black ground as the web app (#050608), with a faint warm
-        // radial glow standing in for the hero orb — a full video would fight
-        // this notification's whole point of staying quiet in the corner
-        // while you work, but flat black read as more austere than the rest
-        // of the product. This gives it the same "lit from within" feel at a
-        // glance, not a video.
-        let ground = NSColor(calibratedRed: 0.02, green: 0.024, blue: 0.031, alpha: 1)
-        content.layer?.backgroundColor = ground.cgColor
+        content.layer?.backgroundColor = NSColor(calibratedWhite: 0.07, alpha: 1).cgColor
+        // Subtle top-to-bottom dark card like the mock (#1a1a1a → #121212)
+        let fill = CAGradientLayer()
+        fill.colors = [
+            NSColor(calibratedWhite: 0.102, alpha: 1).cgColor,
+            NSColor(calibratedWhite: 0.071, alpha: 1).cgColor
+        ]
+        fill.frame = content.bounds
+        content.layer?.insertSublayer(fill, at: 0)
         content.layer?.cornerRadius = 16
         content.layer?.borderWidth = 1
-        content.layer?.borderColor = NSColor(white: 1, alpha: 0.14).cgColor
+        content.layer?.borderColor = NSColor(white: 1, alpha: 0.12).cgColor
         content.layer?.masksToBounds = true
 
-        let glow = CAGradientLayer()
-        glow.type = .radial
-        let glowColor = crisis ? NSColor(calibratedRed: 0.79, green: 0.66, blue: 0.42, alpha: 0.16)
-                               : NSColor(calibratedRed: 0.56, green: 0.6, blue: 0.65, alpha: 0.12)
-        glow.colors = [glowColor.cgColor, ground.withAlphaComponent(0).cgColor]
-        glow.frame = CGRect(x: 0, y: 0, width: w, height: total)
-        glow.startPoint = CGPoint(x: 0.28, y: 0.85)
-        glow.endPoint = CGPoint(x: 0.9, y: 0.05)
-        content.layer?.addSublayer(glow)
+        // Brand: white dot + SILENTHELP
+        let dot = NSView(frame: NSRect(x: pad, y: total - pad - 10, width: 10, height: 10))
+        dot.wantsLayer = true
+        dot.layer?.backgroundColor = NSColor.white.cgColor
+        dot.layer?.cornerRadius = 5
 
-        content.addSubview(head); content.addSubview(body)
-        content.addSubview(talk); content.addSubview(dismiss)
-        content.addSubview(snooze1); content.addSubview(snooze2)
+        let brand = NSTextField(labelWithString: "SILENTHELP")
+        brand.font = .systemFont(ofSize: 12, weight: .bold)
+        brand.textColor = .white
+        brand.frame = NSRect(x: pad + 18, y: total - pad - brandH, width: innerW - 18, height: brandH)
+
+        body.frame = NSRect(x: pad, y: pad + btnH + gapBodyBtns, width: innerW, height: bH)
+
+        func pill(title: String, x: CGFloat, width: CGFloat, primary: Bool, action: Selector) -> NSButton {
+            let b = NSButton(title: title, target: self, action: action)
+            b.bezelStyle = .inline
+            b.isBordered = false
+            b.wantsLayer = true
+            b.frame = NSRect(x: x, y: pad, width: width, height: btnH)
+            b.layer?.cornerRadius = btnH / 2
+            b.layer?.masksToBounds = true
+            if primary {
+                b.layer?.backgroundColor = NSColor.white.cgColor
+                b.contentTintColor = .black
+                b.font = .systemFont(ofSize: 13, weight: .semibold)
+                if let cell = b.cell as? NSButtonCell {
+                    cell.backgroundColor = .white
+                }
+                b.attributedTitle = NSAttributedString(string: title, attributes: [
+                    .foregroundColor: NSColor.black,
+                    .font: NSFont.systemFont(ofSize: 13, weight: .semibold)
+                ])
+            } else {
+                b.layer?.backgroundColor = NSColor.clear.cgColor
+                b.layer?.borderWidth = 1
+                b.layer?.borderColor = NSColor(white: 1, alpha: 0.28).cgColor
+                b.attributedTitle = NSAttributedString(string: title, attributes: [
+                    .foregroundColor: NSColor.white,
+                    .font: NSFont.systemFont(ofSize: 13, weight: .medium)
+                ])
+            }
+            return b
+        }
+
+        let talkW = max(130, innerW * 0.42)
+        let sideW = (innerW - talkW - 16) / 2
+        let talk = pill(title: crisis ? "Get support" : "Talk it through",
+                        x: pad, width: talkW, primary: true, action: #selector(openChat(_:)))
+        talk.keyEquivalent = "\r"
+        let ignore = pill(title: "Ignore 1h", x: pad + talkW + 8, width: sideW, primary: false, action: #selector(ignore1h))
+        let dismiss = pill(title: "Dismiss", x: pad + talkW + 8 + sideW + 8, width: sideW, primary: false, action: #selector(close(_:)))
+
+        // Keep Ignore 2h available via menu bar; card matches the product mock (1h only).
+        content.addSubview(dot)
+        content.addSubview(brand)
+        content.addSubview(body)
+        content.addSubview(talk)
+        content.addSubview(ignore)
+        content.addSubview(dismiss)
 
         let panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: w, height: total),
                             styleMask: [.borderless, .nonactivatingPanel],
                             backing: .buffered, defer: false)
         panel.isFloatingPanel = true
-        // Was .screenSaver ("above almost everything"). On macOS 27 Beta this
-        // locally-signed (no Developer ID, not notarized) app's panel at that
-        // level was silently dropped by the window server — Cocoa's own
-        // bookkeeping (isVisible, this method's own log line) reported success,
-        // but CGWindowListCopyWindowInfo showed zero real windows, and nothing
-        // ever appeared on screen. .floating is still elevated (above normal
-        // app windows) but is accepted; verified end-to-end after this change
-        // that the panel is real (onscreen=true in the window list) AND
-        // visible in a screenshot. This was the actual cause of "detection
-        // doesn't work" reports — the detector and popup-trigger logic were
-        // both firing correctly the whole time; the panel just never rendered.
         panel.level = .floating
-        // Show over full-screen apps and on every Space (Google Docs / browser fullscreen).
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = true
         panel.hidesOnDeactivate = false
         panel.contentView = content
-
-        // Identify the panel by its text so an identical repeat isn't stacked.
         panel.identifier = NSUserInterfaceItemIdentifier(title + message)
 
         if let screen = NSScreen.main {
             let f = screen.visibleFrame
-            // Stack downward from the top-right: each existing popup pushes the
-            // new one further down by its own height + a gap.
             var y = f.maxY - total - 22
             for p in panels { y -= p.frame.height + stackGap }
-            // Ran out of screen → put it back at the top and retire the oldest,
-            // so the newest moment is always visible.
             if y < f.minY + 22 {
                 if !panels.isEmpty { panels.removeFirst().close() }
                 y = f.maxY - total - 22
@@ -645,7 +639,7 @@ final class Monitor {
         } else {
             Popup.shared.show(
                 title: "SilentHelp noticed something",
-                message: "The last little while has leaned harder than your usual. Want to take a breath or talk it through?",
+                message: "Hey — that sounded heavy. You don't have to carry it alone tonight. Want to talk it through?",
                 crisis: false)
         }
     }
@@ -1197,8 +1191,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                         crisis: true)
                 } else if gentle && !self.lastGentle {
                     Popup.shared.show(
-                        title: "SilentHelp noticed something",
-                        message: "The last little while has leaned harder than your usual. Want to take a breath or talk it through?",
+                        title: "SilentHelp",
+                        message: "Hey — that sounded heavy. You don't have to carry it alone tonight. Want to talk it through?",
                         crisis: false)
                 }
                 self.lastUrgent = urgent
