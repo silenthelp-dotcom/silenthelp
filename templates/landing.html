@@ -1530,6 +1530,124 @@ body::after{
   .gal-card.is-active .gal-desc{ display:block; }
 }
 
+
+/* ── Gallery demo stages (real product CSS scenes, not stock art) ── */
+.gal-card .gal-stage{
+  position:absolute; inset:0; z-index:1; overflow:hidden;
+  background:#070708; color:#fff; font-family:var(--font, Inter, system-ui, sans-serif);
+  font-size:11px; line-height:1.35; pointer-events:none;
+}
+.gal-card .gal-stage-bg{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  opacity:.35; filter:grayscale(1) contrast(1.05); transform:scale(1.04);
+  transition: opacity .4s ease, transform .7s ease;
+}
+.gal-card.is-active .gal-stage-bg{ opacity:.55; transform:scale(1.08); }
+.gal-card .gal-stage-ui{ position:absolute; inset:0; z-index:2; }
+.gal-card .gal-stage .a{ opacity:0; transform:translateY(8px); }
+.gal-card.is-active .gal-stage .a{ animation:galPop .55s cubic-bezier(.2,.8,.2,1) forwards; }
+.gal-card.is-active .gal-stage .a.d1{ animation-delay:.15s }
+.gal-card.is-active .gal-stage .a.d2{ animation-delay:.55s }
+.gal-card.is-active .gal-stage .a.d3{ animation-delay:1s }
+.gal-card.is-active .gal-stage .a.d4{ animation-delay:1.45s }
+.gal-card.is-active .gal-stage .a.d5{ animation-delay:1.9s }
+.gal-card.is-active .gal-stage .a.d6{ animation-delay:2.35s }
+@keyframes galPop{ to{ opacity:1; transform:none; } }
+.gal-card.is-active .gal-stage .gone{ animation:galVanish .3s 1s forwards; }
+@keyframes galVanish{ to{ opacity:0; height:0; margin:0; padding:0; } }
+
+/* collapsed preview: show a static peek */
+.gal-card:not(.is-active) .gal-stage .a{ opacity:0; }
+.gal-card:not(.is-active) .gal-stage .peek{ opacity:.9 !important; transform:none !important; animation:none !important; }
+
+/* Coping chat */
+.gal-sc{ position:absolute; inset:18px 14px 70px; border-radius:12px; background:linear-gradient(160deg,#0c0d13,#06070a);
+  border:1px solid rgba(255,255,255,.1); display:flex; flex-direction:column; gap:8px; padding:12px; overflow:hidden; }
+.gal-sc .sc-bar{ display:flex; align-items:center; gap:6px; font-size:10px; color:rgba(255,255,255,.55); margin-bottom:4px; }
+.gal-sc .sc-bar i{ width:7px; height:7px; border-radius:50%; background:#333; display:block; }
+.gal-sc .sc-bar i:nth-child(1){background:#ff5f57}.gal-sc .sc-bar i:nth-child(2){background:#febc2e}.gal-sc .sc-bar i:nth-child(3){background:#28c840}
+.gal-sc .sc-bar b{ color:#fff; margin-left:4px; }
+.gal-sc .bubble{ max-width:88%; padding:8px 10px; border-radius:12px; background:rgba(255,255,255,.08); }
+.gal-sc .bubble.me{ align-self:flex-end; background:rgba(255,255,255,.14); }
+.gal-sc .bubble.sh{ align-self:flex-start; }
+.gal-sc .bubble.sh b{ display:block; font-size:9px; letter-spacing:.12em; margin-bottom:3px; color:rgba(255,255,255,.55); }
+.gal-sc .quiet{ align-self:center; font-size:10px; color:rgba(255,255,255,.4); font-style:italic; }
+.gal-sc .chip{ display:inline-flex; align-items:center; gap:6px; font-size:9px; padding:5px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.18); color:rgba(255,255,255,.7); }
+.gal-sc .chip i{ width:6px; height:6px; border-radius:50%; background:#fff; }
+.gal-sc .typing{ display:flex; gap:4px; padding:8px 10px; }
+.gal-sc .typing i{ width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,.35); animation:galDot 1s infinite; }
+.gal-sc .typing i:nth-child(2){ animation-delay:.15s } .gal-sc .typing i:nth-child(3){ animation-delay:.3s }
+@keyframes galDot{ 0%,80%,100%{ opacity:.3 } 40%{ opacity:1 } }
+
+/* Help a friend */
+.gal-haf{ position:absolute; inset:18px 14px 70px; display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.gal-haf .paste{ border:1px solid rgba(255,255,255,.12); border-radius:12px; padding:12px; background:rgba(255,255,255,.03); }
+.gal-haf .paste b{ display:block; font-size:10px; margin-bottom:8px; color:rgba(255,255,255,.55); }
+.gal-haf .paste .bubble{ background:rgba(255,255,255,.08); border-radius:10px; padding:8px 10px; margin-bottom:8px; }
+.gal-haf .plan{ display:flex; flex-direction:column; gap:6px; }
+.gal-haf .step{ display:flex; gap:8px; padding:8px 10px; border-radius:10px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); font-size:10px; color:rgba(255,255,255,.75); }
+.gal-haf .step i{ flex:0 0 auto; width:18px; height:18px; border-radius:50%; display:grid; place-items:center; font-size:9px; font-style:normal; font-weight:700; background:rgba(255,255,255,.1); }
+.gal-haf .step.now{ border-color:rgba(255,255,255,.35); background:rgba(255,255,255,.08); }
+
+/* Mac agent */
+.gal-mac{ position:absolute; inset:18px 14px 70px; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,.12); background:#0a0a0c; }
+.gal-mac .menubar{ height:28px; display:flex; align-items:center; justify-content:space-between; padding:0 10px; background:#141416; font-size:10px; color:rgba(255,255,255,.6); }
+.gal-mac .menubar .lft, .gal-mac .menubar .rgt{ display:flex; gap:8px; align-items:center; }
+.gal-mac .menubar .sh{ display:inline-flex; align-items:center; gap:4px; color:#fff; }
+.gal-mac .menubar .sh i{ width:6px; height:6px; border-radius:50%; background:#fff; }
+.gal-mac .win{ margin:14px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:#111; overflow:hidden; }
+.gal-mac .win .bar{ height:22px; display:flex; align-items:center; gap:5px; padding:0 8px; background:#1a1a1c; }
+.gal-mac .win .bar i{ width:7px; height:7px; border-radius:50%; background:#333; }
+.gal-mac .win .bar i:nth-child(1){background:#ff5f57}.gal-mac .win .bar i:nth-child(2){background:#febc2e}.gal-mac .win .bar i:nth-child(3){background:#28c840}
+.gal-mac .win .body{ padding:14px; min-height:70px; }
+.gal-mac .win .body b{ display:block; font-size:10px; color:rgba(255,255,255,.4); margin-bottom:6px; }
+.gal-mac .win .body .type{ color:#fff; font-size:13px; }
+.gal-mac .popup{ position:absolute; right:18px; bottom:18px; width:min(240px,70%); background:#111; border:1px solid rgba(255,255,255,.16); border-radius:14px; padding:12px; box-shadow:0 20px 50px rgba(0,0,0,.5); }
+.gal-mac .popup b{ display:flex; align-items:center; gap:6px; font-size:10px; letter-spacing:.1em; margin-bottom:6px; }
+.gal-mac .popup b i{ width:7px; height:7px; border-radius:50%; background:#fff; }
+.gal-mac .popup p{ font-size:11px; color:rgba(255,255,255,.8); margin:0 0 10px; line-height:1.4; }
+.gal-mac .popup .btns{ display:flex; flex-wrap:wrap; gap:6px; }
+.gal-mac .popup .btns span{ font-size:9px; padding:6px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.2); }
+.gal-mac .popup .btns span:first-child{ background:#fff; color:#000; border-color:#fff; }
+
+/* Layers pipe */
+.gal-pipe{ position:absolute; inset:18px 14px 70px; display:flex; flex-direction:column; justify-content:center; gap:12px; }
+.gal-pipe .in{ align-self:flex-start; padding:8px 12px; border-radius:10px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); font-size:12px; }
+.gal-pipe .row{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.gal-pipe .st{ padding:10px 8px; border-radius:10px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); }
+.gal-pipe .st b{ display:block; font-size:10px; margin-bottom:2px; }
+.gal-pipe .st span{ display:block; font-size:11px; color:rgba(255,255,255,.85); }
+.gal-pipe .st small{ display:block; margin-top:4px; font-size:9px; color:rgba(255,255,255,.45); }
+.gal-pipe .out{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:11px; }
+.gal-pipe .out .chip{ display:inline-flex; align-items:center; gap:6px; padding:5px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.2); }
+.gal-pipe .out .chip i{ width:6px; height:6px; border-radius:50%; background:#fff; }
+
+/* Crisis */
+.gal-crisis{ position:absolute; inset:18px 14px 70px; display:flex; flex-direction:column; justify-content:center; align-items:flex-start; gap:10px; padding:8px; }
+.gal-crisis h4{ font-size:22px; margin:0; font-weight:700; }
+.gal-crisis p{ margin:0; max-width:360px; color:rgba(255,255,255,.75); font-size:12px; line-height:1.45; }
+.gal-crisis .row{ display:flex; flex-wrap:wrap; gap:8px; }
+.gal-crisis .row span{ font-size:10px; padding:7px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.2); }
+.gal-crisis .row .pri{ background:#fff; color:#000; border-color:#fff; }
+.gal-crisis .foot{ font-size:10px; color:rgba(255,255,255,.4); }
+
+/* Privacy */
+.gal-priv{ position:absolute; inset:18px 14px 70px; display:grid; grid-template-columns:1.2fr 1fr; gap:12px; }
+.gal-priv h5{ margin:0 0 10px; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.55); }
+.gal-priv .row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.08); font-size:11px; }
+.gal-priv .tg{ width:34px; height:18px; border-radius:999px; background:rgba(255,255,255,.15); position:relative; }
+.gal-priv .tg::after{ content:""; position:absolute; top:2px; left:2px; width:14px; height:14px; border-radius:50%; background:#fff; }
+.gal-card.is-active .gal-priv .tg{ background:rgba(255,255,255,.55); }
+.gal-card.is-active .gal-priv .tg::after{ left:18px; }
+.gal-priv .zero{ margin-top:10px; font-size:10px; color:rgba(255,255,255,.45); }
+.gal-priv .acts{ display:flex; flex-direction:column; gap:8px; }
+.gal-priv .acts span{ display:flex; justify-content:space-between; gap:8px; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.03); font-size:11px; }
+.gal-priv .acts em{ font-style:normal; color:rgba(255,255,255,.45); }
+
+/* Keep caption readable over stages */
+.gal-card .gal-body{ z-index:5; background:linear-gradient(180deg, transparent, rgba(0,0,0,.88) 40%); }
+.gal-card .gal-img{ display:none !important; } /* no AI/stock stills */
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.18/dist/lenis.min.js"></script>
 </head>
@@ -1644,24 +1762,51 @@ body::after{
 <section class="gal-demo" id="demo" aria-label="SilentHelp demo gallery">
   <div class="gal-head">
     <div class="eyebrow">Demo</div>
-    <h2>Hover a card. Feel the product.</h2>
-    <p>Quiet signals, gentle check-ins, and help that stays in your hands — expand any feature to look closer.</p>
+    <h2>Hover a card. Watch the real product.</h2>
+    <p>Each panel is a live SilentHelp feature demo — the same scenes from before. Hover to play.</p>
   </div>
 
   <div class="gal-wrap" id="gal-wrap" role="list">
-    <article class="gal-card" role="listitem" tabindex="0" data-i="0" aria-label="Coping chat">
-      <div class="gal-img" style="background-image:url('/static/img/personas/01-student.png')"></div>
+
+    <article class="gal-card" role="listitem" tabindex="0" data-i="0" data-demo="coping" aria-label="Coping chat demo">
+      <div class="gal-stage">
+        <video class="gal-stage-bg" src="/static/video/hero.mp4" muted loop playsinline preload="metadata"></video>
+        <div class="gal-stage-ui">
+          <div class="gal-sc">
+            <div class="sc-bar peek"><i></i><i></i><i></i><b>Coping Chat</b><span>· silenthelp.org/app</span></div>
+            <div class="bubble me a d1">i feel so alone and hopeless</div>
+            <div class="typing a d2 gone"><i></i><i></i><i></i></div>
+            <div class="bubble sh a d3"><b>SILENTHELP</b>That sounds really heavy, and I'm glad you said it. I'm here. What has tonight been like?</div>
+            <div class="bubble me a d4">this test is killing me 😂</div>
+            <div class="quiet a d5">· stays quiet — it read the joke ·</div>
+            <div class="chip a d6"><i></i>support reply + detection run in parallel · never a therapist</div>
+          </div>
+        </div>
+      </div>
       <div class="gal-shade"></div>
       <div class="gal-body">
         <span class="gal-cat">Web · App</span>
         <h3 class="gal-title">Coping chat</h3>
-        <p class="gal-desc">A warm companion that catches jokes vs. real distress — and never pretends to be a therapist.</p>
+        <p class="gal-desc">Warm companion that catches jokes vs. real distress — and never pretends to be a therapist.</p>
         <a class="gal-go" href="/app">Open app <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
       </div>
     </article>
 
-    <article class="gal-card" role="listitem" tabindex="0" data-i="1" aria-label="Help a friend">
-      <div class="gal-img" style="background-image:url('/static/img/personas/03-friend.png')"></div>
+    <article class="gal-card" role="listitem" tabindex="0" data-i="1" data-demo="friend" aria-label="Help a friend demo">
+      <div class="gal-stage">
+        <video class="gal-stage-bg" src="/static/video/caps.mp4" muted loop playsinline preload="metadata"></video>
+        <div class="gal-stage-ui">
+          <div class="gal-haf">
+            <div class="paste a d1 peek"><b>Paste what they sent</b><div class="bubble">i can't do this anymore. don't tell anyone</div><span class="chip"><i></i>reading intent, not keywords</span></div>
+            <div class="plan">
+              <div class="step a d2"><i>01</i>Ask directly, without panic</div>
+              <div class="step a d3"><i>02</i>Stay with them. Don't fix — listen</div>
+              <div class="step a d4"><i>03</i>Don't keep this secret</div>
+              <div class="step now a d5"><i>!</i>Bring in an adult tonight</div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="gal-shade"></div>
       <div class="gal-body">
         <span class="gal-cat">For friends</span>
@@ -1671,8 +1816,17 @@ body::after{
       </div>
     </article>
 
-    <article class="gal-card" role="listitem" tabindex="0" data-i="2" aria-label="Mac agent">
-      <div class="gal-img" style="background-image:url('/static/img/personas/02-joker.png')"></div>
+    <article class="gal-card" role="listitem" tabindex="0" data-i="2" data-demo="mac" aria-label="Mac agent demo">
+      <div class="gal-stage">
+        <video class="gal-stage-bg" src="/static/video/hero.mp4" muted loop playsinline preload="metadata"></video>
+        <div class="gal-stage-ui">
+          <div class="gal-mac">
+            <div class="menubar peek"><div class="lft"><span></span><b>Notes</b><span>File</span><span>Edit</span></div><div class="rgt"><span class="sh"><i></i>SH</span><span>11:52 PM</span></div></div>
+            <div class="win a d1"><div class="bar"><i></i><i></i><i></i></div><div class="body"><b>untitled</b><span class="type">i honestly can't do this anymore</span></div></div>
+            <div class="popup a d3"><b><i></i>SILENTHELP</b><p>Hey — that sounded heavy. You don't have to carry it alone tonight. Want to talk it through?</p><div class="btns"><span>Talk it through</span><span>Ignore 1h</span><span>Dismiss</span></div></div>
+          </div>
+        </div>
+      </div>
       <div class="gal-shade"></div>
       <div class="gal-body">
         <span class="gal-cat">Mac agent</span>
@@ -1682,8 +1836,22 @@ body::after{
       </div>
     </article>
 
-    <article class="gal-card" role="listitem" tabindex="0" data-i="3" aria-label="Four detection layers">
-      <div class="gal-img" style="background-image:url('/static/img/personas/05-counselor.png')"></div>
+    <article class="gal-card" role="listitem" tabindex="0" data-i="3" data-demo="layers" aria-label="Four layers demo">
+      <div class="gal-stage">
+        <video class="gal-stage-bg" src="/static/video/caps.mp4" muted loop playsinline preload="metadata"></video>
+        <div class="gal-stage-ui">
+          <div class="gal-pipe">
+            <div class="in a d1 peek">"i just want it all to stop"</div>
+            <div class="row">
+              <div class="st a d2"><b>Layer 1</b><span>Keyword</span><small>hit · tier 2 · 14ms</small></div>
+              <div class="st a d3"><b>Layer 2</b><span>Semantic</span><small>intent: distress · high</small></div>
+              <div class="st a d4"><b>Layer 3</b><span>Behavioral</span><small>late night ×3 · pace ↓</small></div>
+              <div class="st a d5"><b>Layer 4</b><span>Trend gate</span><small>day 3/4 · high bypasses</small></div>
+            </div>
+            <div class="out a d6"><span>decide_response()</span><span class="chip"><i></i>urgent check-in · resources · you choose</span></div>
+          </div>
+        </div>
+      </div>
       <div class="gal-shade"></div>
       <div class="gal-body">
         <span class="gal-cat">Detection</span>
@@ -1693,8 +1861,18 @@ body::after{
       </div>
     </article>
 
-    <article class="gal-card" role="listitem" tabindex="0" data-i="4" aria-label="Crisis support">
-      <div class="gal-img" style="background-image:url('/static/img/personas/06-crisis.png')"></div>
+    <article class="gal-card" role="listitem" tabindex="0" data-i="4" data-demo="crisis" aria-label="Crisis support demo">
+      <div class="gal-stage">
+        <video class="gal-stage-bg" src="/static/video/hero.mp4" muted loop playsinline preload="metadata"></video>
+        <div class="gal-stage-ui">
+          <div class="gal-crisis">
+            <h4 class="a d1 peek">You matter.</h4>
+            <p class="a d2">It sounds like you're in a lot of pain right now. You don't have to face this alone — real people are awake and ready to talk.</p>
+            <div class="row a d3"><span class="pri">Call or text 988</span><span>Text HOME to 741741</span><span>I'm safe right now</span></div>
+            <div class="foot a d4">explicit crisis phrases can never be suppressed by joke context</div>
+          </div>
+        </div>
+      </div>
       <div class="gal-shade"></div>
       <div class="gal-body">
         <span class="gal-cat">Crisis</span>
@@ -1704,8 +1882,28 @@ body::after{
       </div>
     </article>
 
-    <article class="gal-card" role="listitem" tabindex="0" data-i="5" aria-label="Privacy">
-      <div class="gal-img" style="background-image:url('/static/img/personas/04-parent.png')"></div>
+    <article class="gal-card" role="listitem" tabindex="0" data-i="5" data-demo="privacy" aria-label="Privacy demo">
+      <div class="gal-stage">
+        <video class="gal-stage-bg" src="/static/video/caps.mp4" muted loop playsinline preload="metadata"></video>
+        <div class="gal-stage-ui">
+          <div class="gal-priv">
+            <div>
+              <h5 class="peek">Detection layers</h5>
+              <div class="row r1 a d1"><span>Layer 1 · Keyword</span><span class="tg"></span></div>
+              <div class="row r2 a d2"><span>Layer 2 · Semantic</span><span class="tg"></span></div>
+              <div class="row r3 a d3"><span>Layer 3 · Behavioral</span><span class="tg"></span></div>
+              <div class="row r4 a d4"><span>Layer 4 · Trend gate</span><span class="tg"></span></div>
+              <div class="zero a d5">events = category + level + time · 0 bytes of raw text</div>
+            </div>
+            <div class="acts">
+              <span class="a d2">Trusted contact<em>Ms. Rivera</em></span>
+              <span class="a d3">Export everything<em>.json</em></span>
+              <span class="a d4">Erase everything<em>one click</em></span>
+              <span class="a d5" style="border-color:rgba(239,68,68,.35);color:#ffb4b4">Delete account<em>frees email</em></span>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="gal-shade"></div>
       <div class="gal-body">
         <span class="gal-cat">Privacy</span>
@@ -1716,7 +1914,7 @@ body::after{
     </article>
   </div>
 
-  <div class="gal-hint">Hover · arrow keys · click to pin</div>
+  <div class="gal-hint">Hover a card to play that feature’s demo</div>
 </section>
 
 <!-- ══════════════════════════ HOW IT WORKS ══════════════════════════ -->
@@ -2641,23 +2839,47 @@ body::after{
   })();
 
 
+  
   /* ═══════════════════════ DEMO · 3D GALLERY ═══════════════════════ */
   (function initGalDemo(){
     var wrap = document.getElementById('gal-wrap');
     if (!wrap) return;
     var cards = Array.prototype.slice.call(wrap.querySelectorAll('.gal-card'));
     var active = null;
+
+    function restartScene(card){
+      var stage = card.querySelector('.gal-stage-ui');
+      if (!stage) return;
+      // reflow CSS animations
+      var clone = stage.cloneNode(true);
+      stage.parentNode.replaceChild(clone, stage);
+    }
+
+    function setVideos(card, on){
+      var vids = card.querySelectorAll('video.gal-stage-bg');
+      vids.forEach(function(v){
+        try {
+          if (on) { v.play && v.play().catch(function(){}); }
+          else { v.pause && v.pause(); }
+        } catch (e) {}
+      });
+    }
+
     function setActive(i){
       active = i;
       wrap.classList.toggle('has-active', i !== null);
       cards.forEach(function(card, idx){
         var on = i === idx;
+        var was = card.classList.contains('is-active');
         card.classList.toggle('is-active', on);
         card.classList.toggle('is-before', i !== null && idx < i);
         card.classList.toggle('is-after', i !== null && idx > i);
         card.setAttribute('aria-pressed', on ? 'true' : 'false');
+        if (on && !was) restartScene(card);
+        setVideos(card, on);
       });
     }
+
     cards.forEach(function(card, idx){
       card.addEventListener('mouseenter', function(){ setActive(idx); });
       card.addEventListener('focus', function(){ setActive(idx); });
@@ -2684,6 +2906,8 @@ body::after{
     });
     wrap.addEventListener('mouseleave', function(){ setActive(null); });
   })();
+
+
 
   /* ═════════════════════════ DEMO ═══════════════════════════ */
   var REEL_SLIDES = [
