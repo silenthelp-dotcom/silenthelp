@@ -12,14 +12,14 @@
 <meta property="og:title" content="SilentHelp — Support That Notices Before You Have to Ask">
 <meta property="og:description" content="A quiet companion that notices when you're running low — long before you'd think to ask for help. Privacy-first, on-device, free for students.">
 <meta property="og:image" content="https://silenthelp.org/static/img/badge-512.png">
-<link rel="icon" type="image/png" sizes="32x32" href="static/img/badge-32.png">
-<link rel="apple-touch-icon" href="static/img/badge-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/static/img/badge-32.png">
+<link rel="apple-touch-icon" href="/static/img/badge-180.png">
 
 <!--
   ─────────────────────────────────────────────────────────────────────────
   SilentHelp × dialedweb.com layout, with a jasonbergh.com-style demo
   Single, self-contained prototype: markup, styles and scripts all live in
-  this one file. Assets load relatively from the copied project's static/
+  this one file. Assets load relatively from the copied project's /static/
   folder so it can be opened straight from disk:
 
       open dialedweb-silenthelp.html
@@ -27,8 +27,8 @@
   Every outbound link points at the live site (https://silenthelp.org).
 
   The demo "films" are animated CSS scenes of each real feature. To
-  swap any of them for a screen recording, drop an .mp4 into static/video/
-  and set `video: "static/video/<name>.mp4"` on that slide in REEL_SLIDES.
+  swap any of them for a screen recording, drop an .mp4 into /static/video/
+  and set `video: "/static/video/<name>.mp4"` on that slide in REEL_SLIDES.
   ─────────────────────────────────────────────────────────────────────────
 -->
 
@@ -1417,6 +1417,119 @@ body::after{
   background:repeating-linear-gradient(180deg,rgba(255,255,255,.55) 0 6px,transparent 6px 22px) !important;
 }
 
+
+/* ═══════════════════ DEMO · 3D HOVER GALLERY ═══════════════════ */
+#demo.gal-demo{
+  position:relative; min-height:100vh; padding:96px 28px 80px;
+  background:#050505; color:#fff; overflow:hidden;
+  display:flex; flex-direction:column; justify-content:center;
+}
+#demo.gal-demo::before{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(ellipse 70% 50% at 50% 40%, rgba(255,255,255,.05), transparent 60%);
+}
+.gal-head{ position:relative; z-index:2; text-align:center; max-width:720px; margin:0 auto 40px; }
+.gal-head .eyebrow{
+  font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:rgba(255,255,255,.45);
+  font-weight:700; margin-bottom:14px;
+}
+.gal-head h2{
+  font-family:var(--serif, "Instrument Serif", Georgia, serif);
+  font-size:clamp(2.2rem, 5vw, 3.6rem); font-weight:400; letter-spacing:-.02em; line-height:1.05;
+  color:#fff; margin:0 0 14px;
+}
+.gal-head p{ font-size:15px; color:rgba(255,255,255,.55); line-height:1.55; margin:0; font-weight:300; }
+.gal-wrap{
+  position:relative; z-index:2; width:100%; max-width:1100px; margin:0 auto;
+  display:flex; align-items:center; justify-content:center;
+  perspective:1100px; gap:12px; min-height:460px;
+  transform-style:preserve-3d;
+}
+.gal-card{
+  position:relative; flex:1; min-width:64px; height:440px;
+  border-radius:18px; overflow:hidden; cursor:pointer;
+  border:1px solid rgba(255,255,255,.12);
+  background:#111; transform-style:preserve-3d;
+  transition: flex .55s cubic-bezier(.2,.8,.2,1), min-width .55s cubic-bezier(.2,.8,.2,1),
+              filter .35s ease, border-color .35s ease, transform .55s cubic-bezier(.2,.8,.2,1),
+              box-shadow .45s ease;
+  filter: grayscale(.3) brightness(.75);
+  outline:none;
+}
+.gal-card .gal-img{
+  position:absolute; inset:0; background-size:cover; background-position:center;
+  transform:scale(1); transition: transform .7s cubic-bezier(.1,.7,0,1);
+}
+.gal-card .gal-shade{
+  position:absolute; inset:0; z-index:2;
+  background:linear-gradient(180deg, transparent 35%, rgba(0,0,0,.75));
+  opacity:.55; transition:opacity .35s ease;
+}
+.gal-card .gal-body{
+  position:absolute; left:0; right:0; bottom:0; z-index:4; padding:22px;
+  color:#fff; display:flex; flex-direction:column; align-items:flex-start;
+  opacity:0; transform:translateY(14px); pointer-events:none;
+  transition:opacity .35s ease, transform .35s ease;
+}
+.gal-card .gal-cat{
+  font-size:9px; font-weight:800; letter-spacing:.18em; text-transform:uppercase;
+  color:rgba(255,255,255,.7); margin-bottom:6px;
+}
+.gal-card .gal-title{
+  font-size:clamp(15px, 1.6vw, 20px); font-weight:700; letter-spacing:-.02em;
+  line-height:1.15; margin:0 0 8px; color:#fafafa;
+}
+.gal-card .gal-desc{
+  font-size:12px; line-height:1.5; color:rgba(255,255,255,.7); margin:0 0 12px;
+  max-width:320px; font-weight:400;
+}
+.gal-card .gal-go{
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:9px; font-weight:800; letter-spacing:.16em; text-transform:uppercase;
+  color:#fff; text-decoration:none;
+}
+.gal-card .gal-go svg{ width:12px; height:12px; transition:transform .2s ease; }
+.gal-card.is-active .gal-go svg{ transform:translateX(3px); }
+.gal-wrap:not(.has-active) .gal-card:hover{
+  filter:none; border-color:rgba(255,255,255,.28);
+}
+.gal-card.is-active{
+  flex:5.8; min-width:min(320px, 42vw);
+  filter:none; z-index:20;
+  border-color:rgba(255,255,255,.35);
+  box-shadow:0 20px 60px rgba(0,0,0,.55);
+}
+.gal-card.is-active .gal-img{ transform:scale(1.06); }
+.gal-card.is-active .gal-shade{
+  opacity:1; background:linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,.9));
+}
+.gal-card.is-active .gal-body{ opacity:1; transform:none; pointer-events:auto; }
+.gal-wrap.has-active .gal-card:not(.is-active){
+  filter:grayscale(1) brightness(.35);
+  border-color:rgba(255,255,255,.08);
+}
+.gal-wrap.has-active .gal-card.is-before{ transform:rotateY(22deg); }
+.gal-wrap.has-active .gal-card.is-after{ transform:rotateY(-22deg); }
+.gal-card:focus-visible{ box-shadow:0 0 0 2px #fff, 0 0 0 5px rgba(255,255,255,.25); }
+.gal-hint{
+  position:relative; z-index:2; text-align:center; margin-top:28px;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase;
+  color:rgba(255,255,255,.35); font-weight:600;
+}
+@media (max-width:820px){
+  #demo.gal-demo{ padding:72px 16px 64px; }
+  .gal-wrap{ flex-direction:column; gap:10px; min-height:0; perspective:none; }
+  .gal-card, .gal-card.is-active{
+    flex:none !important; width:100%; min-width:0 !important; height:120px;
+    transform:none !important; filter:none;
+  }
+  .gal-card.is-active{ height:280px; }
+  .gal-wrap.has-active .gal-card:not(.is-active){ filter:grayscale(.4) brightness(.55); }
+  .gal-card .gal-body{ opacity:.85; transform:none; }
+  .gal-card .gal-desc{ display:none; }
+  .gal-card.is-active .gal-desc{ display:block; }
+}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.18/dist/lenis.min.js"></script>
 </head>
@@ -1491,7 +1604,7 @@ body::after{
           </a>
         </div>
         <a class="tile fill rv" href="#demo" data-slide="2" aria-label="The Mac agent — watch in the demo">
-          <video src="static/video/caps.mp4" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video>
+          <video src="/static/video/caps.mp4" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video>
           <div class="shade"></div>
           <div class="plabel"><span class="stack"><span><span class="star">✦</span>&nbsp;Mac agent <span class="ok" style="display:inline-grid;vertical-align:-2px;margin-left:4px"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span></span><span>Watching four layers, quietly, on your Mac</span></span></div>
         </a>
@@ -1527,166 +1640,83 @@ body::after{
 
 
 
-<!-- ═══════════════════════════ DEMO ═══════════════════════════════ -->
-<section class="reel" id="demo" data-lenis-prevent data-lenis-prevent aria-label="SilentHelp demo" tabindex="0">
-  <div class="reel-bg" aria-hidden="true">
-    <video src="static/video/hero.mp4" class="on" autoplay muted loop playsinline preload="metadata"></video>
-    <video src="static/video/caps.mp4" autoplay muted loop playsinline preload="metadata"></video>
-    <div class="tint" id="reel-tint"></div>
-    <div class="vig"></div>
-    <div class="grain"></div>
+<!-- ═══════════════════════════ DEMO · 3D HOVER GALLERY ═══════════════ -->
+<section class="gal-demo" id="demo" aria-label="SilentHelp demo gallery">
+  <div class="gal-head">
+    <div class="eyebrow">Demo</div>
+    <h2>Hover a card. Feel the product.</h2>
+    <p>Quiet signals, gentle check-ins, and help that stays in your hands — expand any feature to look closer.</p>
   </div>
-  <div class="reel-rail l" aria-hidden="true"></div>
-  <div class="reel-rail r" aria-hidden="true"></div>
-  <span class="reel-ck tl" aria-hidden="true"></span><span class="reel-ck tr" aria-hidden="true"></span>
-  <span class="reel-ck bl" aria-hidden="true"></span><span class="reel-ck br" aria-hidden="true"></span>
 
-  <div class="reel-thumb prev" id="reel-prev" role="button" aria-label="Previous feature"><span class="k">prev</span><span id="reel-prev-t"></span></div>
-  <div class="reel-thumb next" id="reel-next" role="button" aria-label="Next feature"><span class="k">next</span><span id="reel-next-t"></span></div>
-
-  <div class="reel-meta top"><span id="rm-cat">Coping chat</span><div class="mid"><i></i><i></i><i></i></div><span id="rm-kind">Web · App</span></div>
-
-  <h2 class="reel-t l" id="reel-tl"></h2>
-  <a class="reel-frame" id="reel-frame" href="https://silenthelp.org/app" aria-label="Open the live app">
-    <video class="reel-vid" id="reel-vid" src="static/video/hero.mp4" muted loop playsinline autoplay preload="metadata" aria-hidden="true"></video>
-    <div class="vig"></div>
-
-    <!-- 1 · Coping chat -->
-    <div class="scene" data-tint="rgba(255,255,255,.03)" data-bg="0">
-      <div class="sc" style="background:linear-gradient(160deg,#0c0d13,#06070a)">
-        <div class="sc-bar"><i></i><i></i><i></i><b>Coping Chat</b><span>· silenthelp.org/app</span></div>
-        <div class="bubble me a d1">i feel so alone and hopeless</div>
-        <div class="typing a d2 gone"><i></i><i></i><i></i></div>
-        <div class="bubble sh a d3"><b>SILENTHELP</b>That sounds really heavy, and I'm glad you said it. I'm here. What has tonight been like?</div>
-        <div class="bubble me a d4">this test is killing me 😂</div>
-        <div class="quiet a d5">· stays quiet — it read the joke ·</div>
-        <div class="chip a d6" style="align-self:flex-start"><i></i>support reply + detection run in parallel · never a therapist</div>
+  <div class="gal-wrap" id="gal-wrap" role="list">
+    <article class="gal-card" role="listitem" tabindex="0" data-i="0" aria-label="Coping chat">
+      <div class="gal-img" style="background-image:url('/static/img/personas/01-student.png')"></div>
+      <div class="gal-shade"></div>
+      <div class="gal-body">
+        <span class="gal-cat">Web · App</span>
+        <h3 class="gal-title">Coping chat</h3>
+        <p class="gal-desc">A warm companion that catches jokes vs. real distress — and never pretends to be a therapist.</p>
+        <a class="gal-go" href="/app">Open app <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
       </div>
-    </div>
+    </article>
 
-    <!-- 2 · Help a Friend -->
-    <div class="scene" data-tint="rgba(255,255,255,.03)" data-bg="1">
-      <div class="haf">
-        <div class="paste a d1"><b>Paste what they sent</b><div class="bubble">i can't do this anymore. don't tell anyone</div><span class="chip"><i></i>reading intent, not keywords</span></div>
-        <div class="plan">
-          <div class="step a d2"><i>01</i>Ask directly, without panic: "Are you thinking about hurting yourself?"</div>
-          <div class="step a d3"><i>02</i>Stay with them. Don't fix — listen, and keep them talking tonight.</div>
-          <div class="step a d4"><i>03</i>Don't keep this secret. Tell a trusted adult now.</div>
-          <div class="step now a d5"><i>!</i>This one's serious. Bring in an adult tonight — here's how to say it.</div>
-        </div>
+    <article class="gal-card" role="listitem" tabindex="0" data-i="1" aria-label="Help a friend">
+      <div class="gal-img" style="background-image:url('/static/img/personas/03-friend.png')"></div>
+      <div class="gal-shade"></div>
+      <div class="gal-body">
+        <span class="gal-cat">For friends</span>
+        <h3 class="gal-title">Help a friend</h3>
+        <p class="gal-desc">Paste what they sent. Get calm next steps — and when it’s time to bring in an adult.</p>
+        <a class="gal-go" href="/app">Try it <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
       </div>
-    </div>
+    </article>
 
-    <!-- 3 · Mac agent -->
-    <div class="scene" data-tint="rgba(255,255,255,.03)" data-bg="1">
-      <div class="mac">
-        <div class="menubar"><div class="lft"><span></span><b>Notes</b><span>File</span><span>Edit</span><span>View</span></div><div class="rgt"><span class="sh"><i></i>SH</span><span>Wi-Fi</span><span>11:52 PM</span></div></div>
-        <div class="win"><div class="bar"><i></i><i></i><i></i></div><div class="body"><b>untitled</b><span class="type">i honestly can't do this anymore</span></div></div>
-        <div class="popup"><b><i></i>SILENTHELP</b><p>Hey — that sounded heavy. You don't have to carry it alone tonight. Want to talk it through?</p><div class="btns"><span>Talk it through</span><span>Ignore 1h</span><span>Dismiss</span></div></div>
+    <article class="gal-card" role="listitem" tabindex="0" data-i="2" aria-label="Mac agent">
+      <div class="gal-img" style="background-image:url('/static/img/personas/02-joker.png')"></div>
+      <div class="gal-shade"></div>
+      <div class="gal-body">
+        <span class="gal-cat">Mac agent</span>
+        <h3 class="gal-title">Quiet check-in</h3>
+        <p class="gal-desc">On-device detection notices heavy writing and offers a gentle check-in — Talk it through, Ignore 1h, or Dismiss.</p>
+        <a class="gal-go" href="#download">Get Mac app <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
       </div>
-    </div>
+    </article>
 
-    <!-- 4 · Screen reader -->
-    <div class="scene" data-tint="rgba(255,255,255,.03)" data-bg="0">
-      <div class="ocr">
-        <div class="chan"><div># general</div><div class="on"># late-night</div><div># homework</div><div># memes</div></div>
-        <div class="chat">
-          <div class="msg"><i></i><div><b>maya <small>11:48 PM</small></b>anyone else still up doing calc 😭</div></div>
-          <div class="msg"><i style="background:linear-gradient(140deg,#f97316,#ef4444)"></i><div><b>jay <small>11:49 PM</small></b>this test is killing me lmao</div></div>
-          <div class="msg" id="ocr-target"><i style="background:linear-gradient(140deg,#10b981,#3b82f6)"></i><div><b>sam <small>11:51 PM</small></b>i'm so tired of everything. nothing matters anymore</div></div>
-        </div>
-        <div class="scan"></div>
-        <div class="hit" style="left:27%;top:31%;width:60%;height:34px"></div>
-        <div class="tag2"><span class="chip a d4"><i></i>Vision OCR · 1.2s · candidate → Layer 2</span><span class="chip a d5" style="border-color:rgba(255,255,255,.6)"><i style="background:var(--accent)"></i>verdict: moderate · gentle check-in</span><span class="chip a d6" style="opacity:.7"><i style="background:#666"></i>"killing me lmao" → none (joke)</span></div>
+    <article class="gal-card" role="listitem" tabindex="0" data-i="3" aria-label="Four detection layers">
+      <div class="gal-img" style="background-image:url('/static/img/personas/05-counselor.png')"></div>
+      <div class="gal-shade"></div>
+      <div class="gal-body">
+        <span class="gal-cat">Detection</span>
+        <h3 class="gal-title">Four quiet layers</h3>
+        <p class="gal-desc">Keyword → meaning → behavior → trend. Jokes stay quiet. Patterns get a soft nudge.</p>
+        <a class="gal-go" href="#how">How it works <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
       </div>
-    </div>
+    </article>
 
-    <!-- 5 · Four layers -->
-    <div class="scene" data-tint="rgba(255,255,255,.03)" data-bg="0">
-      <div class="pipe">
-        <div class="in a d1">"i just want it all to stop"</div>
-        <div class="row">
-          <div class="st"><b>Layer 1</b><span>Keyword</span><small>hit · tier 2 · 14ms</small></div>
-          <div class="st"><b>Layer 2</b><span>Semantic</span><small>intent: distress · high</small></div>
-          <div class="st"><b>Layer 3</b><span>Behavioral</span><small>late night ×3 · pace ↓</small></div>
-          <div class="st"><b>Layer 4</b><span>Trend gate</span><small>day 3/4 · high bypasses</small></div>
-        </div>
-        <div class="out a d5"><span>decide_response()</span><span class="chip"><i style="background:var(--accent)"></i>urgent check-in · resources · you choose</span></div>
+    <article class="gal-card" role="listitem" tabindex="0" data-i="4" aria-label="Crisis support">
+      <div class="gal-img" style="background-image:url('/static/img/personas/06-crisis.png')"></div>
+      <div class="gal-shade"></div>
+      <div class="gal-body">
+        <span class="gal-cat">Crisis</span>
+        <h3 class="gal-title">Real help, right away</h3>
+        <p class="gal-desc">When it’s serious, SilentHelp surfaces 988 and crisis resources — never suppressed by joke context.</p>
+        <a class="gal-go" href="https://988lifeline.org" target="_blank" rel="noopener">988 Lifeline <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
       </div>
-    </div>
+    </article>
 
-    <!-- 6 · Crisis -->
-    <div class="scene" data-tint="rgba(255,255,255,.03)" data-bg="1">
-      <div class="crisis">
-        <div class="pulse"></div>
-        <h4 class="a d1">You matter.</h4>
-        <p class="a d2">It sounds like you're in a lot of pain right now. You don't have to face this alone — real people are awake and ready to talk.</p>
-        <div class="row a d3"><span class="pri">Call or text 988</span><span>Text HOME to 741741</span><span>I'm safe right now</span></div>
-        <div class="foot a d4">explicit crisis phrases can never be suppressed by joke context</div>
+    <article class="gal-card" role="listitem" tabindex="0" data-i="5" aria-label="Privacy">
+      <div class="gal-img" style="background-image:url('/static/img/personas/04-parent.png')"></div>
+      <div class="gal-shade"></div>
+      <div class="gal-body">
+        <span class="gal-cat">Privacy</span>
+        <h3 class="gal-title">You stay in control</h3>
+        <p class="gal-desc">0 bytes of raw text stored. Drafts to a trusted adult only if you press send. Erase everything in one click.</p>
+        <a class="gal-go" href="#privacy">Privacy <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
       </div>
-    </div>
-
-    <!-- 7 · Escalation draft -->
-    <div class="scene" data-tint="rgba(255,255,255,.03)" data-bg="0">
-      <div class="mail">
-        <div class="hdr a d1"><div><b>To</b><span>Ms. Rivera · school counselor</span></div><div><b>From</b><span>you (only if you press send)</span></div><div><b>Subject</b><span>Checking in</span></div></div>
-        <div class="body">
-          <p class="a d2">Hi Ms. Rivera — I've been having a rough few days and I'd like to talk to someone when you have a moment.</p>
-          <p class="a d3">SilentHelp noticed a pattern of <mark>isolation · moderate</mark> over the last few days. No message text is included in this note — just the category and level.</p>
-          <p class="a d4">Thank you, <br>Sam</p>
-        </div>
-        <div class="ft a d5"><span>Nothing is ever sent automatically. Edit anything, or don't send at all.</span><span class="send">Send</span></div>
-        <svg class="cursor" viewBox="0 0 24 24" fill="#fff" stroke="#000" stroke-width="1.5"><path d="M4 3l16 8-7 2-3 7z"/></svg>
-      </div>
-    </div>
-
-    <!-- 8 · Dashboard -->
-    <div class="scene" data-tint="rgba(255,255,255,.03)" data-bg="1">
-      <div class="dash">
-        <span class="badge">Sample preview</span>
-        <div class="orbwrap"><div class="orb" id="orb" style="--p:0"><b id="orb-n">0%</b><small>battery</small></div><span class="lbl">Mental battery</span></div>
-        <div class="stats">
-          <div class="stat a d1"><b>Focus score<em>81</em></b><div class="bar"><i style="--v:81%"></i></div></div>
-          <div class="stat a d2"><b>Burnout risk<em>low</em></b><div class="bar"><i style="--v:28%"></i></div></div>
-          <div class="stat a d3"><b>Late-night minutes<em>42 / 15</em></b><div class="bar"><i style="--v:70%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></i></div></div>
-          <div class="find a d4"><i></i>Finding: 3 late nights this week — baseline is 1.</div>
-          <div class="find a d5"><i style="background:var(--live)"></i>Moment: you took a 20-minute break at 9:40. Nice.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 9 · Privacy -->
-    <div class="scene" data-tint="rgba(255,255,255,.03)" data-bg="0">
-      <div class="priv">
-        <div>
-          <h5 class="a d1">Detection layers</h5>
-          <div class="row r1"><span>Layer 1 · Keyword</span><span class="tg"></span></div>
-          <div class="row r2"><span>Layer 2 · Semantic</span><span class="tg"></span></div>
-          <div class="row r3"><span>Layer 3 · Behavioral</span><span class="tg"></span></div>
-          <div class="row r4"><span>Layer 4 · Trend gate</span><span class="tg"></span></div>
-          <div class="zero a d4">events = category + level + time · 0 bytes of raw text</div>
-        </div>
-        <div class="acts">
-          <span class="a d2">Trusted contact<em style="color:#c8c8c8;font-style:normal">Ms. Rivera</em></span>
-          <span class="a d3">Export everything<em style="font-style:normal">.json</em></span>
-          <span class="a d4 dz">Erase everything<em style="font-style:normal">one click</em></span>
-          <span class="a d5" style="border-color:rgba(239,68,68,.35);color:#ffb4b4">Delete account<em style="font-style:normal">frees email</em></span>
-        </div>
-      </div>
-    </div>
-  </a>
-  <h2 class="reel-t r" id="reel-tr"></h2>
-
-  <div class="reel-meta bot"><span id="rm-idx">01.</span><span id="rm-client">Groq gpt-oss-120b · warm, never a therapist</span><span id="rm-total">.09</span></div>
-
-  <div class="reel-strip" id="reel-strip" aria-label="All features"></div>
-  <div class="reel-list" id="reel-list"><ol id="reel-ol"></ol></div>
-
-  <div class="reel-bar">
-    <div class="grp"><span>© 2026 SilentHelp</span><span><button type="button" id="mode-slider" class="on">Slider</button><span class="sep">/</span><button type="button" id="mode-list">List</button></span></div>
-    <div class="reel-arrows"><button type="button" id="reel-prev-m" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><button type="button" id="reel-next-m" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button></div>
-    <div class="grp"><div class="cats"><b>All <i>(09)</i></b><span>Chat · Agent</span><span>Detection · Privacy</span></div><span class="tc" id="reel-tc">00:00:00</span><a href="https://silenthelp.org/stage" target="_blank" rel="noopener">Live stage ↗</a></div>
+    </article>
   </div>
+
+  <div class="gal-hint">Hover · arrow keys · click to pin</div>
 </section>
 
 <!-- ══════════════════════════ HOW IT WORKS ══════════════════════════ -->
@@ -1696,7 +1726,7 @@ body::after{
       <span class="tag rv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="M3 16l9 5 9-5"/><path d="M3 12l9 5 9-5"/></svg>How it works</span>
       <h2 class="words px" data-words>Four Quiet Layers, One Gentle <span class="fade">Signal</span></h2>
       <p class="rv d2">Keywords miss meaning and models miss patterns — so each layer covers the one before it.</p>
-      <a class="btn av rv d3" href="https://silenthelp.org/app"><span class="dot"><img src="static/img/badge-256.png" alt=""></span>Start free</a>
+      <a class="btn av rv d3" href="https://silenthelp.org/app"><span class="dot"><img src="/static/img/badge-256.png" alt=""></span>Start free</a>
     </div>
 
     <div class="diagram rv-s" id="diagram">
@@ -1855,9 +1885,9 @@ body::after{
         </div>
       </div>
       <div class="roster" data-stagger aria-label="Founders">
-        <a class="rrow rv" href="https://silenthelp.org/about#sree"><img src="static/img/team/sree.jpg" alt=""><div><b>Sree Saran Lakkaraju</b><small>Founder · CEO · Chief Product &amp; UX Officer</small></div><span class="n">01</span></a>
-        <a class="rrow rv" href="https://silenthelp.org/about#abhinav"><img src="static/img/team/abhinav.jpg" alt=""><div><b>Abhinav Allani</b><small>Co-Founder · Lead AI/ML &amp; Detection Systems</small></div><span class="n">02</span></a>
-        <a class="rrow rv" href="https://silenthelp.org/about#nehanth"><img src="static/img/team/nehanth.jpg" alt=""><div><b>Nehanth Arvapalli</b><small>Co-Founder · Detection Data &amp; Intelligence</small></div><span class="n">03</span></a>
+        <a class="rrow rv" href="https://silenthelp.org/about#sree"><img src="/static/img/team/sree.jpg" alt=""><div><b>Sree Saran Lakkaraju</b><small>Founder · CEO · Chief Product &amp; UX Officer</small></div><span class="n">01</span></a>
+        <a class="rrow rv" href="https://silenthelp.org/about#abhinav"><img src="/static/img/team/abhinav.jpg" alt=""><div><b>Abhinav Allani</b><small>Co-Founder · Lead AI/ML &amp; Detection Systems</small></div><span class="n">02</span></a>
+        <a class="rrow rv" href="https://silenthelp.org/about#nehanth"><img src="/static/img/team/nehanth.jpg" alt=""><div><b>Nehanth Arvapalli</b><small>Co-Founder · Detection Data &amp; Intelligence</small></div><span class="n">03</span></a>
       </div>
     </div>
   </div>
@@ -1888,7 +1918,7 @@ body::after{
           </a>
           <span class="glassy-label">Download for Mac</span>
         </div>
-          <a class="btn av" href="https://silenthelp.org/app"><span class="dot"><img src="static/img/badge-256.png" alt=""></span>Start free</a>
+          <a class="btn av" href="https://silenthelp.org/app"><span class="dot"><img src="/static/img/badge-256.png" alt=""></span>Start free</a>
         </div>
       </div>
       <div class="mcol rev" aria-hidden="true">
@@ -1912,7 +1942,7 @@ body::after{
   <div class="wrap">
     <div class="fgrid">
       <div class="fbrand rv">
-        <img src="static/img/badge-256.png" alt="SilentHelp">
+        <img src="/static/img/badge-256.png" alt="SilentHelp">
         <h4>SilentHelp</h4>
         <p>A quiet companion that notices when you're running low — on your Mac, never sent anywhere, long before you'd think to ask for help.</p>
       </div>
@@ -2610,6 +2640,51 @@ body::after{
     });
   })();
 
+
+  /* ═══════════════════════ DEMO · 3D GALLERY ═══════════════════════ */
+  (function initGalDemo(){
+    var wrap = document.getElementById('gal-wrap');
+    if (!wrap) return;
+    var cards = Array.prototype.slice.call(wrap.querySelectorAll('.gal-card'));
+    var active = null;
+    function setActive(i){
+      active = i;
+      wrap.classList.toggle('has-active', i !== null);
+      cards.forEach(function(card, idx){
+        var on = i === idx;
+        card.classList.toggle('is-active', on);
+        card.classList.toggle('is-before', i !== null && idx < i);
+        card.classList.toggle('is-after', i !== null && idx > i);
+        card.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    }
+    cards.forEach(function(card, idx){
+      card.addEventListener('mouseenter', function(){ setActive(idx); });
+      card.addEventListener('focus', function(){ setActive(idx); });
+      card.addEventListener('click', function(e){
+        if (e.target.closest && e.target.closest('a')) return;
+        setActive(active === idx ? null : idx);
+      });
+      card.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          setActive(active === idx ? null : idx);
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          var n = (idx + 1) % cards.length;
+          cards[n].focus(); setActive(n);
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          var p = (idx - 1 + cards.length) % cards.length;
+          cards[p].focus(); setActive(p);
+        } else if (e.key === 'Escape') {
+          setActive(null);
+        }
+      });
+    });
+    wrap.addEventListener('mouseleave', function(){ setActive(null); });
+  })();
+
   /* ═════════════════════════ DEMO ═══════════════════════════ */
   var REEL_SLIDES = [
     { l:'Coping',    r:'<em>Chat</em>',       cat:'Coping chat',      kind:'Web · App',        client:'Groq gpt-oss-120b · warm, never a therapist',      tbg:'linear-gradient(140deg,#1a1a1a,#050505)' },
@@ -2622,7 +2697,11 @@ body::after{
     { l:'Mental',    r:'<em>Battery</em>',    cat:'Dashboard',        kind:'Analytics',        client:'Focus · burnout · findings · moments',            tbg:'linear-gradient(140deg,#1a1a1a,#050505)' },
     { l:'Nothing',   r:'<em>Leaves</em>',     cat:'Privacy',          kind:'Settings',         client:'Layer toggles · export · erase · delete',         tbg:'linear-gradient(140deg,#1a1a1a,#050505)' }
   ];
-  var reel = $('#demo'), scenes = $$('.scene', reel), bgs = $$('.reel-bg video', reel);
+  if (document.getElementById('gal-wrap')) { /* 3D gallery demo — skip reel */ }
+  else {
+  var reel = document.querySelector('section.reel#demo');
+  if (!reel) { /* missing */ } else {
+  var scenes = $$('.scene', reel), bgs = $$('.reel-bg video', reel);
   var tl = $('#reel-tl'), tr = $('#reel-tr'), tint = $('#reel-tint');
   var cur = -1, timer = null, inView = false, N = REEL_SLIDES.length;
   var ol = $('#reel-ol');
@@ -2730,10 +2809,12 @@ body::after{
   })();
   reelGo(0); restart();
 
+  }} /* end reel skip */
+
   /* ── Videos: autoplay can be refused — hold the frame quietly ─── */
   $$('video').forEach(function(v){ var p = v.play(); if (p && p.catch) p.catch(function(){}); });
 })();
 </script>
-<script src="static/liquid-glass.js"></script>
+<script src="/static/liquid-glass.js"></script>
 </body>
 </html>

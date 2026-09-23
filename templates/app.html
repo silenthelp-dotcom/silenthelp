@@ -231,7 +231,21 @@ body:has(.frame-fullbleed) > video[data-backdrop],
 body:has(.frame-fullbleed) > div[data-backdrop] { display:none !important; }
 .frame-fullbleed #scr-auth > div > div:first-child { background:#000; }
 #scr-auth { height:100vh; }
-#scr-auth > div { height:100vh; width:100%; max-width:none; }
+#scr-auth > div { height:100vh; width:100%; max-width:none; display:flex !important; }
+/* Keep both columns fully readable — no edge crop on the form or promo copy */
+#scr-auth > div > div:first-child {
+  flex:1.1 1 0 !important; min-width:min(420px, 100%) !important;
+  padding:48px clamp(28px, 4vw, 64px) !important; box-sizing:border-box;
+}
+#scr-auth .l-desk {
+  flex:1 1 0 !important; min-width:0 !important;
+  padding:48px clamp(28px, 3.5vw, 56px) !important; box-sizing:border-box;
+}
+#scr-auth .hd { overflow-wrap:anywhere; word-break:normal; }
+@media (max-width:1100px){
+  #scr-auth .l-desk { display:none !important; }
+  #scr-auth > div > div:first-child { flex:1 1 auto !important; max-width:560px; margin:0 auto; }
+}
 
 /* ── No blue anywhere ───────────────────────────────────────────────────
    The blue glow under the onboarding/auth buttons reads as a coloured border
@@ -590,7 +604,7 @@ body, #appview, #appframe, .appscreen { background:#010101 !important; color:#ff
       <div style="display:flex; height:100%; min-height:0;">
 
         <!-- LEFT · the form (wider than the promo panel so the fields feel roomy) -->
-        <div style="flex:1.15; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:56px 64px; overflow-y:auto;">
+        <div style="flex:1.15; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px 40px; overflow-y:auto; box-sizing:border-box;">
           <div style="width:100%; max-width:500px;">
             <img src="/static/img/badge-256.png" alt="SilentHelp" style="width:64px; height:64px; border-radius:50%; margin-bottom:24px;" />
             <div class="hd" style="font-size:clamp(2.4rem,4vw,3.2rem); color:#fff; letter-spacing:-.02em; line-height:1;">Your own quiet space.</div>
@@ -644,15 +658,13 @@ body, #appview, #appframe, .appscreen { background:#010101 !important; color:#ff
           </div>
         </div>
 
-        <!-- RIGHT · promo panel with the hero video. Full-bleed: it runs top to
-             bottom and to the right edge of the screen (no inset, no radius). -->
-        <div class="l-desk" style="flex:1; min-width:0; position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; padding:56px;">
-          <video autoplay muted playsinline loop preload="auto" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;"></video>
-          <div style="position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.72));"></div>
-          <div style="position:relative; z-index:2;">
+        <!-- RIGHT · promo panel — clean dark, no glow orb / flower video -->
+        <div class="l-desk" style="flex:1; min-width:0; position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; padding:56px 48px; background:#050505;">
+          <div style="position:absolute; inset:0; z-index:0; background:radial-gradient(ellipse 70% 55% at 70% 40%, rgba(255,255,255,.06), transparent 60%), #050505;"></div>
+          <div style="position:relative; z-index:2; max-width:520px;">
             <div class="liquid-glass" style="display:inline-flex; align-items:center; gap:8px; border-radius:9999px; padding:7px 15px; font-size:12px; color:#fff; margin-bottom:22px;"><span style="width:6px;height:6px;border-radius:50%;background:#fff;"></span>ON-DEVICE · PRIVATE BY DESIGN</div>
-            <div class="hd" style="font-size:clamp(2rem,3.4vw,3rem); color:#fff; line-height:1.02; letter-spacing:-.02em; max-width:460px;">Support that notices before you ask.</div>
-            <div style="font-size:15px; color:rgba(255,255,255,.8); margin-top:18px; font-weight:300; line-height:1.65; max-width:440px;">Four quiet layers read your own rhythm — never your diary — and point you toward real human support the moment it matters.</div>
+            <div class="hd" style="font-size:clamp(1.85rem,3vw,2.75rem); color:#fff; line-height:1.08; letter-spacing:-.02em;">Support that notices before you ask.</div>
+            <div style="font-size:15px; color:rgba(255,255,255,.75); margin-top:18px; font-weight:300; line-height:1.65;">Four quiet layers read your own rhythm — never your diary — and point you toward real human support the moment it matters.</div>
             <div style="display:flex; gap:26px; margin-top:30px; flex-wrap:wrap;">
               <div><div class="hd" style="font-size:26px; color:#fff;">&lt; 1 ms</div><div style="font-size:12px; color:rgba(255,255,255,.6); margin-top:4px; font-weight:300;">On-device scan</div></div>
               <div><div class="hd" style="font-size:26px; color:#fff;">0 bytes</div><div style="font-size:12px; color:rgba(255,255,255,.6); margin-top:4px; font-weight:300;">Raw text stored</div></div>
