@@ -1727,7 +1727,7 @@ main, .story-pin, .gal-demo, .who, .pricing, .cta-final, footer, .site-nav, .nav
   position:relative; z-index:2;
 }
 .story-pin, .gal-demo, .who, .pricing, .cta-final {
-  background: linear-gradient(90deg, rgba(0,0,0,.08) 0%, rgba(0,0,0,.55) 36%, rgba(0,0,0,.92) 58%, rgba(0,0,0,.97) 100%);
+  background: linear-gradient(90deg, rgba(0,0,0,.02) 0%, rgba(0,0,0,.35) 32%, rgba(0,0,0,.88) 52%, rgba(0,0,0,.97) 100%);
 }
 @media (max-width:820px){
   .hero-brain-copy{ margin-right:0; padding:88px 22px 72px; max-width:100%; }
@@ -2858,7 +2858,7 @@ window.__BRAIN_PTS = {"n":5000,"xyz":[-2.338,-0.998,2.2200000286102295,-3.264,2.
           particleSystem.rotation.x += (0 - particleSystem.rotation.x) * 0.05;
           particleSystem.rotation.z += (0 - particleSystem.rotation.z) * 0.05;
         }
-        camera.position.x += (mouseX * parallax - camera.position.x) * 0.05;
+        /* horizontal parallax disabled — brain stays left */
         camera.position.y += (-mouseY * parallax - camera.position.y) * 0.05;
         camera.lookAt(0,0,0);
         renderer.render(scene, camera);
@@ -3121,7 +3121,7 @@ window.__BRAIN_PTS = {"n":5000,"xyz":[-2.338,-0.998,2.2200000286102295,-3.264,2.
     var s0 = size();
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(42, s0.w/s0.h, 0.1, 100);
-    camera.position.set(0.55, 0.05, 5.5);
+    camera.position.set(0.85, 0.05, 5.6);
 
     var bp = window.__BRAIN_PTS || {n:0, xyz:[], s:[]};
     var baseN = bp.n || 0;
@@ -3170,7 +3170,7 @@ window.__BRAIN_PTS = {"n":5000,"xyz":[-2.338,-0.998,2.2200000286102295,-3.264,2.
     points.rotation.y = -0.45;
     points.rotation.x = 0.1;
     // LEFT side of frame
-    points.position.x = isMobile ? -0.55 : -1.85;
+    points.position.x = isMobile ? -0.75 : -2.15;
     points.position.y = 0.05;
     scene.add(points);
 
@@ -3188,14 +3188,14 @@ window.__BRAIN_PTS = {"n":5000,"xyz":[-2.338,-0.998,2.2200000286102295,-3.264,2.
       var t = clock.getElapsedTime();
       var g = scrollG;
       // idle spin + full-page scroll scrub through the end
-      points.rotation.y = -0.45 + g * 2.2 + (!reduced ? t*0.06 : 0);
-      points.rotation.x = 0.1 + g * 0.55 + (!reduced ? Math.sin(t*0.35)*0.03 : 0);
-      points.position.y = 0.05 + Math.sin(t*0.4)*0.02 - g * 0.15;
-      // keep left bias; ease slightly toward center late in scroll
-      points.position.x = (isMobile ? -0.55 : -1.85) + g * 0.25;
-      camera.position.z = 5.5 - g * 1.15;
-      camera.position.x = 0.55 + g * 0.15;
-      camera.lookAt(points.position.x + 0.2, 0.02, 0);
+      points.rotation.y = -0.55 + g * 0.85 + (!reduced ? t*0.05 : 0);
+      points.rotation.x = 0.12 + g * 0.2 + (!reduced ? Math.sin(t*0.35)*0.025 : 0);
+      points.position.y = 0.05 + Math.sin(t*0.4)*0.015;
+      // locked left for the entire page scroll
+      points.position.x = isMobile ? -0.75 : -2.15;
+      camera.position.z = 5.6 - g * 0.55;
+      camera.position.x = 0.95;
+      camera.lookAt(points.position.x, 0.02, 0);
       mat.size = (isMobile ? 0.015 : 0.011) * (1 + 0.05*Math.sin(t*1.6));
       mat.opacity = 0.72 + 0.16*Math.sin(t*1.1) - g * 0.08;
       if (coh) coh.textContent = 'COHERENCE ' + (88 + 8*g + 3*Math.sin(t*0.7)).toFixed(1) + '%';
