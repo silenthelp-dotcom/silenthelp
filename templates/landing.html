@@ -129,7 +129,7 @@ section{position:relative;scroll-margin-top:70px}
 /* ═══════════════════════════════ NAV ═════════════════════════════════ */
 /* Three-pill bar matching DialedWeb-style dock + CTAs */
 .nav-bar{
-  position:fixed;top:18px;left:50%;transform:translateX(-50%);
+  position:fixed;top:18px;left:calc(var(--brain-col) + (100vw - var(--brain-col))/2);transform:translateX(-50%);
   z-index:100;display:flex;align-items:center;gap:10px;
   width:max-content;max-width:calc(100vw - 24px);
   transition:transform .55s var(--ease), opacity .45s;
@@ -1195,13 +1195,7 @@ html.lenis, html.lenis body{height:auto}
 .lenis.lenis-smooth [data-lenis-prevent]{overscroll-behavior:contain}
 .lenis.lenis-stopped{overflow:hidden}
 
-.progress{
-  position:fixed;top:0;left:0;right:0;height:2px;z-index:10000;
-  transform:scaleX(0);transform-origin:0 50%;
-  background:linear-gradient(90deg,#fff,rgba(255,255,255,.55));
-  pointer-events:none;opacity:.9;
-  transition:opacity .4s ease;
-}
+.progress{position:fixed;top:0;left:var(--brain-col);right:0;height:2px;z-index:200;background:transparent;pointer-events:none}
 .progress.dim{opacity:.35}
 
 /* deeper cinematic reveals */
@@ -1650,15 +1644,6 @@ body::after{
 
 
 /* —— Video hero: white particle brain (fixed left, full-page scroll) —— */
-#particle-canvas{
-  position:fixed; top:0; left:0; bottom:0;
-  width:min(52vw, 720px); height:100%; z-index:0;
-  pointer-events:none;
-  background:radial-gradient(ellipse 80% 60% at 55% 48%, #161616 0%, #000 72%);
-}
-@media (max-width:820px){
-  #particle-canvas{ width:100%; opacity:.55; }
-}
 .hero.hero-brain{
   position:relative; min-height:100vh; min-height:100svh;
   display:flex; align-items:center; justify-content:flex-end;
@@ -1741,6 +1726,56 @@ main, .story-pin, .gal-demo, .who, .pricing, .cta-final, footer, .site-nav, .nav
 
 
 body{background:#000}
+
+/* Two-column layout: fixed brain left | scrolling page right */
+:root{ --brain-col: min(48vw, 680px); }
+#particle-canvas{
+  position:fixed; top:0; left:0; bottom:0;
+  width: var(--brain-col); height:100%; z-index:0;
+  pointer-events:none;
+  background:radial-gradient(ellipse 80% 60% at 50% 48%, #161616 0%, #000 72%);
+}
+.page-rail{
+  position:relative; z-index:2;
+  margin-left: var(--brain-col);
+  width: calc(100% - var(--brain-col));
+  min-height: 100vh;
+  background: #000;
+  border-left: 1px solid rgba(255,255,255,.06);
+}
+.page-rail .nav-bar{
+  /* dock stays within the scrolling column */
+  left: 50%;
+}
+.hero.hero-brain{
+  position:relative; min-height:100vh; min-height:100svh;
+  display:flex; align-items:center; justify-content:flex-start;
+  padding: 0; overflow:hidden; background:transparent; z-index:2;
+}
+.hero-brain-veil{ display:none; } /* rail owns the split */
+.hero-brain-copy{
+  max-width: 560px;
+  margin: 0;
+  padding: 96px 40px 80px;
+  text-align:left;
+}
+.hero-brain-hud{
+  left:0; right:0; /* within rail */
+}
+/* sections no longer need left fade — they sit in the right rail */
+.story-pin, .gal-demo, .sec, .who, .pricing, .cta-final, footer {
+  background: #000 !important;
+}
+@media (max-width:900px){
+  :root{ --brain-col: 0px; }
+  #particle-canvas{
+    width:100%; opacity:.4; z-index:0;
+  }
+  .page-rail{
+    margin-left:0; width:100%; border-left:0;
+  }
+}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.18/dist/lenis.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
@@ -1750,6 +1785,7 @@ window.__BRAIN_PTS = {"n":5000,"xyz":[-2.338,-0.998,2.2200000286102295,-3.264,2.
 </head>
 <body>
 <canvas id="particle-canvas" aria-hidden="true"></canvas>
+<div class="page-rail" id="page-rail">
 
 <div class="progress" id="progress" aria-hidden="true"></div>
 
@@ -2236,6 +2272,8 @@ window.__BRAIN_PTS = {"n":5000,"xyz":[-2.338,-0.998,2.2200000286102295,-3.264,2.
     <p class="disclaimer">SilentHelp is a wellbeing companion, not a medical device, and it does not diagnose or provide treatment. If you are in immediate danger, call or text <b>988</b> (US Suicide &amp; Crisis Lifeline) or your local emergency number.</p>
   </div>
 </footer>
+</div><!-- /.page-rail -->
+
 
 <script>
 (function(){
@@ -3117,7 +3155,7 @@ window.__BRAIN_PTS = {"n":5000,"xyz":[-2.338,-0.998,2.2200000286102295,-3.264,2.
     var renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:false, alpha:true, powerPreference:'high-performance'});
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
     function size(){
-      var w = canvas.clientWidth || Math.min(window.innerWidth * 0.52, 720);
+      var w = canvas.clientWidth || Math.min(window.innerWidth * 0.48, 680);
       var h = canvas.clientHeight || window.innerHeight;
       renderer.setSize(w, h, false);
       return {w:w,h:h};
@@ -3125,7 +3163,7 @@ window.__BRAIN_PTS = {"n":5000,"xyz":[-2.338,-0.998,2.2200000286102295,-3.264,2.
     var s0 = size();
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(42, s0.w/s0.h, 0.1, 100);
-    camera.position.set(0, 0.05, 5.2);
+    camera.position.set(0, 0.05, 4.8);
 
     var bp = window.__BRAIN_PTS || {n:0, xyz:[], s:[]};
     var baseN = bp.n || 0;
