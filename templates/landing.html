@@ -78,7 +78,10 @@ img,video,svg{display:block;max-width:100%}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 h1,h2,h3,h4,h5,p{margin:0}
 .wrap{width:var(--w);margin:0 auto}
-section{position:relative;scroll-margin-top:70px}
+section{position:relative;scroll-margin-top:96px}
+/* Anchor targets that aren't <section> still have to clear the fixed nav
+   (top:18px + 48px tall). Without this the heading lands under the bar. */
+[id]{scroll-margin-top:96px}
 
 /* Word-tail fade (dialedweb fades the last word of each headline). */
 .fade{
@@ -1438,6 +1441,9 @@ body::after{
   display:flex; align-items:center; justify-content:center;
   perspective:1100px; gap:12px; min-height:460px;
   transform-style:preserve-3d;
+  /* rotateY on the neighbours throws their corners past the rail edge; pad the
+     track so the outermost card can never be sliced by the column border. */
+  padding-inline:10px; box-sizing:border-box;
 }
 .gal-card{
   position:relative; flex:1; min-width:64px; height:440px;
@@ -1464,6 +1470,9 @@ body::after{
   color:#fff; display:flex; flex-direction:column; align-items:flex-start;
   opacity:0; transform:translateY(14px); pointer-events:none;
   transition:opacity .35s ease, transform .35s ease;
+  /* A collapsed card is ~62px wide: its title/description reflow into unreadable
+     slivers that render as torn text. Keep them out of layout until active. */
+  visibility:hidden;
 }
 .gal-card .gal-cat{
   font-size:9px; font-weight:800; letter-spacing:.18em; text-transform:uppercase;
@@ -1497,7 +1506,7 @@ body::after{
 .gal-card.is-active .gal-shade{
   opacity:1; background:linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,.9));
 }
-.gal-card.is-active .gal-body{ opacity:1; transform:none; pointer-events:auto; }
+.gal-card.is-active .gal-body{ opacity:1; transform:none; pointer-events:auto; visibility:visible; }
 .gal-wrap.has-active .gal-card:not(.is-active){
   filter:grayscale(1) brightness(.35);
   border-color:rgba(255,255,255,.08);
@@ -1519,7 +1528,8 @@ body::after{
   }
   .gal-card.is-active{ height:280px; }
   .gal-wrap.has-active .gal-card:not(.is-active){ filter:grayscale(.4) brightness(.55); }
-  .gal-card .gal-body{ opacity:.85; transform:none; }
+  /* Mobile stacks the cards full-width, so bodies are readable and stay shown. */
+  .gal-card .gal-body{ opacity:.85; transform:none; visibility:visible; }
   .gal-card .gal-desc{ display:none; }
   .gal-card.is-active .gal-desc{ display:block; }
 }
@@ -1657,7 +1667,7 @@ body::after{
     linear-gradient(180deg, rgba(0,0,0,.5) 0%, transparent 26%, transparent 72%, rgba(0,0,0,.55) 100%);
 }
 .hero-brain-hud{
-  position:absolute; top:0; left:0; right:0; z-index:4;
+  position:absolute; top:76px; left:0; right:0; z-index:4;
   height:42px; display:flex; align-items:center; gap:18px;
   padding:0 18px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size:10px; letter-spacing:.08em; color:rgba(255,255,255,.62);
@@ -1728,58 +1738,118 @@ main, .story-pin, .gal-demo, .who, .pricing, .cta-final, footer, .site-nav, .nav
 body{background:#000}
 
 
-/* Balanced split: brain left 50% | page right 50% */
-:root{ --brain-col: 50vw; }
+
+/* Balanced split: brain left | page right — fully visible, no right clip */
+:root{ --brain-col: 46vw; }
+html, body{ overflow-x: hidden; max-width:100%; }
 #particle-canvas{
   position:fixed; top:0; left:0; bottom:0;
   width: var(--brain-col); height:100%; z-index:0;
   pointer-events:none;
-  background:radial-gradient(ellipse 70% 55% at 50% 48%, #1a1a1a 0%, #000 70%);
+  background:radial-gradient(ellipse 65% 55% at 50% 48%, #1a1a1a 0%, #000 72%);
 }
 .page-rail{
   position:relative; z-index:2;
   margin-left: var(--brain-col);
   width: calc(100% - var(--brain-col));
+  max-width: calc(100vw - var(--brain-col));
   min-height: 100vh;
   background: #000;
   border-left: 1px solid rgba(255,255,255,.06);
   box-sizing: border-box;
+  overflow-x: hidden;
 }
-/* Hero fills the right rail, content centered in that column */
 .hero.hero-brain{
   position:relative; min-height:100vh; min-height:100svh;
   display:flex; align-items:center; justify-content:center;
-  padding: 0 6%; overflow:hidden; background:transparent; z-index:2;
+  padding: 72px clamp(16px, 4vw, 40px) 64px;
+  overflow:visible; background:transparent; z-index:2;
+  box-sizing:border-box; width:100%;
 }
 .hero-brain-veil{ display:none !important; }
 .hero-brain-copy{
-  max-width: 520px; width:100%;
+  max-width: min(480px, 100%);
+  width:100%;
   margin: 0 auto;
-  padding: 100px 8px 88px; text-align:left;
+  padding: 24px 0 48px;
+  text-align:left;
+  box-sizing:border-box;
+}
+.hb-title{
+  font-size: clamp(28px, 4.2vw, 52px) !important;
+  line-height: 1.08 !important;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 .hero-brain-hud{
   left:0; right:0; width:100%;
-  padding: 0 18px;
+  padding: 0 12px;
+  box-sizing:border-box;
+  font-size:9px !important;
+  gap:8px !important;
+  overflow:hidden;
 }
-/* Center section content inside the right rail */
-.page-rail .wrap,
-.page-rail .section-inner,
-.page-rail .gal-demo .gal-head,
-.page-rail .story-pin-sticky,
-.page-rail .sec > .wrap{
+.hero-brain-hud .hb-mid{ gap:10px !important; flex-wrap:wrap; }
+/* Keep fixed chrome inside the right rail */
+.nav-bar{
+  left: calc(var(--brain-col) + (100vw - var(--brain-col)) / 2) !important;
+  transform: translateX(-50%) !important;
+  max-width: calc(100vw - var(--brain-col) - 24px) !important;
+}
+.progress{
+  left: var(--brain-col) !important;
+  right: 0 !important;
+  width: auto !important;
+}
+/* Side brand mark: keep inside rail, not off-screen */
+.side-brand, .sh-side, .vert-brand, .rail-brand{
+  right: 10px !important;
+  left: auto !important;
+}
+.page-rail .wrap{
+  max-width: min(720px, 100%);
+  width: 100%;
   margin-left: auto; margin-right: auto;
+  padding-left: clamp(12px, 3vw, 28px);
+  padding-right: clamp(12px, 3vw, 28px);
+  box-sizing: border-box;
 }
 .page-rail .gal-demo,
 .page-rail .story-pin,
-.page-rail .sec{
-  padding-left: clamp(20px, 4vw, 48px);
-  padding-right: clamp(20px, 4vw, 48px);
+.page-rail .sec,
+.page-rail section{
+  max-width: 100%;
   box-sizing: border-box;
+  overflow-x: hidden;
+  padding-left: clamp(12px, 3vw, 28px);
+  padding-right: clamp(12px, 3vw, 28px);
 }
 @media (max-width:900px){
   :root{ --brain-col: 0px; }
-  #particle-canvas{ width:100%; opacity:.35; }
-  .page-rail{ margin-left:0; width:100%; border-left:0; }
+  #particle-canvas{ width:100%; opacity:.32; }
+  .page-rail{ margin-left:0; width:100%; max-width:100%; border-left:0; }
+  .nav-bar{ left:50% !important; max-width:calc(100vw - 24px) !important; }
+}
+
+
+/* Prevent demo/gallery 3D cards from spilling past the right rail */
+.page-rail .gal-demo,
+.page-rail #demo,
+.page-rail .gal-wrap,
+.page-rail .gal-stage{
+  overflow: hidden !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+.page-rail .gal-card{
+  max-width: min(280px, 42vw);
+}
+.page-rail .privacy-grid,
+.page-rail .pipe,
+.page-rail .bento,
+.page-rail .mock{
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 </style>
@@ -1877,7 +1947,7 @@ window.__BRAIN_PTS = {"n":5000,"xyz":[-2.338,-0.998,2.2200000286102295,-3.264,2.
 
     <article class="gal-card" role="listitem" tabindex="0" data-i="0" data-demo="coping" aria-label="Coping chat demo">
       <div class="gal-stage">
-        <video class="gal-stage-bg" src="/static/video/hero.mp4" muted loop playsinline preload="metadata"></video>
+        <video class="gal-stage-bg" poster="/static/img/demo/coping.png" src="/static/video/hero.mp4" muted loop playsinline preload="metadata"></video>
         <div class="gal-stage-ui">
           <div class="gal-sc">
             <div class="sc-bar peek"><i></i><i></i><i></i><b>Coping Chat</b><span>· silenthelp.org/app</span></div>
@@ -1901,7 +1971,7 @@ window.__BRAIN_PTS = {"n":5000,"xyz":[-2.338,-0.998,2.2200000286102295,-3.264,2.
 
     <article class="gal-card" role="listitem" tabindex="0" data-i="1" data-demo="friend" aria-label="Help a friend demo">
       <div class="gal-stage">
-        <video class="gal-stage-bg" src="/static/video/caps.mp4" muted loop playsinline preload="metadata"></video>
+        <video class="gal-stage-bg" poster="/static/img/demo/friend.png" src="/static/video/caps.mp4" muted loop playsinline preload="metadata"></video>
         <div class="gal-stage-ui">
           <div class="gal-haf">
             <div class="paste a d1 peek"><b>Paste what they sent</b><div class="bubble">i can't do this anymore. don't tell anyone</div><span class="chip"><i></i>reading intent, not keywords</span></div>
@@ -1925,7 +1995,7 @@ window.__BRAIN_PTS = {"n":5000,"xyz":[-2.338,-0.998,2.2200000286102295,-3.264,2.
 
     <article class="gal-card" role="listitem" tabindex="0" data-i="2" data-demo="mac" aria-label="Mac agent demo">
       <div class="gal-stage">
-        <video class="gal-stage-bg" src="/static/video/hero.mp4" muted loop playsinline preload="metadata"></video>
+        <video class="gal-stage-bg" poster="/static/img/demo/mac.png" src="/static/video/hero.mp4" muted loop playsinline preload="metadata"></video>
         <div class="gal-stage-ui">
           <div class="gal-mac">
             <div class="menubar peek"><div class="lft"><span></span><b>Notes</b><span>File</span><span>Edit</span></div><div class="rgt"><span class="sh"><i></i>SH</span><span>11:52 PM</span></div></div>
@@ -1945,7 +2015,7 @@ window.__BRAIN_PTS = {"n":5000,"xyz":[-2.338,-0.998,2.2200000286102295,-3.264,2.
 
     <article class="gal-card" role="listitem" tabindex="0" data-i="3" data-demo="layers" aria-label="Four layers demo">
       <div class="gal-stage">
-        <video class="gal-stage-bg" src="/static/video/caps.mp4" muted loop playsinline preload="metadata"></video>
+        <video class="gal-stage-bg" poster="/static/img/demo/layers.png" src="/static/video/caps.mp4" muted loop playsinline preload="metadata"></video>
         <div class="gal-stage-ui">
           <div class="gal-pipe">
             <div class="in a d1 peek">"i just want it all to stop"</div>
@@ -1970,7 +2040,7 @@ window.__BRAIN_PTS = {"n":5000,"xyz":[-2.338,-0.998,2.2200000286102295,-3.264,2.
 
     <article class="gal-card" role="listitem" tabindex="0" data-i="4" data-demo="crisis" aria-label="Crisis support demo">
       <div class="gal-stage">
-        <video class="gal-stage-bg" src="/static/video/hero.mp4" muted loop playsinline preload="metadata"></video>
+        <video class="gal-stage-bg" poster="/static/img/demo/crisis.png" src="/static/video/hero.mp4" muted loop playsinline preload="metadata"></video>
         <div class="gal-stage-ui">
           <div class="gal-crisis">
             <h4 class="a d1 peek">You matter.</h4>
@@ -1991,7 +2061,7 @@ window.__BRAIN_PTS = {"n":5000,"xyz":[-2.338,-0.998,2.2200000286102295,-3.264,2.
 
     <article class="gal-card" role="listitem" tabindex="0" data-i="5" data-demo="privacy" aria-label="Privacy demo">
       <div class="gal-stage">
-        <video class="gal-stage-bg" src="/static/video/caps.mp4" muted loop playsinline preload="metadata"></video>
+        <video class="gal-stage-bg" poster="/static/img/demo/privacy.png" src="/static/video/caps.mp4" muted loop playsinline preload="metadata"></video>
         <div class="gal-stage-ui">
           <div class="gal-priv">
             <div>
@@ -3168,8 +3238,8 @@ window.__BRAIN_PTS = {"n":5000,"xyz":[-2.338,-0.998,2.2200000286102295,-3.264,2.
     }
     var s0 = size();
     var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(38, s0.w/s0.h, 0.1, 100);
-    camera.position.set(0, 0.08, 6.2);
+    var camera = new THREE.PerspectiveCamera(42, s0.w/s0.h, 0.1, 100);
+    camera.position.set(0, 0.05, 7.8);
 
     var bp = window.__BRAIN_PTS || {n:0, xyz:[], s:[]};
     var baseN = bp.n || 0;
@@ -3188,7 +3258,7 @@ window.__BRAIN_PTS = {"n":5000,"xyz":[-2.338,-0.998,2.2200000286102295,-3.264,2.
       var y = bp.xyz[src*3+1] || 0;
       var z = bp.xyz[src*3+2] || 0;
       var shade = (bp.s && bp.s[src]) || 0.7;
-      var scale = 0.48;
+      var scale = 0.36;
       var jitter = (i < baseN) ? 0.006 : 0.014;
       x = x * scale + (Math.random()-0.5)*jitter;
       y = y * scale + (Math.random()-0.5)*jitter;
@@ -3236,12 +3306,12 @@ window.__BRAIN_PTS = {"n":5000,"xyz":[-2.338,-0.998,2.2200000286102295,-3.264,2.
       var t = clock.getElapsedTime();
       var g = scrollG;
       // idle spin + full-page scroll scrub through the end
-      points.rotation.y = -0.55 + g * 0.85 + (!reduced ? t*0.05 : 0);
-      points.rotation.x = 0.12 + g * 0.2 + (!reduced ? Math.sin(t*0.35)*0.025 : 0);
+      points.rotation.y = -0.35 + g * 0.55 + (!reduced ? t*0.04 : 0);
+      points.rotation.x = 0.08 + g * 0.12 + (!reduced ? Math.sin(t*0.35)*0.02 : 0);
       points.position.y = 0.05 + Math.sin(t*0.4)*0.015;
       // locked left for the entire page scroll
       points.position.x = 0;
-      camera.position.z = 6.2 - g * 0.4;
+      camera.position.z = 7.8 - g * 0.35;
       camera.position.x = 0;
       camera.lookAt(0, 0.02, 0);
       mat.size = (isMobile ? 0.016 : 0.013) * (1 + 0.04*Math.sin(t*1.6));
