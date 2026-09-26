@@ -26,9 +26,8 @@
 
   Every outbound link points at the live site (https://silenthelp.org).
 
-  The demo "films" are animated CSS scenes of each real feature. To
-  swap any of them for a screen recording, drop an .mp4 into static/video/
-  and set `video: "static/video/<name>.mp4"` on that slide in REEL_SLIDES.
+  The Demo is a 3D hover gallery: each card rests on a still of its own
+  feature scene (static/img/demo/*.webp) and plays the live CSS scene on hover.
   ─────────────────────────────────────────────────────────────────────────
 -->
 
@@ -299,328 +298,6 @@ section{position:relative;scroll-margin-top:70px}
   .tile.fill{min-height:260px}
 }
 @media (max-width:560px){ .bento{grid-template-columns:1fr} }
-
-/* ═══════════════════════════ DEMO (jasonbergh) ═══════════════════ */
-.reel{
-  --fw:min(560px,46vw);
-  position:relative;height:100vh;min-height:720px;overflow:hidden;background:#000;
-  color:#f3eee2;user-select:none;
-}
-.reel-bg{position:absolute;inset:0}
-.reel-bg video{
-  position:absolute;inset:-8%;width:116%;height:116%;object-fit:cover;
-  filter:blur(22px) brightness(.62) saturate(1.3);opacity:0;transition:opacity 1.4s ease;
-}
-.reel-bg video.on{opacity:1}
-.reel-bg .tint{position:absolute;inset:0;background:var(--tint,transparent);mix-blend-mode:soft-light;opacity:.8;transition:background 1.2s}
-.reel-bg .vig{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,.7) 100%)}
-.reel-bg .grain{
-  position:absolute;inset:0;opacity:.09;pointer-events:none;mix-blend-mode:overlay;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  animation:grain 1.2s steps(6) infinite;
-}
-@keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-2%,1%)}40%{transform:translate(1%,-2%)}60%{transform:translate(-1%,2%)}80%{transform:translate(2%,-1%)}100%{transform:translate(0,0)}}
-
-/* film-strip rails */
-.reel-rail{
-  position:absolute;top:0;bottom:0;width:6px;opacity:.35;
-  background:repeating-linear-gradient(180deg,rgba(255,255,255,.7) 0 6px,transparent 6px 22px);
-  -webkit-mask-image:linear-gradient(transparent,#000 15%,#000 85%,transparent);mask-image:linear-gradient(transparent,#000 15%,#000 85%,transparent);
-  animation:railRun 6s linear infinite;
-}
-@keyframes railRun{to{background-position:0 22px}}
-.reel-rail.l{left:calc(50% - var(--fw)/2 - 20px)}
-.reel-rail.r{right:calc(50% - var(--fw)/2 - 20px)}
-
-/* the frame */
-.reel-frame{
-  position:absolute;left:50%;top:50%;width:var(--fw);aspect-ratio:16/9;transform:translate(-50%,-50%);
-  background:#0a0c12;border-radius:6px;overflow:hidden;cursor:pointer;z-index:3;
-  box-shadow:0 40px 120px rgba(0,0,0,.75),inset 0 0 0 1px rgba(255,255,255,.08);
-}
-.reel-vid{
-  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.22;
-  filter:saturate(1.15) brightness(.7);pointer-events:none;z-index:0;
-}
-.reel-frame .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.45));z-index:5}
-.reel-ck{position:absolute;width:14px;height:14px;border:1.5px solid rgba(243,238,226,.85);pointer-events:none;z-index:6}
-.reel-ck.tl{left:calc(50% - var(--fw)/2 - 10px);top:calc(50% - var(--fw)*9/32 - 10px);border-right:0;border-bottom:0}
-.reel-ck.tr{right:calc(50% - var(--fw)/2 - 10px);top:calc(50% - var(--fw)*9/32 - 10px);border-left:0;border-bottom:0}
-.reel-ck.bl{left:calc(50% - var(--fw)/2 - 10px);bottom:calc(50% - var(--fw)*9/32 - 10px);border-right:0;border-top:0}
-.reel-ck.br{right:calc(50% - var(--fw)/2 - 10px);bottom:calc(50% - var(--fw)*9/32 - 10px);border-left:0;border-top:0}
-
-/* scenes */
-.scene{position:absolute;inset:0;opacity:0;transform:scale(1.04);transition:opacity .7s ease,transform .9s var(--ease);font-family:var(--font);color:#fff;font-size:11px;line-height:1.35;pointer-events:none}
-.scene.on{opacity:1;transform:none}
-.scene video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-
-/* meta strips */
-.reel-meta{
-  position:absolute;left:50%;transform:translateX(-50%);width:var(--fw);
-  display:flex;justify-content:space-between;align-items:center;
-  font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#e8e2d4;
-}
-.reel-meta.top{top:calc(50% - var(--fw)*9/32 - 30px)}
-.reel-meta.bot{top:calc(50% + var(--fw)*9/32 + 14px)}
-.reel-meta .mid{display:flex;gap:8px;opacity:.7}
-.reel-meta .mid i{width:9px;height:9px;border-radius:50%;border:1px solid currentColor;display:block}
-.reel-meta .mid i:nth-child(2){border-radius:2px}
-.reel-meta span{transition:opacity .4s,transform .5s var(--ease)}
-.reel.swap .reel-meta span{opacity:0;transform:translateY(6px)}
-
-/* titles */
-.reel-t{
-  position:absolute;top:50%;transform:translateY(-50%);
-  font-family:var(--font);font-weight:400;font-size:clamp(28px,3.6vw,58px);line-height:.95;letter-spacing:-.01em;
-  max-width:calc(50% - var(--fw)/2 - 56px);pointer-events:none;z-index:4;
-}
-.reel-t em{font-style:italic}
-.reel-t.l{right:calc(50% + var(--fw)/2 + 48px);text-align:right}
-.reel-t.r{left:calc(50% + var(--fw)/2 + 48px);text-align:left}
-.reel-t .w > span{transition:transform .8s var(--ease),opacity .5s}
-.reel-t.in .w > span{transform:none;opacity:1}
-.reel-t .w > span{transform:translateY(115%);opacity:0}
-
-/* thumbnails above / below */
-.reel-thumb{
-  position:absolute;left:50%;transform:translateX(-50%);width:200px;height:112px;border-radius:4px;overflow:hidden;
-  cursor:pointer;opacity:.9;background:var(--tbg,#222);transition:transform .4s var(--ease),opacity .3s;
-  box-shadow:0 20px 60px rgba(0,0,0,.6);display:flex;align-items:flex-end;padding:10px;
-  font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#f3eee2;
-}
-.reel-thumb::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.65))}
-.reel-thumb span{position:relative}
-.reel-thumb.prev{top:-6px}
-.reel-thumb.next{bottom:-6px}
-.reel-thumb:hover{transform:translateX(-50%) scale(1.04);opacity:1}
-.reel-thumb .k{position:absolute;top:8px;left:10px;opacity:.7}
-
-/* bottom bar */
-.reel-bar{
-  position:absolute;left:0;right:0;bottom:14px;padding:0 22px;display:flex;justify-content:space-between;align-items:flex-end;
-  font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#d9d3c5;
-}
-.reel-bar .grp{display:flex;gap:26px;align-items:flex-end}
-.reel-bar button{font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;opacity:.55;transition:opacity .2s}
-.reel-bar button.on,.reel-bar button:hover{opacity:1}
-.reel-bar .sep{opacity:.5;margin:0 6px}
-.reel-bar .cats{display:flex;flex-direction:column;gap:3px;text-align:left}
-.reel-bar .cats b{font-weight:400;position:relative;padding-left:12px}
-.reel-bar .cats b::before{content:"•";position:absolute;left:0}
-.reel-bar .cats i{font-style:italic;opacity:.6}
-.reel-bar .cats span{opacity:.6}
-.reel-bar .tc{min-width:80px;text-align:right;font-variant-numeric:tabular-nums}
-.reel-arrows{display:none;gap:10px}
-.reel-arrows button{width:30px;height:30px;border:1px solid rgba(255,255,255,.3);border-radius:50%;display:grid;place-items:center;opacity:.8}
-.reel-arrows svg{width:10px;height:10px;stroke:#fff;fill:none;stroke-width:1.8}
-
-/* All 9 features stay visible as a filmstrip under the frame */
-.reel-strip{
-  position:absolute;left:50%;bottom:52px;transform:translateX(-50%);
-  display:flex;gap:7px;z-index:8;padding:6px;border-radius:12px;
-  background:rgba(0,0,0,.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-}
-.reel-strip button{
-  width:78px;height:46px;border-radius:6px;overflow:hidden;position:relative;
-  border:1px solid rgba(255,255,255,.14);background:var(--tbg,#1a1a1a);
-  font:inherit;color:#f3eee2;opacity:.7;transition:opacity .25s,transform .3s var(--ease),border-color .25s;
-}
-.reel-strip button.on,.reel-strip button:hover{opacity:1;transform:translateY(-3px);border-color:rgba(255,255,255,.5)}
-.reel-strip button span{
-  position:absolute;left:6px;right:6px;bottom:5px;font-family:var(--mono);
-  font-size:8px;letter-spacing:.08em;text-transform:uppercase;text-align:left;line-height:1.15;
-}
-.reel-strip button em{position:absolute;top:5px;left:6px;font-style:normal;font-family:var(--mono);font-size:8px;opacity:.7}
-
-/* list mode */
-.reel-list{
-  position:absolute;inset:0;z-index:20;display:grid;place-items:center;padding:80px 0;
-  background:rgba(0,0,0,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  opacity:0;pointer-events:none;transition:opacity .5s;
-}
-.reel.list .reel-list{opacity:1;pointer-events:auto}
-.reel-list ol{list-style:none;margin:0;padding:0;width:min(760px,86vw)}
-.reel-list li{display:grid;grid-template-columns:44px 1fr auto;gap:18px;align-items:baseline;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.12);cursor:pointer;transition:padding-left .3s var(--ease),opacity .2s}
-.reel-list li:hover{padding-left:10px}
-.reel-list li.on{opacity:1}.reel-list li:not(.on){opacity:.7}
-.reel-list .n{font-family:var(--mono);font-size:10px;letter-spacing:.14em;opacity:.7}
-.reel-list .t{font-family:var(--font);font-size:clamp(22px,3vw,34px);line-height:1}
-.reel-list .c{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.7}
-
-@media (max-width:900px){
-  .reel{--fw:84vw;min-height:640px}
-  .reel-rail,.reel-thumb{display:none}
-  .reel-t{max-width:92vw;width:92vw;text-align:center !important;font-size:clamp(34px,10vw,54px);transform:translateX(-50%);left:50% !important;right:auto !important}
-  .reel-t.l{top:calc(50% - var(--fw)*9/32 - 40px);transform:translate(-50%,-100%)}
-  .reel-t.r{top:calc(50% + var(--fw)*9/32 + 46px);transform:translate(-50%,0)}
-  .reel-meta.top{top:calc(50% - var(--fw)*9/32 - 22px)}
-  .reel-arrows{display:flex}
-  .reel-bar .cats{display:none}
-  .reel-strip{bottom:64px;gap:4px;padding:4px}
-  .reel-strip button{width:58px;height:38px}
-  .reel-strip button span{font-size:7px}
-}
-
-/* ─── Scene building blocks ─────────────────────────────────────────── */
-.sc{position:absolute;inset:0;padding:14px;display:flex;flex-direction:column;gap:8px}
-.sc-bar{display:flex;align-items:center;gap:6px;font-size:9.5px;color:#9a9a9a;letter-spacing:.02em}
-.sc-bar i{width:7px;height:7px;border-radius:50%;background:#333;display:block}
-.sc-bar i:first-child{background:#ff5f57}.sc-bar i:nth-child(2){background:#febc2e}.sc-bar i:nth-child(3){background:#28c840}
-.sc-bar b{margin-left:6px;font-weight:500;color:#cfcfcf}
-.sc .bubble{font-size:11px;max-width:72%}
-.sc .bubble.sh{max-width:78%}
-.sc .chip{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;font-size:9.5px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);color:#e4e4e4;width:max-content}
-.sc .chip i{width:6px;height:6px;border-radius:50%;background:var(--live);display:block}
-.sc .kbd{font-family:var(--mono);font-size:10px}
-.typing{display:inline-flex;gap:3px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);align-self:flex-start}
-.typing i{width:5px;height:5px;border-radius:50%;background:#c8c8c8;animation:tdot 1s infinite}
-.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
-@keyframes tdot{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-2px)}}
-
-/* generic timed appearance: each .scene.on .a{n} plays once on activation */
-.scene .a{opacity:0;transform:translateY(8px)}
-.scene.on .a{animation:pop .55s var(--ease) forwards}
-.scene.on .a.d1{animation-delay:.3s}.scene.on .a.d2{animation-delay:1s}.scene.on .a.d3{animation-delay:1.9s}
-.scene.on .a.d4{animation-delay:2.8s}.scene.on .a.d5{animation-delay:3.7s}.scene.on .a.d6{animation-delay:4.6s}.scene.on .a.d7{animation-delay:5.4s}
-@keyframes pop{to{opacity:1;transform:none}}
-.scene .gone{opacity:1}
-.scene.on .gone{animation:vanish .3s 1.9s forwards}
-@keyframes vanish{to{opacity:0;height:0;padding:0;margin:0}}
-
-/* Scene: Mac agent */
-.mac{position:absolute;inset:0;background:linear-gradient(160deg,#1e2433,#0b0e16)}
-.mac .menubar{height:22px;background:rgba(255,255,255,.08);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:space-between;padding:0 10px;font-size:9.5px;color:#eee}
-.mac .menubar .lft,.mac .menubar .rgt{display:flex;gap:10px;align-items:center}
-.mac .menubar .sh{display:inline-flex;align-items:center;gap:4px;font-weight:600}
-.mac .menubar .sh i{width:7px;height:7px;border-radius:50%;background:var(--live);display:block;box-shadow:0 0 8px var(--live)}
-.mac .win{position:absolute;left:26px;top:44px;width:62%;height:64%;background:#f6f4ee;color:#222;border-radius:8px;box-shadow:0 20px 50px rgba(0,0,0,.5);overflow:hidden}
-.mac .win .bar{height:20px;background:#e9e6de;display:flex;align-items:center;gap:5px;padding:0 8px}
-.mac .win .bar i{width:7px;height:7px;border-radius:50%;background:#ccc;display:block}
-.mac .win .bar i:first-child{background:#ff5f57}.mac .win .bar i:nth-child(2){background:#febc2e}.mac .win .bar i:nth-child(3){background:#28c840}
-.mac .win .body{padding:12px 14px;font-size:11px;line-height:1.5;color:#333}
-.mac .win .body b{display:block;font-weight:600;font-size:12px;margin-bottom:6px;color:#111}
-.type{display:inline-block;white-space:nowrap;overflow:hidden;vertical-align:bottom;border-right:1.5px solid #333;width:max-content;max-width:0}
-.scene.on .type{animation:type 2.2s steps(28) .6s forwards,caret .8s step-end infinite}
-@keyframes type{to{max-width:100%}}
-@keyframes caret{50%{border-color:transparent}}
-.mac .popup{
-  position:absolute;right:16px;bottom:16px;width:46%;background:rgba(20,20,24,.92);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:12px;
-  box-shadow:0 30px 60px rgba(0,0,0,.6);backdrop-filter:blur(14px);opacity:0;transform:translateY(16px)
-}
-.scene.on .mac .popup{animation:pop .6s var(--ease) 3.4s forwards}
-.mac .popup b{display:flex;align-items:center;gap:6px;font-size:10px;color:#c8c8c8;font-weight:600;letter-spacing:.04em}
-.mac .popup b i{width:6px;height:6px;border-radius:50%;background:var(--accent);display:block}
-.mac .popup p{margin-top:6px;font-size:11px;color:#eee;line-height:1.4}
-.mac .popup .btns{display:flex;gap:6px;margin-top:10px}
-.mac .popup .btns span{padding:5px 8px;border-radius:999px;font-size:9.5px;border:1px solid rgba(255,255,255,.2)}
-.mac .popup .btns span:first-child{background:#fff;color:#000;border-color:#fff;font-weight:500}
-
-/* Scene: Screen reader (OCR) */
-.ocr{position:absolute;inset:0;background:#313338}
-.ocr .chan{position:absolute;left:0;top:0;bottom:0;width:22%;background:#2b2d31;padding:12px 10px;font-size:10px;color:#949ba4}
-.ocr .chan div{padding:4px 6px;border-radius:4px;margin-bottom:2px}
-.ocr .chan div.on{background:#404249;color:#fff}
-.ocr .chat{position:absolute;left:22%;right:0;top:0;bottom:0;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
-.ocr .msg{display:flex;gap:8px;font-size:11px;color:#dbdee1}
-.ocr .msg i{width:22px;height:22px;border-radius:50%;background:linear-gradient(140deg,#a8a8a8,#d0d0d0);flex:none;display:block}
-.ocr .msg b{display:block;font-weight:500;color:#fff;font-size:10.5px}
-.ocr .msg small{color:#949ba4;font-weight:400;margin-left:6px;font-size:9px}
-.ocr .scan{position:absolute;left:22%;right:0;top:0;height:3px;background:linear-gradient(90deg,transparent,#7cffb2,transparent);box-shadow:0 0 18px #7cffb2;opacity:0}
-.scene.on .ocr .scan{animation:scan 1.6s ease-in-out .8s 2}
-@keyframes scan{0%{top:6%;opacity:1}100%{top:94%;opacity:1}}
-.ocr .hit{position:absolute;outline:1.5px dashed #7cffb2;border-radius:3px;opacity:0}
-.scene.on .ocr .hit{animation:pop .4s 3.9s forwards}
-.ocr .tag2{position:absolute;right:14px;bottom:14px;display:flex;flex-direction:column;gap:5px;align-items:flex-end}
-.ocr .tag2 .chip{background:rgba(0,0,0,.5)}
-
-/* Scene: Pipeline */
-.pipe{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 120%,rgba(255,255,255,.2),transparent 60%),#07080c;display:flex;flex-direction:column;justify-content:center;padding:18px 22px;gap:16px}
-.pipe .in{align-self:center;font-family:var(--mono);font-size:11px;color:#ddd;padding:6px 12px;border:1px solid rgba(255,255,255,.15);border-radius:8px;background:rgba(255,255,255,.04)}
-.pipe .row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.pipe .st{border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px;background:rgba(255,255,255,.03);opacity:.35;transform:scale(.96);transition:none}
-.pipe .st b{display:block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#9a9a9a}
-.pipe .st span{display:block;font-size:12px;font-weight:600;margin-top:4px}
-.pipe .st small{display:block;font-size:9.5px;color:#c8c8c8;margin-top:6px;font-family:var(--mono)}
-.scene.on .pipe .st{animation:light .6s var(--ease) forwards}
-.scene.on .pipe .st:nth-child(1){animation-delay:.6s}.scene.on .pipe .st:nth-child(2){animation-delay:1.4s}
-.scene.on .pipe .st:nth-child(3){animation-delay:2.2s}.scene.on .pipe .st:nth-child(4){animation-delay:3s}
-@keyframes light{to{opacity:1;transform:none;border-color:rgba(255,255,255,.6);box-shadow:0 0 30px rgba(255,255,255,.18)}}
-.pipe .out{align-self:center;display:flex;gap:8px;align-items:center;font-size:11px}
-.pipe .out .chip{border-color:rgba(255,255,255,.6);background:rgba(255,255,255,.18)}
-
-/* Scene: Crisis */
-.crisis{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(239,68,68,.28),transparent 60%),#0a0507;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
-.crisis h4{font-family:var(--font);font-size:30px;font-weight:400;letter-spacing:-.01em}
-.crisis p{font-size:11.5px;color:#e8d9d9;max-width:78%;margin-top:6px;line-height:1.45}
-.crisis .row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;justify-content:center}
-.crisis .row span{padding:7px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.22);font-size:10.5px}
-.crisis .row span.pri{background:#fff;color:#000;border-color:#fff;font-weight:600}
-.crisis .foot{position:absolute;bottom:10px;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#a88}
-.crisis .pulse{position:absolute;inset:0;border:2px solid rgba(239,68,68,.35);border-radius:6px;animation:cpulse 2s ease-in-out infinite}
-@keyframes cpulse{50%{border-color:rgba(239,68,68,.9)}}
-
-/* Scene: Escalation draft */
-.mail{position:absolute;inset:0;background:#0d0f14;display:flex;flex-direction:column}
-.mail .hdr{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.08);display:grid;gap:4px;font-size:10.5px}
-.mail .hdr div{display:flex;gap:8px}
-.mail .hdr b{color:#8a8a8a;font-weight:500;width:52px}
-.mail .hdr span{color:#fff}
-.mail .body{padding:12px 14px;font-size:11px;line-height:1.55;color:#ddd;flex:1}
-.mail .body p+p{margin-top:8px}
-.mail .body mark{background:rgba(255,255,255,.25);color:#fff;border-radius:3px;padding:0 3px}
-.mail .ft{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-top:1px solid rgba(255,255,255,.08);font-size:9.5px;color:#9a9a9a}
-.mail .ft .send{position:relative;background:#fff;color:#000;padding:6px 14px;border-radius:999px;font-weight:600;font-size:10.5px}
-.mail .cursor{position:absolute;width:14px;height:14px;right:34px;bottom:8px;opacity:0;z-index:3}
-.scene.on .mail .cursor{animation:curse 3s ease-in-out 2.4s infinite}
-@keyframes curse{0%{opacity:0;transform:translate(40px,30px)}30%{opacity:1;transform:translate(0,0)}60%{transform:translate(0,0)}80%{opacity:1;transform:translate(-30px,-12px)}100%{opacity:0}}
-
-/* Scene: Dashboard */
-.dash{position:absolute;inset:0;background:linear-gradient(160deg,#0a0b10,#050507);display:grid;grid-template-columns:44% 56%;padding:16px;gap:10px}
-.dash .orbwrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
-.dash .orb{width:118px;height:118px;border-radius:50%;display:grid;place-items:center;position:relative;
-  background:conic-gradient(var(--accent) calc(var(--p,0)*1%),rgba(255,255,255,.08) 0);transition:--p 2s}
-.dash .orb::before{content:"";position:absolute;inset:8px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#20222c,#0a0b10)}
-.dash .orb b{position:relative;font-size:26px;font-weight:700;letter-spacing:-.03em}
-.dash .orb small{position:absolute;bottom:26px;font-size:9px;color:#9a9a9a;letter-spacing:.08em;text-transform:uppercase}
-.dash .lbl{font-size:10px;color:#9a9a9a;letter-spacing:.08em;text-transform:uppercase}
-.dash .stats{display:flex;flex-direction:column;gap:8px;justify-content:center}
-.dash .stat{border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 10px;background:rgba(255,255,255,.03)}
-.dash .stat b{display:flex;justify-content:space-between;font-size:10.5px;font-weight:500}
-.dash .stat b em{font-style:normal;color:#c8c8c8}
-.dash .bar{height:4px;border-radius:2px;background:rgba(255,255,255,.08);margin-top:6px;overflow:hidden}
-.dash .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),#c8c8c8);border-radius:2px}
-.scene.on .dash .bar i{animation:fill 1.6s var(--ease) .6s forwards}
-@keyframes fill{to{width:var(--v,60%)}}
-.dash .find{font-size:10px;color:#ddd;display:flex;gap:6px;align-items:center}
-.dash .find i{width:6px;height:6px;border-radius:50%;background:var(--warn);display:block}
-.dash .badge{position:absolute;top:10px;right:12px;font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;padding:3px 7px;border:1px solid rgba(255,255,255,.2);border-radius:4px;color:#bbb}
-
-/* Scene: Privacy */
-.priv{position:absolute;inset:0;background:#08090c;padding:16px 18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.priv h5{font-size:12px;font-weight:600;margin-bottom:8px}
-.priv .row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:10.5px;color:#ddd}
-.priv .tg{width:26px;height:15px;border-radius:999px;background:#333;position:relative;transition:background .4s}
-.priv .tg::after{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:#fff;transition:transform .4s var(--ease)}
-.scene.on .priv .tg{animation:tgon .3s forwards}
-.scene.on .priv .r1 .tg{animation-delay:.7s}.scene.on .priv .r2 .tg{animation-delay:1s}.scene.on .priv .r3 .tg{animation-delay:1.3s}.scene.on .priv .r4 .tg{animation-delay:1.6s}
-@keyframes tgon{to{background:var(--accent)}}
-.scene.on .priv .tg::after{animation:knob .3s forwards}
-.scene.on .priv .r1 .tg::after{animation-delay:.7s}.scene.on .priv .r2 .tg::after{animation-delay:1s}.scene.on .priv .r3 .tg::after{animation-delay:1.3s}.scene.on .priv .r4 .tg::after{animation-delay:1.6s}
-@keyframes knob{to{transform:translateX(11px)}}
-.priv .acts{display:flex;flex-direction:column;gap:8px;justify-content:center}
-.priv .acts span{padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.14);font-size:10.5px;display:flex;justify-content:space-between}
-.priv .acts span.dz{border-color:rgba(239,68,68,.5);color:#ffb4b4}
-.priv .zero{font-family:var(--mono);font-size:9.5px;color:#9a9a9a;letter-spacing:.06em;margin-top:4px}
-
-/* Scene: Help a Friend */
-.haf{position:absolute;inset:0;background:#0a0b0f;padding:14px;display:grid;grid-template-columns:1fr 1.1fr;gap:12px}
-.haf .paste{border:1px dashed rgba(255,255,255,.2);border-radius:10px;padding:10px;font-size:10.5px;color:#ccc;display:flex;flex-direction:column;gap:8px}
-.haf .paste b{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#8a8a8a;font-weight:600}
-.haf .paste .bubble{align-self:flex-start;background:#1d1d1f}
-.haf .plan{display:flex;flex-direction:column;gap:6px;justify-content:center}
-.haf .step{display:flex;gap:8px;align-items:flex-start;font-size:10.5px;color:#e8e8e8;padding:7px 9px;border-radius:9px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.3)}
-.haf .step i{font-style:normal;font-family:var(--mono);font-size:9px;color:#c8c8c8;margin-top:1px}
-.haf .now{align-self:flex-start;background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.5)}
 
 /* ═══════════════════════════════ SECTIONS ════════════════════════════ */
 .sec{padding:110px 0 0}
@@ -997,14 +674,13 @@ footer{padding:90px 0 40px}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none !important;transition:none !important}
-  .rv,.rv-l,.rv-r,.rv-s,.w > span,.scene .a,.reel-t .w > span{transform:translateY(115%);opacity:0;transition:transform .8s var(--ease),opacity .5s}
-.reel-t.in .w > span{transform:none;opacity:1}
+  .rv,.rv-l,.rv-r,.rv-s,.w > span{transform:translateY(115%);opacity:0;transition:transform .8s var(--ease),opacity .5s}
   .wires path{stroke-dashoffset:0 !important}
   html{scroll-behavior:auto}
 }
 
 /* sh-bw-hover-polish — slower, softer */
-.btn,.nav ul a,.tile,.glow,.node,.kpi,.tcard,.rrow,.fcol a,.social a,.car-nav button,.reel-thumb,.reel-strip button,.reel-list li{
+.btn,.nav ul a,.tile,.glow,.node,.kpi,.tcard,.rrow,.fcol a,.social a,.car-nav button{
   transition: transform .55s cubic-bezier(.22,1,.36,1), box-shadow .55s ease, border-color .5s ease, background-color .5s ease, color .45s ease, opacity .45s ease;
 }
 .btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.35)}
@@ -1025,7 +701,7 @@ footer{padding:90px 0 40px}
 
 /* ── Number-section type system (sitewide) ─────────────────────────── */
 body{font-family:var(--font);font-weight:400;letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
-h1,h2,h3,.words,.sec-head h2,.hero-head h1,.team h2,.fbrand h4,.cta-mid .big,.reel-t,.reel-list .t{
+h1,h2,h3,.words,.sec-head h2,.hero-head h1,.team h2,.fbrand h4,.cta-mid .big{
   font-family:var(--font)!important;font-weight:700;letter-spacing:-.035em;line-height:1.05;
 }
 .hero-head h1{font-size:clamp(40px,5.6vw,68px)!important}
@@ -1041,7 +717,6 @@ h1,h2,h3,.words,.sec-head h2,.hero-head h1,.team h2,.fbrand h4,.cta-mid .big,.re
   background:linear-gradient(180deg,#fff 15%,#8a8a8a 60%,#333 100%);
   -webkit-background-clip:text;background-clip:text;color:transparent;
 }
-.reel-t,.reel-list .t{font-weight:700;letter-spacing:-.035em}
 
 
 
@@ -1078,21 +753,6 @@ h1,h2,h3,.words,.sec-head h2,.hero-head h1,.team h2,.fbrand h4,.cta-mid .big,.re
 /* ── Fix cut-off titles / demo words ──────────────────────────────── */
 .w{overflow:visible;padding-bottom:.18em;margin-bottom:-.08em}
 .w > span{padding-bottom:.06em}
-.reel-t{
-  max-width:calc(50% - var(--fw)/2 - 36px)!important;
-  width:max-content;
-  overflow:visible!important;
-  font-size:clamp(22px,2.8vw,44px)!important;
-  font-weight:600!important;
-  letter-spacing:-.02em!important;
-  line-height:1.12!important;
-  white-space:normal;
-  word-break:normal;
-  overflow-wrap:anywhere;
-}
-.reel-t .w{display:inline;overflow:visible}
-.reel-t .w > span{display:inline}
-.reel-list .t{overflow:visible;line-height:1.15!important;font-size:clamp(20px,2.6vw,32px)!important}
 .hero-head h1,.sec-head h2,.team h2,.words{
   overflow:visible!important;
   padding-bottom:.12em;
@@ -1240,10 +900,10 @@ html.lenis, html.lenis body{height:auto}
 .hero .bento{ /* scale handled in scroll JS for multi-rate depth */ }
 
 /* sections breathe in */
-.sec, .reel, .beneath{
+.sec, .gal-demo, .beneath{
   --sec-glow:0;
 }
-.sec-head h2, .reel .sec-head h2{
+.sec-head h2{
 }
 
 /* soft film grain overlay — emotional, not noisy */
@@ -1258,12 +918,6 @@ body::after{
 @media (prefers-reduced-motion:reduce){
   body::after{display:none}
   .hero-head,.hero .bento{opacity:1!important;transform:none!important;filter:none!important}
-}
-
-/* sticky cinematic demo stage */
-.reel{position:relative}
-.reel-stage-wrap{
-  /* hook if present */
 }
 
 /* slower nav transitions for luxury feel */
@@ -1368,55 +1022,278 @@ body::after{
 
 
 
-/* ── Demo B&W black stage (keep strip layout) ───────────────────── */
-.reel{
-  background:#000 !important;
-  color:#fff !important;
+
+/* ═══════════════════ DEMO · 3D HOVER GALLERY ═══════════════════
+   Six feature cards. At rest each shows a still of its own product scene
+   (static/img/demo/*.webp); hovering a card expands it, tilts the
+   neighbours, and plays the live CSS scene on top of the still.        */
+#demo.gal-demo{
+  position:relative; min-height:100vh; padding:96px 28px 80px;
+  background:#050505; color:#fff; overflow:hidden;
+  display:flex; flex-direction:column; justify-content:center;
+  box-sizing:border-box;
 }
-.reel-bg{ background:#000; }
-.reel-bg video{
-  filter:grayscale(1) blur(24px) brightness(.35) contrast(1.05) !important;
+#demo.gal-demo::before{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(ellipse 70% 50% at 50% 40%, rgba(255,255,255,.05), transparent 60%);
 }
-.reel-bg video.on{ opacity:.5 !important; }
-.reel-bg .tint{
-  mix-blend-mode:normal !important;
-  opacity:.25 !important;
-  background:radial-gradient(ellipse at center, rgba(255,255,255,.03), transparent 70%) !important;
+.gal-head{ position:relative; z-index:2; text-align:center; max-width:720px; margin:0 auto 40px; }
+.gal-head .eyebrow{
+  font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:rgba(255,255,255,.45);
+  font-weight:700; margin-bottom:14px;
 }
-.reel-bg .vig{
-  background:
-    linear-gradient(to bottom, #000 0%, transparent 16%, transparent 84%, #000 100%),
-    radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,.75) 100%) !important;
+.gal-head h2{
+  font-family:var(--serif, "Instrument Serif", Georgia, serif);
+  font-size:clamp(2.2rem, 5vw, 3.6rem); font-weight:400; letter-spacing:-.02em; line-height:1.05;
+  color:#fff; margin:0 0 14px;
 }
-.reel-bg .grain{ opacity:.04 !important; }
-.reel-meta, .reel-bar, .reel-strip button, .reel-list .n, .reel-list .c, .reel-ck{
-  color:rgba(255,255,255,.8) !important;
+.gal-head p{ font-size:15px; color:rgba(255,255,255,.55); line-height:1.55; margin:0; font-weight:300; }
+.gal-wrap{
+  position:relative; z-index:2; width:100%; max-width:1100px; margin:0 auto;
+  display:flex; align-items:center; justify-content:center;
+  perspective:1100px; gap:12px; min-height:460px;
+  transform-style:preserve-3d;
+  /* rotateY on the neighbours throws their corners outward; pad the track so
+     the outermost card is never sliced by the section edge. */
+  padding-inline:10px; box-sizing:border-box;
+}
+.gal-card{
+  position:relative; flex:1; min-width:64px; height:440px;
+  border-radius:18px; overflow:hidden; cursor:pointer;
+  border:1px solid rgba(255,255,255,.12);
+  background:#0a0a0b; transform-style:preserve-3d;
+  transition: flex .55s cubic-bezier(.2,.8,.2,1), min-width .55s cubic-bezier(.2,.8,.2,1),
+              filter .35s ease, border-color .35s ease, transform .55s cubic-bezier(.2,.8,.2,1),
+              box-shadow .45s ease;
+  filter: brightness(.92);
+  outline:none;
+}
+/* Resting thumbnail: a real still of this card's feature scene */
+.gal-card .gal-thumb{
+  position:absolute; inset:0; z-index:1; width:100%; height:100%; max-width:none;
+  object-fit:cover; object-position:50% 50%;
+  transition: opacity .45s ease, transform .7s cubic-bezier(.1,.7,0,1);
+}
+.gal-card.is-active .gal-thumb{ opacity:0; transform:scale(1.04); }
+.gal-card .gal-shade{
+  position:absolute; inset:0; z-index:3; pointer-events:none;
+  background:linear-gradient(180deg, transparent 52%, rgba(0,0,0,.82));
+  transition:opacity .35s ease;
+}
+/* Resting caption (number + name) — the full caption shows once expanded */
+.gal-card .gal-rest{
+  position:absolute; left:14px; right:12px; bottom:16px; z-index:4;
+  display:flex; flex-direction:column; gap:6px; pointer-events:none;
+  transition:opacity .3s ease;
+}
+.gal-card .gal-rest span{
+  font-family:var(--mono, ui-monospace, monospace); font-size:10px; letter-spacing:.14em;
+  color:rgba(255,255,255,.5);
+}
+.gal-card .gal-rest b{
+  font-size:14px; font-weight:600; letter-spacing:-.01em; line-height:1.2; color:#fff;
+  transition:opacity .25s ease;
+}
+.gal-card.is-active .gal-rest{ opacity:0; }
+.gal-wrap.has-active .gal-card:not(.is-active) .gal-rest b{ opacity:0; }
+.gal-card .gal-body{
+  position:absolute; left:0; right:0; bottom:0; z-index:5; padding:22px;
+  color:#fff; display:flex; flex-direction:column; align-items:flex-start;
+  background:linear-gradient(180deg, transparent, rgba(0,0,0,.88) 40%);
+  opacity:0; transform:translateY(14px); pointer-events:none;
+  transition:opacity .35s ease, transform .35s ease;
+  /* collapsed cards are ~90px wide: keep the caption out of layout until active */
+  visibility:hidden;
+}
+.gal-card .gal-cat{
+  font-size:9px; font-weight:800; letter-spacing:.18em; text-transform:uppercase;
+  color:rgba(255,255,255,.7); margin-bottom:6px;
+}
+.gal-card .gal-title{
+  font-size:clamp(15px, 1.6vw, 20px); font-weight:700; letter-spacing:-.02em;
+  line-height:1.15; margin:0 0 8px; color:#fafafa;
+}
+.gal-card .gal-desc{
+  font-size:12px; line-height:1.5; color:rgba(255,255,255,.7); margin:0 0 12px;
+  max-width:320px; font-weight:400;
+}
+.gal-card .gal-go{
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:9px; font-weight:800; letter-spacing:.16em; text-transform:uppercase;
+  color:#fff; text-decoration:none;
+}
+.gal-card .gal-go svg{ width:12px; height:12px; transition:transform .2s ease; }
+.gal-card.is-active .gal-go svg{ transform:translateX(3px); }
+.gal-wrap:not(.has-active) .gal-card:hover{
+  filter:none; border-color:rgba(255,255,255,.28);
+}
+.gal-card.is-active{
+  flex:5.8; min-width:min(320px, 42vw);
+  filter:none; z-index:20;
   border-color:rgba(255,255,255,.35);
+  box-shadow:0 20px 60px rgba(0,0,0,.55);
 }
-.reel-t, .reel-list .t{ color:#fff !important; }
-.reel-frame{
-  background:#0a0a0a !important;
-  box-shadow:0 40px 120px rgba(0,0,0,.65), inset 0 0 0 1px rgba(255,255,255,.08) !important;
+.gal-card.is-active .gal-shade{ opacity:0; }
+.gal-card.is-active .gal-body{ opacity:1; transform:none; pointer-events:auto; visibility:visible; }
+.gal-wrap.has-active .gal-card:not(.is-active){
+  filter:grayscale(1) brightness(.4);
+  border-color:rgba(255,255,255,.08);
 }
-.reel-vid{ filter:grayscale(1) brightness(.7) !important; opacity:.2 !important; }
-.reel-strip{
-  background:rgba(0,0,0,.5) !important;
-  border:1px solid rgba(255,255,255,.08);
-  backdrop-filter:blur(12px);
+.gal-wrap.has-active .gal-card.is-before{ transform:rotateY(22deg); }
+.gal-wrap.has-active .gal-card.is-after{ transform:rotateY(-22deg); }
+.gal-card:focus-visible{ box-shadow:0 0 0 2px #fff, 0 0 0 5px rgba(255,255,255,.25); }
+.gal-hint{
+  position:relative; z-index:2; text-align:center; margin-top:28px;
+  font-size:12px; letter-spacing:.12em; text-transform:uppercase;
+  color:rgba(255,255,255,.35); font-weight:600;
 }
-.reel-strip button{
-  color:#fff !important;
-  border-color:rgba(255,255,255,.18) !important;
+@media (max-height:860px) and (min-width:821px){
+  #demo.gal-demo{ padding:84px 28px 40px; }
+  .gal-head{ margin-bottom:26px; }
+  .gal-head .eyebrow{ margin-bottom:10px; }
+  .gal-head h2{ font-size:clamp(2rem, 3.6vw, 2.75rem); margin-bottom:10px; }
+  .gal-hint{ margin-top:20px; }
 }
-.reel-strip button.on, .reel-strip button:hover{
-  border-color:#fff !important;
-  opacity:1 !important;
-}
-.reel-list{ background:rgba(0,0,0,.78) !important; }
-.reel-rail{
-  background:repeating-linear-gradient(180deg,rgba(255,255,255,.55) 0 6px,transparent 6px 22px) !important;
+@media (max-width:820px){
+  #demo.gal-demo{ padding:72px 16px 64px; }
+  .gal-wrap{ flex-direction:column; gap:10px; min-height:0; perspective:none; padding-inline:0; }
+  .gal-card, .gal-card.is-active{
+    flex:none !important; width:100%; min-width:0 !important; height:120px;
+    transform:none !important; filter:none;
+  }
+  .gal-card.is-active{ height:280px; }
+  .gal-card .gal-thumb{ object-position:50% 22%; }
+  .gal-card .gal-rest{ display:none; }
+  .gal-wrap.has-active .gal-card:not(.is-active){ filter:grayscale(.4) brightness(.55); }
+  .gal-card .gal-body{ opacity:.85; transform:none; visibility:visible; }
+  .gal-card .gal-desc{ display:none; }
+  .gal-card.is-active .gal-desc{ display:block; }
 }
 
+/* ── Live feature scenes (real product CSS, played on hover) ── */
+.gal-card .gal-stage{
+  position:absolute; inset:0; z-index:2; overflow:hidden;
+  background:#070708; color:#fff; font-family:var(--font, Inter, system-ui, sans-serif);
+  font-size:11px; line-height:1.35; pointer-events:none;
+  opacity:0; transition:opacity .45s ease;
+}
+.gal-card.is-active .gal-stage{ opacity:1; }
+.gal-card .gal-stage-bg{
+  position:absolute; inset:0; width:100%; height:100%; max-width:none; object-fit:cover;
+  opacity:.35; filter:grayscale(1) contrast(1.05); transform:scale(1.04);
+  transition: opacity .4s ease, transform .7s ease;
+}
+.gal-card.is-active .gal-stage-bg{ opacity:.2; transform:scale(1.08); } /* ambience only — the UI must stay legible */
+.gal-card .gal-stage-ui{ position:absolute; inset:0; z-index:2; }
+.gal-card .gal-stage .a{ opacity:0; transform:translateY(8px); }
+.gal-card.is-active .gal-stage .a{ animation:galPop .55s cubic-bezier(.2,.8,.2,1) forwards; }
+.gal-card.is-active .gal-stage .a.d1{ animation-delay:.15s }
+.gal-card.is-active .gal-stage .a.d2{ animation-delay:.55s }
+.gal-card.is-active .gal-stage .a.d3{ animation-delay:1s }
+.gal-card.is-active .gal-stage .a.d4{ animation-delay:1.45s }
+.gal-card.is-active .gal-stage .a.d5{ animation-delay:1.9s }
+.gal-card.is-active .gal-stage .a.d6{ animation-delay:2.35s }
+@keyframes galPop{ to{ opacity:1; transform:none; } }
+.gal-card.is-active .gal-stage .gone{ animation:galVanish .3s 1s forwards; }
+@keyframes galVanish{ to{ opacity:0; height:0; margin:0; padding:0; } }
+.gal-card .gal-stage .peek{ opacity:.9; transform:none; }
+
+/* Coping chat */
+.gal-sc{ position:absolute; inset:18px 14px 124px; border-radius:12px; background:linear-gradient(160deg,#0c0d13,#06070a);
+  border:1px solid rgba(255,255,255,.1); display:flex; flex-direction:column; gap:8px; padding:12px; overflow:hidden; }
+.gal-sc .sc-bar{ display:flex; align-items:center; gap:6px; font-size:10px; color:rgba(255,255,255,.55); margin-bottom:4px; }
+.gal-sc .sc-bar i{ width:7px; height:7px; border-radius:50%; background:#333; display:block; }
+.gal-sc .sc-bar i:nth-child(1){background:#ff5f57}.gal-sc .sc-bar i:nth-child(2){background:#febc2e}.gal-sc .sc-bar i:nth-child(3){background:#28c840}
+.gal-sc .sc-bar b{ color:#fff; margin-left:4px; }
+.gal-sc .bubble{ max-width:88%; padding:8px 10px; border-radius:12px; background:rgba(255,255,255,.08); }
+.gal-sc .bubble.me{ align-self:flex-end; background:rgba(255,255,255,.14); }
+.gal-sc .bubble.sh{ align-self:flex-start; }
+.gal-sc .bubble.sh b{ display:block; font-size:9px; letter-spacing:.12em; margin-bottom:3px; color:rgba(255,255,255,.55); }
+.gal-sc .quiet{ align-self:center; font-size:10px; color:rgba(255,255,255,.4); font-style:italic; }
+.gal-sc .chip{ display:inline-flex; align-self:flex-start; align-items:center; gap:6px; font-size:9px; padding:5px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.18); color:rgba(255,255,255,.7); }
+.gal-sc .chip i{ width:6px; height:6px; border-radius:50%; background:#fff; }
+.gal-sc .typing{ display:flex; align-self:flex-start; gap:4px; padding:8px 10px; }
+.gal-sc .typing i{ width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,.35); animation:galDot 1s infinite; }
+.gal-sc .typing i:nth-child(2){ animation-delay:.15s } .gal-sc .typing i:nth-child(3){ animation-delay:.3s }
+@keyframes galDot{ 0%,80%,100%{ opacity:.3 } 40%{ opacity:1 } }
+
+/* Help a friend */
+.gal-haf{ position:absolute; inset:18px 14px 124px; display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:start; }
+.gal-haf .paste{ border:1px solid rgba(255,255,255,.12); border-radius:12px; padding:12px; background:rgba(12,12,14,.92); }
+.gal-haf .paste b{ display:block; font-size:10px; margin-bottom:8px; color:rgba(255,255,255,.55); }
+.gal-haf .paste .bubble{ background:rgba(255,255,255,.08); border-radius:10px; padding:8px 10px; margin-bottom:8px; max-width:none; }
+.gal-haf .paste .chip{ display:inline-flex; align-items:center; gap:6px; font-size:9px; color:rgba(255,255,255,.6); }
+.gal-haf .paste .chip i{ width:6px; height:6px; border-radius:50%; background:#fff; }
+.gal-haf .plan{ display:flex; flex-direction:column; gap:6px; }
+.gal-haf .step{ display:flex; gap:8px; align-items:center; padding:8px 10px; border-radius:10px; background:rgba(14,14,16,.94); border:1px solid rgba(255,255,255,.1); font-size:10px; color:rgba(255,255,255,.8); }
+.gal-haf .step i{ flex:0 0 auto; width:18px; height:18px; border-radius:50%; display:grid; place-items:center; font-size:9px; font-style:normal; font-weight:700; background:rgba(255,255,255,.1); }
+.gal-haf .step.now{ border-color:rgba(255,255,255,.4); background:#1a1a1c; color:#fff; }
+
+/* Mac agent */
+.gal-mac{ position:absolute; inset:18px 14px 124px; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,.12); background:#0a0a0c; }
+.gal-mac .menubar{ height:28px; display:flex; align-items:center; justify-content:space-between; padding:0 10px; background:#141416; font-size:10px; color:rgba(255,255,255,.6); }
+.gal-mac .menubar .lft, .gal-mac .menubar .rgt{ display:flex; gap:8px; align-items:center; }
+.gal-mac .menubar b{ color:#fff; }
+.gal-mac .menubar .sh{ display:inline-flex; align-items:center; gap:4px; color:#fff; }
+.gal-mac .menubar .sh i{ width:6px; height:6px; border-radius:50%; background:#fff; }
+.gal-mac .win{ margin:14px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:#111; overflow:hidden; }
+.gal-mac .win .bar{ height:22px; display:flex; align-items:center; gap:5px; padding:0 8px; background:#1a1a1c; }
+.gal-mac .win .bar i{ width:7px; height:7px; border-radius:50%; background:#333; }
+.gal-mac .win .bar i:nth-child(1){background:#ff5f57}.gal-mac .win .bar i:nth-child(2){background:#febc2e}.gal-mac .win .bar i:nth-child(3){background:#28c840}
+.gal-mac .win .body{ padding:14px; min-height:70px; }
+.gal-mac .win .body b{ display:block; font-size:10px; color:rgba(255,255,255,.4); margin-bottom:6px; }
+.gal-mac .win .body .type{ display:inline-block; color:#fff; font-size:13px; white-space:nowrap; overflow:hidden; vertical-align:bottom; max-width:100%; border-right:1.5px solid rgba(255,255,255,.8); padding-right:2px; }
+.gal-card.is-active .gal-mac .type{ animation:galType 1.6s steps(32) .4s both, galCaret .8s step-end infinite; }
+@keyframes galType{ from{ max-width:0 } to{ max-width:100% } }
+@keyframes galCaret{ 50%{ border-color:transparent } }
+.gal-mac .popup{ position:absolute; right:18px; bottom:18px; width:min(240px,70%); background:#111; border:1px solid rgba(255,255,255,.16); border-radius:14px; padding:12px; box-shadow:0 20px 50px rgba(0,0,0,.5); }
+.gal-mac .popup b{ display:flex; align-items:center; gap:6px; font-size:10px; letter-spacing:.1em; margin-bottom:6px; }
+.gal-mac .popup b i{ width:7px; height:7px; border-radius:50%; background:#fff; }
+.gal-mac .popup p{ font-size:11px; color:rgba(255,255,255,.8); margin:0 0 10px; line-height:1.4; }
+.gal-mac .popup .btns{ display:flex; flex-wrap:wrap; gap:6px; }
+.gal-mac .popup .btns span{ font-size:9px; padding:6px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.2); }
+.gal-mac .popup .btns span:first-child{ background:#fff; color:#000; border-color:#fff; }
+
+/* Four layers */
+.gal-pipe{ position:absolute; inset:18px 14px 124px; display:flex; flex-direction:column; justify-content:center; gap:12px; }
+.gal-pipe .in{ align-self:flex-start; padding:8px 12px; border-radius:10px; background:rgba(16,16,18,.94); border:1px solid rgba(255,255,255,.12); font-size:12px; }
+.gal-pipe .row{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.gal-pipe .st{ padding:10px 8px; border-radius:10px; background:rgba(14,14,16,.94); border:1px solid rgba(255,255,255,.1); }
+.gal-pipe .st b{ display:block; font-size:10px; margin-bottom:2px; }
+.gal-pipe .st span{ display:block; font-size:11px; color:rgba(255,255,255,.85); }
+.gal-pipe .st small{ display:block; margin-top:4px; font-size:9px; color:rgba(255,255,255,.45); }
+.gal-pipe .out{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:11px; }
+.gal-pipe .out .chip{ display:inline-flex; align-items:center; gap:6px; padding:5px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.2); background:rgba(14,14,16,.94); }
+.gal-pipe .out .chip i{ width:6px; height:6px; border-radius:50%; background:#fff; }
+
+/* Crisis */
+.gal-crisis{ position:absolute; inset:18px 14px 124px; display:flex; flex-direction:column; justify-content:center; align-items:flex-start; gap:10px; padding:8px; }
+.gal-crisis h4{ font-size:22px; margin:0; font-weight:700; }
+.gal-crisis p{ margin:0; max-width:360px; color:rgba(255,255,255,.75); font-size:12px; line-height:1.45; }
+.gal-crisis .row{ display:flex; flex-wrap:wrap; gap:8px; }
+.gal-crisis .row span{ font-size:10px; padding:7px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.2); }
+.gal-crisis .row .pri{ background:#fff; color:#000; border-color:#fff; }
+.gal-crisis .foot{ font-size:10px; color:rgba(255,255,255,.4); }
+
+/* Privacy */
+.gal-priv{ position:absolute; inset:18px 14px 124px; display:grid; grid-template-columns:1.2fr 1fr; gap:12px; align-items:start; }
+.gal-priv > div:first-child{ padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.1); background:rgba(12,12,14,.92); }
+.gal-priv h5{ margin:0 0 10px; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.55); }
+.gal-priv .row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.08); font-size:11px; }
+.gal-priv .tg{ width:34px; height:18px; border-radius:999px; background:rgba(255,255,255,.15); position:relative; transition:background .3s ease; }
+.gal-priv .tg::after{ content:""; position:absolute; top:2px; left:2px; width:14px; height:14px; border-radius:50%; background:#fff; transition:left .3s ease; }
+.gal-card.is-active .gal-priv .tg{ background:rgba(255,255,255,.55); }
+.gal-card.is-active .gal-priv .tg::after{ left:18px; }
+.gal-priv .zero{ margin-top:10px; font-size:10px; color:rgba(255,255,255,.45); }
+.gal-priv .acts{ display:flex; flex-direction:column; justify-content:center; gap:8px; }
+.gal-priv .acts span{ display:flex; justify-content:space-between; gap:8px; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.1); background:rgba(14,14,16,.94); font-size:11px; }
+.gal-priv .acts em{ font-style:normal; color:rgba(255,255,255,.45); }
+
+@media (prefers-reduced-motion:reduce){
+  /* global rule above disables animations — show finished scenes instead */
+  .gal-card.is-active .gal-stage .a{ opacity:1 !important; transform:none !important; }
+  .gal-card.is-active .gal-stage .gone{ display:none; }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.18/dist/lenis.min.js"></script>
 </head>
@@ -1527,166 +1404,175 @@ body::after{
 
 
 
-<!-- ═══════════════════════════ DEMO ═══════════════════════════════ -->
-<section class="reel" id="demo" data-lenis-prevent data-lenis-prevent aria-label="SilentHelp demo" tabindex="0">
-  <div class="reel-bg" aria-hidden="true">
-    <video src="static/video/hero.mp4" class="on" autoplay muted loop playsinline preload="metadata"></video>
-    <video src="static/video/caps.mp4" autoplay muted loop playsinline preload="metadata"></video>
-    <div class="tint" id="reel-tint"></div>
-    <div class="vig"></div>
-    <div class="grain"></div>
+<!-- ═══════════════════════════ DEMO · 3D HOVER GALLERY ═══════════════ -->
+<section class="gal-demo" id="demo" aria-label="SilentHelp demo gallery">
+  <div class="gal-head">
+    <div class="eyebrow">Demo</div>
+    <h2>Hover a card. Watch the real product.</h2>
+    <p>Six SilentHelp features, each one a live demo. Hover or tap a card to play it.</p>
   </div>
-  <div class="reel-rail l" aria-hidden="true"></div>
-  <div class="reel-rail r" aria-hidden="true"></div>
-  <span class="reel-ck tl" aria-hidden="true"></span><span class="reel-ck tr" aria-hidden="true"></span>
-  <span class="reel-ck bl" aria-hidden="true"></span><span class="reel-ck br" aria-hidden="true"></span>
 
-  <div class="reel-thumb prev" id="reel-prev" role="button" aria-label="Previous feature"><span class="k">prev</span><span id="reel-prev-t"></span></div>
-  <div class="reel-thumb next" id="reel-next" role="button" aria-label="Next feature"><span class="k">next</span><span id="reel-next-t"></span></div>
+  <div class="gal-wrap" id="gal-wrap" role="list">
 
-  <div class="reel-meta top"><span id="rm-cat">Coping chat</span><div class="mid"><i></i><i></i><i></i></div><span id="rm-kind">Web · App</span></div>
-
-  <h2 class="reel-t l" id="reel-tl"></h2>
-  <a class="reel-frame" id="reel-frame" href="https://silenthelp.org/app" aria-label="Open the live app">
-    <video class="reel-vid" id="reel-vid" src="static/video/hero.mp4" muted loop playsinline autoplay preload="metadata" aria-hidden="true"></video>
-    <div class="vig"></div>
-
-    <!-- 1 · Coping chat -->
-    <div class="scene" data-tint="rgba(255,255,255,.03)" data-bg="0">
-      <div class="sc" style="background:linear-gradient(160deg,#0c0d13,#06070a)">
-        <div class="sc-bar"><i></i><i></i><i></i><b>Coping Chat</b><span>· silenthelp.org/app</span></div>
-        <div class="bubble me a d1">i feel so alone and hopeless</div>
-        <div class="typing a d2 gone"><i></i><i></i><i></i></div>
-        <div class="bubble sh a d3"><b>SILENTHELP</b>That sounds really heavy, and I'm glad you said it. I'm here. What has tonight been like?</div>
-        <div class="bubble me a d4">this test is killing me 😂</div>
-        <div class="quiet a d5">· stays quiet — it read the joke ·</div>
-        <div class="chip a d6" style="align-self:flex-start"><i></i>support reply + detection run in parallel · never a therapist</div>
-      </div>
-    </div>
-
-    <!-- 2 · Help a Friend -->
-    <div class="scene" data-tint="rgba(255,255,255,.03)" data-bg="1">
-      <div class="haf">
-        <div class="paste a d1"><b>Paste what they sent</b><div class="bubble">i can't do this anymore. don't tell anyone</div><span class="chip"><i></i>reading intent, not keywords</span></div>
-        <div class="plan">
-          <div class="step a d2"><i>01</i>Ask directly, without panic: "Are you thinking about hurting yourself?"</div>
-          <div class="step a d3"><i>02</i>Stay with them. Don't fix — listen, and keep them talking tonight.</div>
-          <div class="step a d4"><i>03</i>Don't keep this secret. Tell a trusted adult now.</div>
-          <div class="step now a d5"><i>!</i>This one's serious. Bring in an adult tonight — here's how to say it.</div>
+    <article class="gal-card" role="listitem" tabindex="0" data-i="0" data-demo="coping" aria-label="Coping chat demo">
+      <img class="gal-thumb" src="static/img/demo/coping.webp" alt="" width="352" height="880" loading="lazy" decoding="async">
+      <div class="gal-stage">
+        <video class="gal-stage-bg" src="static/video/hero.mp4" muted loop playsinline preload="none" aria-hidden="true"></video>
+        <div class="gal-stage-ui">
+          <div class="gal-sc">
+            <div class="sc-bar peek"><i></i><i></i><i></i><b>Coping Chat</b><span>· silenthelp.org/app</span></div>
+            <div class="bubble me a d1">i feel so alone and hopeless</div>
+            <div class="typing a d2 gone"><i></i><i></i><i></i></div>
+            <div class="bubble sh a d3"><b>SILENTHELP</b>That sounds really heavy, and I'm glad you said it. I'm here. What has tonight been like?</div>
+            <div class="bubble me a d4">this test is killing me 😂</div>
+            <div class="quiet a d5">· stays quiet — it read the joke ·</div>
+            <div class="chip a d6"><i></i>support reply + detection run in parallel · never a therapist</div>
+          </div>
         </div>
       </div>
-    </div>
-
-    <!-- 3 · Mac agent -->
-    <div class="scene" data-tint="rgba(255,255,255,.03)" data-bg="1">
-      <div class="mac">
-        <div class="menubar"><div class="lft"><span></span><b>Notes</b><span>File</span><span>Edit</span><span>View</span></div><div class="rgt"><span class="sh"><i></i>SH</span><span>Wi-Fi</span><span>11:52 PM</span></div></div>
-        <div class="win"><div class="bar"><i></i><i></i><i></i></div><div class="body"><b>untitled</b><span class="type">i honestly can't do this anymore</span></div></div>
-        <div class="popup"><b><i></i>SILENTHELP</b><p>Hey — that sounded heavy. You don't have to carry it alone tonight. Want to talk it through?</p><div class="btns"><span>Talk it through</span><span>Ignore 1h</span><span>Dismiss</span></div></div>
+      <div class="gal-shade"></div>
+      <div class="gal-rest" aria-hidden="true"><span>01</span><b>Coping chat</b></div>
+      <div class="gal-body">
+        <span class="gal-cat">Web · App</span>
+        <h3 class="gal-title">Coping chat</h3>
+        <p class="gal-desc">Warm companion that catches jokes vs. real distress — and never pretends to be a therapist.</p>
+        <a class="gal-go" href="https://silenthelp.org/app">Open app <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
       </div>
-    </div>
+    </article>
 
-    <!-- 4 · Screen reader -->
-    <div class="scene" data-tint="rgba(255,255,255,.03)" data-bg="0">
-      <div class="ocr">
-        <div class="chan"><div># general</div><div class="on"># late-night</div><div># homework</div><div># memes</div></div>
-        <div class="chat">
-          <div class="msg"><i></i><div><b>maya <small>11:48 PM</small></b>anyone else still up doing calc 😭</div></div>
-          <div class="msg"><i style="background:linear-gradient(140deg,#f97316,#ef4444)"></i><div><b>jay <small>11:49 PM</small></b>this test is killing me lmao</div></div>
-          <div class="msg" id="ocr-target"><i style="background:linear-gradient(140deg,#10b981,#3b82f6)"></i><div><b>sam <small>11:51 PM</small></b>i'm so tired of everything. nothing matters anymore</div></div>
-        </div>
-        <div class="scan"></div>
-        <div class="hit" style="left:27%;top:31%;width:60%;height:34px"></div>
-        <div class="tag2"><span class="chip a d4"><i></i>Vision OCR · 1.2s · candidate → Layer 2</span><span class="chip a d5" style="border-color:rgba(255,255,255,.6)"><i style="background:var(--accent)"></i>verdict: moderate · gentle check-in</span><span class="chip a d6" style="opacity:.7"><i style="background:#666"></i>"killing me lmao" → none (joke)</span></div>
-      </div>
-    </div>
-
-    <!-- 5 · Four layers -->
-    <div class="scene" data-tint="rgba(255,255,255,.03)" data-bg="0">
-      <div class="pipe">
-        <div class="in a d1">"i just want it all to stop"</div>
-        <div class="row">
-          <div class="st"><b>Layer 1</b><span>Keyword</span><small>hit · tier 2 · 14ms</small></div>
-          <div class="st"><b>Layer 2</b><span>Semantic</span><small>intent: distress · high</small></div>
-          <div class="st"><b>Layer 3</b><span>Behavioral</span><small>late night ×3 · pace ↓</small></div>
-          <div class="st"><b>Layer 4</b><span>Trend gate</span><small>day 3/4 · high bypasses</small></div>
-        </div>
-        <div class="out a d5"><span>decide_response()</span><span class="chip"><i style="background:var(--accent)"></i>urgent check-in · resources · you choose</span></div>
-      </div>
-    </div>
-
-    <!-- 6 · Crisis -->
-    <div class="scene" data-tint="rgba(255,255,255,.03)" data-bg="1">
-      <div class="crisis">
-        <div class="pulse"></div>
-        <h4 class="a d1">You matter.</h4>
-        <p class="a d2">It sounds like you're in a lot of pain right now. You don't have to face this alone — real people are awake and ready to talk.</p>
-        <div class="row a d3"><span class="pri">Call or text 988</span><span>Text HOME to 741741</span><span>I'm safe right now</span></div>
-        <div class="foot a d4">explicit crisis phrases can never be suppressed by joke context</div>
-      </div>
-    </div>
-
-    <!-- 7 · Escalation draft -->
-    <div class="scene" data-tint="rgba(255,255,255,.03)" data-bg="0">
-      <div class="mail">
-        <div class="hdr a d1"><div><b>To</b><span>Ms. Rivera · school counselor</span></div><div><b>From</b><span>you (only if you press send)</span></div><div><b>Subject</b><span>Checking in</span></div></div>
-        <div class="body">
-          <p class="a d2">Hi Ms. Rivera — I've been having a rough few days and I'd like to talk to someone when you have a moment.</p>
-          <p class="a d3">SilentHelp noticed a pattern of <mark>isolation · moderate</mark> over the last few days. No message text is included in this note — just the category and level.</p>
-          <p class="a d4">Thank you, <br>Sam</p>
-        </div>
-        <div class="ft a d5"><span>Nothing is ever sent automatically. Edit anything, or don't send at all.</span><span class="send">Send</span></div>
-        <svg class="cursor" viewBox="0 0 24 24" fill="#fff" stroke="#000" stroke-width="1.5"><path d="M4 3l16 8-7 2-3 7z"/></svg>
-      </div>
-    </div>
-
-    <!-- 8 · Dashboard -->
-    <div class="scene" data-tint="rgba(255,255,255,.03)" data-bg="1">
-      <div class="dash">
-        <span class="badge">Sample preview</span>
-        <div class="orbwrap"><div class="orb" id="orb" style="--p:0"><b id="orb-n">0%</b><small>battery</small></div><span class="lbl">Mental battery</span></div>
-        <div class="stats">
-          <div class="stat a d1"><b>Focus score<em>81</em></b><div class="bar"><i style="--v:81%"></i></div></div>
-          <div class="stat a d2"><b>Burnout risk<em>low</em></b><div class="bar"><i style="--v:28%"></i></div></div>
-          <div class="stat a d3"><b>Late-night minutes<em>42 / 15</em></b><div class="bar"><i style="--v:70%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></i></div></div>
-          <div class="find a d4"><i></i>Finding: 3 late nights this week — baseline is 1.</div>
-          <div class="find a d5"><i style="background:var(--live)"></i>Moment: you took a 20-minute break at 9:40. Nice.</div>
+    <article class="gal-card" role="listitem" tabindex="0" data-i="1" data-demo="friend" aria-label="Help a friend demo">
+      <img class="gal-thumb" src="static/img/demo/friend.webp" alt="" width="352" height="880" loading="lazy" decoding="async">
+      <div class="gal-stage">
+        <video class="gal-stage-bg" src="static/video/caps.mp4" muted loop playsinline preload="none" aria-hidden="true"></video>
+        <div class="gal-stage-ui">
+          <div class="gal-haf">
+            <div class="paste a d1 peek"><b>Paste what they sent</b><div class="bubble">i can't do this anymore. don't tell anyone</div><span class="chip"><i></i>reading intent, not keywords</span></div>
+            <div class="plan">
+              <div class="step a d2"><i>01</i>Ask directly, without panic</div>
+              <div class="step a d3"><i>02</i>Stay with them. Don't fix — listen</div>
+              <div class="step a d4"><i>03</i>Don't keep this secret</div>
+              <div class="step now a d5"><i>!</i>Bring in an adult tonight</div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+      <div class="gal-shade"></div>
+      <div class="gal-rest" aria-hidden="true"><span>02</span><b>Help a friend</b></div>
+      <div class="gal-body">
+        <span class="gal-cat">For friends</span>
+        <h3 class="gal-title">Help a friend</h3>
+        <p class="gal-desc">Paste what they sent. Get calm next steps — and when it’s time to bring in an adult.</p>
+        <a class="gal-go" href="https://silenthelp.org/app">Try it <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+      </div>
+    </article>
 
-    <!-- 9 · Privacy -->
-    <div class="scene" data-tint="rgba(255,255,255,.03)" data-bg="0">
-      <div class="priv">
-        <div>
-          <h5 class="a d1">Detection layers</h5>
-          <div class="row r1"><span>Layer 1 · Keyword</span><span class="tg"></span></div>
-          <div class="row r2"><span>Layer 2 · Semantic</span><span class="tg"></span></div>
-          <div class="row r3"><span>Layer 3 · Behavioral</span><span class="tg"></span></div>
-          <div class="row r4"><span>Layer 4 · Trend gate</span><span class="tg"></span></div>
-          <div class="zero a d4">events = category + level + time · 0 bytes of raw text</div>
-        </div>
-        <div class="acts">
-          <span class="a d2">Trusted contact<em style="color:#c8c8c8;font-style:normal">Ms. Rivera</em></span>
-          <span class="a d3">Export everything<em style="font-style:normal">.json</em></span>
-          <span class="a d4 dz">Erase everything<em style="font-style:normal">one click</em></span>
-          <span class="a d5" style="border-color:rgba(239,68,68,.35);color:#ffb4b4">Delete account<em style="font-style:normal">frees email</em></span>
+    <article class="gal-card" role="listitem" tabindex="0" data-i="2" data-demo="mac" aria-label="Mac agent demo">
+      <img class="gal-thumb" src="static/img/demo/mac.webp" alt="" width="352" height="880" loading="lazy" decoding="async">
+      <div class="gal-stage">
+        <video class="gal-stage-bg" src="static/video/hero.mp4" muted loop playsinline preload="none" aria-hidden="true"></video>
+        <div class="gal-stage-ui">
+          <div class="gal-mac">
+            <div class="menubar peek"><div class="lft"><span></span><b>Notes</b><span>File</span><span>Edit</span></div><div class="rgt"><span class="sh"><i></i>SH</span><span>11:52 PM</span></div></div>
+            <div class="win a d1"><div class="bar"><i></i><i></i><i></i></div><div class="body"><b>untitled</b><span class="type">i honestly can't do this anymore</span></div></div>
+            <div class="popup a d4"><b><i></i>SILENTHELP</b><p>Hey — that sounded heavy. You don't have to carry it alone tonight. Want to talk it through?</p><div class="btns"><span>Talk it through</span><span>Ignore 1h</span><span>Dismiss</span></div></div>
+          </div>
         </div>
       </div>
-    </div>
-  </a>
-  <h2 class="reel-t r" id="reel-tr"></h2>
+      <div class="gal-shade"></div>
+      <div class="gal-rest" aria-hidden="true"><span>03</span><b>Mac check-in</b></div>
+      <div class="gal-body">
+        <span class="gal-cat">Mac agent</span>
+        <h3 class="gal-title">Quiet check-in</h3>
+        <p class="gal-desc">On-device detection notices heavy writing and offers a gentle check-in — Talk it through, Ignore 1h, or Dismiss.</p>
+        <a class="gal-go" href="https://silenthelp.org/download/agent">Get Mac app <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+      </div>
+    </article>
 
-  <div class="reel-meta bot"><span id="rm-idx">01.</span><span id="rm-client">Groq gpt-oss-120b · warm, never a therapist</span><span id="rm-total">.09</span></div>
+    <article class="gal-card" role="listitem" tabindex="0" data-i="3" data-demo="layers" aria-label="Four layers demo">
+      <img class="gal-thumb" src="static/img/demo/layers.webp" alt="" width="352" height="880" loading="lazy" decoding="async">
+      <div class="gal-stage">
+        <video class="gal-stage-bg" src="static/video/caps.mp4" muted loop playsinline preload="none" aria-hidden="true"></video>
+        <div class="gal-stage-ui">
+          <div class="gal-pipe">
+            <div class="in a d1 peek">"i just want it all to stop"</div>
+            <div class="row">
+              <div class="st a d2"><b>Layer 1</b><span>Keyword</span><small>hit · tier 2 · 14ms</small></div>
+              <div class="st a d3"><b>Layer 2</b><span>Semantic</span><small>intent: distress · high</small></div>
+              <div class="st a d4"><b>Layer 3</b><span>Behavioral</span><small>late night ×3 · pace ↓</small></div>
+              <div class="st a d5"><b>Layer 4</b><span>Trend gate</span><small>day 3/4 · high bypasses</small></div>
+            </div>
+            <div class="out a d6"><span>decide_response()</span><span class="chip"><i></i>urgent check-in · resources · you choose</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="gal-shade"></div>
+      <div class="gal-rest" aria-hidden="true"><span>04</span><b>Four quiet layers</b></div>
+      <div class="gal-body">
+        <span class="gal-cat">Detection</span>
+        <h3 class="gal-title">Four quiet layers</h3>
+        <p class="gal-desc">Keyword → meaning → behavior → trend. Jokes stay quiet. Patterns get a soft nudge.</p>
+        <a class="gal-go" href="#how">How it works <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+      </div>
+    </article>
 
-  <div class="reel-strip" id="reel-strip" aria-label="All features"></div>
-  <div class="reel-list" id="reel-list"><ol id="reel-ol"></ol></div>
+    <article class="gal-card" role="listitem" tabindex="0" data-i="4" data-demo="crisis" aria-label="Crisis support demo">
+      <img class="gal-thumb" src="static/img/demo/crisis.webp" alt="" width="352" height="880" loading="lazy" decoding="async">
+      <div class="gal-stage">
+        <video class="gal-stage-bg" src="static/video/hero.mp4" muted loop playsinline preload="none" aria-hidden="true"></video>
+        <div class="gal-stage-ui">
+          <div class="gal-crisis">
+            <h4 class="a d1 peek">You matter.</h4>
+            <p class="a d2">It sounds like you're in a lot of pain right now. You don't have to face this alone — real people are awake and ready to talk.</p>
+            <div class="row a d3"><span class="pri">Call or text 988</span><span>Text HOME to 741741</span><span>I'm safe right now</span></div>
+            <div class="foot a d4">explicit crisis phrases can never be suppressed by joke context</div>
+          </div>
+        </div>
+      </div>
+      <div class="gal-shade"></div>
+      <div class="gal-rest" aria-hidden="true"><span>05</span><b>Crisis support</b></div>
+      <div class="gal-body">
+        <span class="gal-cat">Crisis</span>
+        <h3 class="gal-title">Real help, right away</h3>
+        <p class="gal-desc">When it’s serious, SilentHelp surfaces 988 and crisis resources — never suppressed by joke context.</p>
+        <a class="gal-go" href="https://988lifeline.org" target="_blank" rel="noopener">988 Lifeline <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+      </div>
+    </article>
 
-  <div class="reel-bar">
-    <div class="grp"><span>© 2026 SilentHelp</span><span><button type="button" id="mode-slider" class="on">Slider</button><span class="sep">/</span><button type="button" id="mode-list">List</button></span></div>
-    <div class="reel-arrows"><button type="button" id="reel-prev-m" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><button type="button" id="reel-next-m" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button></div>
-    <div class="grp"><div class="cats"><b>All <i>(09)</i></b><span>Chat · Agent</span><span>Detection · Privacy</span></div><span class="tc" id="reel-tc">00:00:00</span><a href="https://silenthelp.org/stage" target="_blank" rel="noopener">Live stage ↗</a></div>
+    <article class="gal-card" role="listitem" tabindex="0" data-i="5" data-demo="privacy" aria-label="Privacy demo">
+      <img class="gal-thumb" src="static/img/demo/privacy.webp" alt="" width="352" height="880" loading="lazy" decoding="async">
+      <div class="gal-stage">
+        <video class="gal-stage-bg" src="static/video/caps.mp4" muted loop playsinline preload="none" aria-hidden="true"></video>
+        <div class="gal-stage-ui">
+          <div class="gal-priv">
+            <div>
+              <h5 class="peek">Detection layers</h5>
+              <div class="row r1 a d1"><span>Layer 1 · Keyword</span><span class="tg"></span></div>
+              <div class="row r2 a d2"><span>Layer 2 · Semantic</span><span class="tg"></span></div>
+              <div class="row r3 a d3"><span>Layer 3 · Behavioral</span><span class="tg"></span></div>
+              <div class="row r4 a d4"><span>Layer 4 · Trend gate</span><span class="tg"></span></div>
+              <div class="zero a d5">events = category + level + time · 0 bytes of raw text</div>
+            </div>
+            <div class="acts">
+              <span class="a d2">Trusted contact<em>Ms. Rivera</em></span>
+              <span class="a d3">Export everything<em>.json</em></span>
+              <span class="a d4">Erase everything<em>one click</em></span>
+              <span class="a d5">Delete account<em>frees email</em></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="gal-shade"></div>
+      <div class="gal-rest" aria-hidden="true"><span>06</span><b>Privacy controls</b></div>
+      <div class="gal-body">
+        <span class="gal-cat">Privacy</span>
+        <h3 class="gal-title">You stay in control</h3>
+        <p class="gal-desc">0 bytes of raw text stored. Drafts to a trusted adult only if you press send. Erase everything in one click.</p>
+        <a class="gal-go" href="https://silenthelp.org/privacy">Privacy <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+      </div>
+    </article>
   </div>
+
+  <div class="gal-hint">Hover a card to play that feature’s demo</div>
 </section>
 
 <!-- ══════════════════════════ HOW IT WORKS ══════════════════════════ -->
@@ -2102,7 +1988,7 @@ body::after{
   var nav = $('#nav'), prog = $('#progress'), lastY = 0, ticking = false;
   var heads = $$('.px');
   var heroEl = $('.hero');
-  var cinemaSecs = $$('.sec, .reel, .beneath');
+  var cinemaSecs = $$('.sec, .gal-demo, .beneath');
   function onScroll(y){
     if (typeof y !== 'number') y = (lenis && typeof lenis.scroll === 'number') ? lenis.scroll : window.scrollY;
     if (ticking) return; ticking = true;
@@ -2290,7 +2176,7 @@ body::after{
       var id = a.getAttribute('href').slice(1), el = document.getElementById(id);
       if (!el) return;
       ev.preventDefault();
-      if (a.hasAttribute('data-slide')) reelGo(+a.getAttribute('data-slide'), true);
+      if (a.hasAttribute('data-slide')) galGo(+a.getAttribute('data-slide'));
       smoothScrollTo(el);
       history.replaceState(null, '', '#' + id);
     });
@@ -2610,128 +2496,77 @@ body::after{
     });
   })();
 
-  /* ═════════════════════════ DEMO ═══════════════════════════ */
-  var REEL_SLIDES = [
-    { l:'Coping',    r:'<em>Chat</em>',       cat:'Coping chat',      kind:'Web · App',        client:'Groq gpt-oss-120b · warm, never a therapist',      tbg:'linear-gradient(140deg,#1a1a1a,#050505)' },
-    { l:'Help a',    r:'<em>Friend</em>',     cat:'Help a Friend',    kind:'Web · App',        client:'Coaching for the one who got the text',           tbg:'linear-gradient(140deg,#1a1a1a,#050505)' },
-    { l:'The Mac',   r:'<em>Agent</em>',      cat:'Menu-bar agent',   kind:'macOS · Swift',    client:'Accessibility · reads the focused field · 1.5s',   tbg:'linear-gradient(140deg,#1a1a1a,#050505)' },
-    { l:'Screen',    r:'<em>Reader</em>',     cat:'Screen reader',    kind:'macOS · Vision',   client:'ScreenCaptureKit + OCR · frontmost window · 1.2s', tbg:'linear-gradient(140deg,#1a1a1a,#050505)' },
-    { l:'Four Quiet',r:'<em>Layers</em>',     cat:'Detection',        kind:'Pipeline',         client:'The model flags · deterministic code decides',    tbg:'linear-gradient(140deg,#1a1a1a,#050505)' },
-    { l:'Crisis',    r:'<em>Check-in</em>',   cat:'Crisis',           kind:'Urgent · 988',     client:'Full-screen · real human help · never suppressed', tbg:'linear-gradient(140deg,#1a1a1a,#050505)' },
-    { l:'You Press', r:'<em>Send</em>',       cat:'Escalation',       kind:'Draft · Email',    client:'Drafted for a trusted adult · sent only by you',   tbg:'linear-gradient(140deg,#1a1a1a,#050505)' },
-    { l:'Mental',    r:'<em>Battery</em>',    cat:'Dashboard',        kind:'Analytics',        client:'Focus · burnout · findings · moments',            tbg:'linear-gradient(140deg,#1a1a1a,#050505)' },
-    { l:'Nothing',   r:'<em>Leaves</em>',     cat:'Privacy',          kind:'Settings',         client:'Layer toggles · export · erase · delete',         tbg:'linear-gradient(140deg,#1a1a1a,#050505)' }
-  ];
-  var reel = $('#demo'), scenes = $$('.scene', reel), bgs = $$('.reel-bg video', reel);
-  var tl = $('#reel-tl'), tr = $('#reel-tr'), tint = $('#reel-tint');
-  var cur = -1, timer = null, inView = false, N = REEL_SLIDES.length;
-  var ol = $('#reel-ol');
-  var strip = $('#reel-strip');
-  REEL_SLIDES.forEach(function(s, i){
-    var li = document.createElement('li');
-    li.innerHTML = '<span class="n">' + pad(i + 1) + '.</span><span class="t">' + s.l + ' ' + s.r + '</span><span class="c">' + s.cat + '</span>';
-    li.addEventListener('click', function(){ reelGo(i, true); setMode(false); });
-    ol.appendChild(li);
-    var b = document.createElement('button');
-    b.type = 'button'; b.style.setProperty('--tbg', s.tbg);
-    b.innerHTML = '<em>' + pad(i + 1) + '</em><span>' + s.cat + '</span>';
-    b.setAttribute('aria-label', s.cat);
-    b.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); reelGo(i, true); });
-    strip.appendChild(b);
-  });
-  function pad(n){ return (n < 10 ? '0' : '') + n; }
-  function setTitle(el, html){
-    el.classList.remove('in');
-    setTimeout(function(){
-      el.innerHTML = html; splitWords(el); staggerWords(el);
-      requestAnimationFrame(function(){ requestAnimationFrame(function(){ el.classList.add('in'); }); });
-    }, cur < 0 ? 0 : 320);
-  }
-  function reelGo(i, user){
-    i = (i + N) % N; if (i === cur) return;
-    var s = REEL_SLIDES[i];
-    reel.classList.add('swap');
-    setTimeout(function(){
-      $('#rm-cat').textContent = s.cat; $('#rm-kind').textContent = s.kind;
-      $('#rm-idx').textContent = pad(i + 1) + '.'; $('#rm-client').textContent = s.client;
-      reel.classList.remove('swap');
-    }, cur < 0 ? 0 : 320);
-    setTitle(tl, s.l); setTitle(tr, s.r);
-    scenes.forEach(function(sc, k){
-      if (k === i) { sc.classList.remove('on'); void sc.offsetWidth; sc.classList.add('on'); }
-      else sc.classList.remove('on');
-    });
-    var bg = +scenes[i].getAttribute('data-bg') || 0;
-    bgs.forEach(function(v, k){ v.classList.toggle('on', k === bg); });
-    tint.style.setProperty('--tint', 'rgba(255,255,255,.03)');
-    var p = REEL_SLIDES[(i - 1 + N) % N], n = REEL_SLIDES[(i + 1) % N];
-    $('#reel-prev').style.setProperty('--tbg', p.tbg); $('#reel-prev-t').textContent = pad((i - 1 + N) % N + 1) + ' · ' + p.cat;
-    $('#reel-next').style.setProperty('--tbg', n.tbg); $('#reel-next-t').textContent = pad((i + 1) % N + 1) + ' · ' + n.cat;
-    $$('li', ol).forEach(function(li, k){ li.classList.toggle('on', k === i); });
-    $$('#reel-strip button').forEach(function(b, k){ b.classList.toggle('on', k === i); });
-    var vid = $('#reel-vid');
-    if (vid) {
-      var nextSrc = bg === 1 ? 'static/video/caps.mp4' : 'static/video/hero.mp4';
-      if (vid.getAttribute('src') !== nextSrc) { vid.setAttribute('src', nextSrc); var p = vid.play(); if (p && p.catch) p.catch(function(){}); }
+  /* ═══════════════════════ DEMO · 3D GALLERY ═══════════════════════ */
+  var galGo = (function initGalDemo(){
+    var wrap = document.getElementById('gal-wrap');
+    if (!wrap) return function(){};
+    var cards = Array.prototype.slice.call(wrap.querySelectorAll('.gal-card'));
+    var active = null;
+
+    function restartScene(card){
+      var stage = card.querySelector('.gal-stage-ui');
+      if (!stage) return;
+      // swap in a fresh copy so the scene's CSS animations replay from the start
+      var clone = stage.cloneNode(true);
+      stage.parentNode.replaceChild(clone, stage);
     }
-    if (i === 7) animateOrb();
-    cur = i;
-    if (user) restart();
-  }
-  function animateOrb(){
-    var orb = $('#orb'), n = $('#orb-n'), t0 = performance.now();
-    (function step(now){
-      var t = Math.min((now - t0) / 1800, 1), k = 1 - Math.pow(1 - t, 3), v = Math.round(72 * k);
-      orb.style.setProperty('--p', v); n.textContent = v + '%';
-      if (t < 1 && cur === 7) requestAnimationFrame(step);
-    })(t0);
-  }
-  function restart(){ clearInterval(timer); if (!reduce) timer = setInterval(function(){ if (inView && !reel.matches(':hover') && !reel.classList.contains('list')) reelGo(cur + 1); }, 8000); }
-  $('#reel-prev').addEventListener('click', function(){ reelGo(cur - 1, true); });
-  $('#reel-next').addEventListener('click', function(){ reelGo(cur + 1, true); });
-  $('#reel-prev-m').addEventListener('click', function(){ reelGo(cur - 1, true); });
-  $('#reel-next-m').addEventListener('click', function(){ reelGo(cur + 1, true); });
-  function setMode(list){ reel.classList.toggle('list', list); $('#mode-list').classList.toggle('on', list); $('#mode-slider').classList.toggle('on', !list); }
-  $('#mode-list').addEventListener('click', function(){ setMode(true); });
-  $('#mode-slider').addEventListener('click', function(){ setMode(false); });
-  addEventListener('keydown', function(e){
-    if (!inView || e.target.closest('input,textarea')) return;
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); reelGo(cur + 1, true); }
-    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { e.preventDefault(); reelGo(cur - 1, true); }
-    if (e.key === 'Escape') setMode(false);
-  });
-  /* swipe */
-  var sx = 0, sy = 0;
-  reel.addEventListener('touchstart', function(e){ sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
-  reel.addEventListener('touchend', function(e){
-    var dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
-    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) reelGo(cur + (dx < 0 ? 1 : -1), true);
-  }, { passive: true });
-  /* wheel through films like jasonbergh.com — release at the ends */
-  var acc = 0, cool = 0;
-  reel.addEventListener('wheel', function(e){
-    if (!inView || reel.classList.contains('list')) return;
-    var now = performance.now();
-    if (now < cool) { e.preventDefault(); return; }
-    acc += e.deltaY;
-    if (Math.abs(acc) < 70) { e.preventDefault(); return; }
-    var dir = acc > 0 ? 1 : -1; acc = 0;
-    if ((dir > 0 && cur === N - 1) || (dir < 0 && cur === 0)) return;
-    e.preventDefault(); cool = now + 720; reelGo(cur + dir, true);
-  }, { passive: false });
-  /* only run while on screen */
-  new IntersectionObserver(function(en){ inView = en[0].isIntersecting; }, { threshold: 0.35 }).observe(reel);
-  /* timecode */
-  var tc = $('#reel-tc'), t0 = performance.now();
-  (function tick(){
-    var ms = performance.now() - t0, s = Math.floor(ms / 1000), f = Math.floor((ms % 1000) / 1000 * 24);
-    tc.textContent = pad(Math.floor(s / 60)) + ':' + pad(s % 60) + ':' + pad(f);
-    requestAnimationFrame(tick);
+
+    function setVideos(card, on){
+      card.querySelectorAll('video.gal-stage-bg').forEach(function(v){
+        try {
+          if (on) { if (v.preload === 'none') v.preload = 'auto'; var p = v.play(); if (p && p.catch) p.catch(function(){}); }
+          else if (!v.paused) { v.pause(); }
+        } catch (e) {}
+      });
+    }
+
+    function setActive(i){
+      active = i;
+      wrap.classList.toggle('has-active', i !== null);
+      cards.forEach(function(card, idx){
+        var on = i === idx;
+        var was = card.classList.contains('is-active');
+        card.classList.toggle('is-active', on);
+        card.classList.toggle('is-before', i !== null && idx < i);
+        card.classList.toggle('is-after', i !== null && idx > i);
+        card.setAttribute('aria-pressed', on ? 'true' : 'false');
+        if (on && !was) restartScene(card);
+        setVideos(card, on);
+      });
+    }
+
+    cards.forEach(function(card, idx){
+      card.addEventListener('mouseenter', function(){ setActive(idx); });
+      card.addEventListener('focus', function(){ setActive(idx); });
+      card.addEventListener('click', function(e){
+        if (e.target.closest && e.target.closest('a')) return;
+        if (active !== idx) setActive(idx);   // tap/click opens; leaving the row closes
+      });
+      card.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          setActive(active === idx ? null : idx);
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          var n = (idx + 1) % cards.length;
+          cards[n].focus(); setActive(n);
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          var p = (idx - 1 + cards.length) % cards.length;
+          cards[p].focus(); setActive(p);
+        } else if (e.key === 'Escape') {
+          setActive(null);
+        }
+      });
+    });
+    wrap.addEventListener('mouseleave', function(){ setActive(null); });
+    // bento tiles ("watch in the demo") open their matching card
+    return function(i){ if (cards[i]) setActive(i); };
   })();
-  reelGo(0); restart();
+
 
   /* ── Videos: autoplay can be refused — hold the frame quietly ─── */
-  $$('video').forEach(function(v){ var p = v.play(); if (p && p.catch) p.catch(function(){}); });
+  $$('video:not(.gal-stage-bg)').forEach(function(v){ var p = v.play(); if (p && p.catch) p.catch(function(){}); });
 })();
 </script>
 <script src="static/liquid-glass.js"></script>
