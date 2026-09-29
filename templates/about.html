@@ -175,6 +175,13 @@ var TEAM = [
     linkedin: "https://www.linkedin.com/in/nehanth-arvapalli-005a68335/",
     photo: "/static/img/team/nehanth.jpg",
     bio: "Nehanth leads the structured detection-data foundation behind SilentHelp's recognition system. He develops and organizes the detection database, including phrase families, contextual patterns, severity groupings, signal categories, and evaluation examples that help the system recognize how people naturally express stress, isolation, burnout, and emotional distress."
+  },
+  {
+    slug: "dhiraj",
+    name: "Naga Sai Dhiraj Kasam",
+    role: "Research Advisor",
+    photo: "/static/img/team/dhiraj.jpg",
+    bio: "Naga Sai Dhiraj Kasam is an Engineering Physics student at the University of Illinois Chicago’s Honors College and a Research Advisor at SilentHelp. His interests span artificial intelligence, computational physics, quantum computing, and bioinformatics. He brings experience in interdisciplinary research, machine learning, and technical prototyping, alongside leadership in student organizations and community outreach. He is particularly interested in applying science and technology to practical challenges with meaningful social impact."
   }
 ];
 
@@ -204,10 +211,10 @@ TEAM.forEach(function(m){
       '<h2 class="hd">' + m.name + '</h2>' +
       '<div class="role">' + m.role + '</div>' +
       '<div class="bio">' + m.bio + '</div>' +
-      '<div class="links">' +
-        '<a class="chip" href="' + m.linkedin + '" target="_blank" rel="noopener">' + liIcon + 'LinkedIn</a>' +
-        '<a class="chip" href="mailto:' + m.email + '">' + mailIcon + m.email + '</a>' +
-      '</div>' +
+      ((m.linkedin || m.email) ? '<div class="links">' +
+        (m.linkedin ? '<a class="chip" href="' + m.linkedin + '" target="_blank" rel="noopener">' + liIcon + 'LinkedIn</a>' : '') +
+        (m.email ? '<a class="chip" href="mailto:' + m.email + '">' + mailIcon + m.email + '</a>' : '') +
+      '</div>' : '') +
     '</div>';
   host.appendChild(el);
 });
