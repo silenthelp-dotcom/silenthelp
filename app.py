@@ -914,6 +914,14 @@ def about():
     return send_from_directory(app.template_folder, "about.html")
 
 
+@app.route("/replika")
+def landing_replika():
+    # Alternate front page laid out like replika.com (sky hero, pinned
+    # three-tab story, feature cards, story carousel). Static HTML, served
+    # like the main landing so inline JS/CSS stay untouched.
+    return send_from_directory(app.template_folder, "landing-replika.html")
+
+
 @app.route("/stage")
 def stage():
     # Demo film set: a wall of six laptops running Messages/Discord/Snapchat/

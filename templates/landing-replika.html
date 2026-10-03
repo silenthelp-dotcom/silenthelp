@@ -1,0 +1,1169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SilentHelp — Support That Notices Before You Have to Ask</title>
+<meta name="description" content="A private, on-device wellbeing companion for students, families, and school counselors. Four quiet detection layers, nothing leaves your Mac, free for everyone.">
+<meta property="og:title" content="SilentHelp — Support That Notices Before You Have to Ask">
+<meta property="og:image" content="https://silenthelp.org/static/img/badge-512.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/static/img/badge-32.png">
+<link rel="apple-touch-icon" href="/static/img/badge-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!--
+  SilentHelp landing, "Replika layout" variant (route: /replika).
+  Structure follows replika.com: sky hero with glass character card, letter
+  block, pinned three-tab story (Notices / Four layers / Real help), feature
+  cards, horizontal story carousel, team, big CTA, footer. All copy, people
+  and links come from landing.html + about.html. No stats, quotes or press.
+  v3: every character is one of the three people on the SilentHelp character
+  sheet (Abhinav, Sree, Nehanth): front / 3/4 / back figures and expression
+  heads cropped from the sheet, upscaled (Real-ESRGAN x4 blended 35% over Lanczos)
+  and cut out with rembg (birefnet-portrait / isnet). No stock photos, no 3D.
+  Device mockups are pure CSS with live HTML screens.
+-->
+<style>
+:root{
+  --ink:#111113; --ink-2:#2a2a2e; --muted:#6b6b72; --line:#ececee; --soft:#f4f4f5;
+  --sky:#4a7fdc; --r-xl:40px; --r-lg:28px; --r-md:20px;
+  --font:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  --wrap:1200px; --pad:clamp(20px,5vw,120px);
+  --ease:cubic-bezier(.22,.8,.24,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{font-family:var(--font);color:var(--ink);background:#fff;font-size:16px;line-height:1.5;letter-spacing:-.02em;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.wrap{max-width:calc(var(--wrap) + var(--pad)*2);margin:0 auto;padding:0 var(--pad)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.arrow{width:20px;height:20px;border-radius:50%;background:#fff;color:var(--ink);display:inline-grid;place-items:center;flex:none}
+.arrow svg{width:12px;height:12px}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;gap:12px;height:56px;padding:0 26px 0 28px;border-radius:999px;font-weight:600;font-size:16px;letter-spacing:-.02em;transition:transform .3s var(--ease),box-shadow .3s var(--ease),background .3s}
+.btn-dark{background:var(--ink);color:#fff;box-shadow:0 10px 30px -10px rgba(0,0,0,.45)}
+.btn-dark:hover{transform:translateY(-2px);box-shadow:0 16px 36px -12px rgba(0,0,0,.5)}
+.btn-ghost{background:rgba(255,255,255,.7);color:var(--ink);box-shadow:0 8px 30px -12px rgba(0,0,0,.18);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.btn-ghost:hover{background:#fff;transform:translateY(-2px)}
+.btn-line{border:1.5px solid var(--line);color:var(--ink);background:#fff}
+.btn-line:hover{border-color:var(--ink)}
+.avail{text-shadow:0 1px 10px rgba(30,60,120,.35);display:flex;align-items:center;gap:6px;font-size:14px;margin-top:18px;letter-spacing:-.01em}
+.avail svg{width:14px;height:14px}
+
+/* ---------- sky (hero + letter share one backdrop, fading to white) ---------- */
+.sky{position:relative;background:#6f9be6 url(/static/img/replika/hero-sky.jpg) center top/cover no-repeat;color:#fff;overflow:hidden}
+.sky::after{content:"";position:absolute;left:0;right:0;bottom:0;height:200px;background:linear-gradient(to bottom,rgba(255,255,255,0),rgba(255,255,255,.7) 60%,#fff);pointer-events:none}
+.sky>*{position:relative;z-index:1}
+
+/* header */
+.hdr{position:absolute;inset:0 0 auto 0;z-index:5}
+.hdr .wrap{display:flex;align-items:center;justify-content:space-between;height:120px;max-width:none;padding:0 clamp(20px,4.2vw,60px)}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;letter-spacing:-.03em}
+.logo img{width:40px;height:40px;border-radius:50%;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.laurel{position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;text-align:center;line-height:1.1}
+.laurel svg{width:26px;height:44px;opacity:.85}
+.laurel b{display:block;font-size:26px;font-weight:700;letter-spacing:-.04em}
+.laurel span{font-size:13px;opacity:.9}
+.glass-pill{display:inline-flex;align-items:center;height:44px;padding:0 20px;border-radius:999px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.45);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font-size:15px;font-weight:500;transition:background .3s}
+.glass-pill:hover{background:rgba(255,255,255,.38)}
+
+/* hero */
+.hero{min-height:max(720px,100vh);max-height:1000px;display:flex;align-items:center;padding-top:96px}
+.hero .wrap{width:100%;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:center;gap:40px}
+.h1{font-size:clamp(52px,6.6vw,100px);font-weight:800;line-height:.98;letter-spacing:-.06em;text-shadow:0 2px 30px rgba(30,60,120,.18)}
+.cycle{display:block;position:relative;height:1.2em;margin-bottom:-.15em;overflow:hidden}
+.cycle span{position:absolute;left:0;top:0;white-space:nowrap;transform:translateY(105%);opacity:0;transition:transform .8s var(--ease),opacity .6s}
+.cycle span.on{transform:none;opacity:1}
+.cycle span.out{transform:translateY(-105%);opacity:0}
+.hero-sub{text-shadow:0 1px 14px rgba(30,60,120,.35);max-width:460px;margin-top:22px;font-size:18px;line-height:1.45;font-weight:500;opacity:.95;letter-spacing:-.02em}
+.hero-cta{margin-top:34px}
+
+.bubble{position:absolute;background:#fff;color:var(--ink);border-radius:22px;padding:13px 18px;font-size:14px;line-height:1.35;font-weight:500;box-shadow:0 14px 40px -14px rgba(20,40,90,.35);letter-spacing:-.01em}
+.stage .bubble{top:-34px;right:-18px;max-width:270px;animation:floaty 6s ease-in-out infinite}
+.bubble small{display:block;font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--muted);margin-bottom:3px}
+.mini{position:absolute;left:-46px;bottom:-40px;width:200px;background:#fff;color:var(--ink);border-radius:20px;padding:16px 16px 14px;box-shadow:0 20px 50px -18px rgba(20,40,90,.45);transform:rotate(-4deg);animation:floaty 7s ease-in-out -2s infinite}
+.mini .k{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.02em}
+.mini .n{font-size:40px;font-weight:800;letter-spacing:-.05em;line-height:1;margin:6px 0 4px}
+.mini .s{font-size:12.5px;line-height:1.35;color:var(--ink-2)}
+.mini .s b{font-weight:700}
+@keyframes floaty{0%,100%{translate:0 0}50%{translate:0 -8px}}
+
+/* letter */
+.letter{text-align:center;padding:110px 0 230px;text-shadow:0 1px 18px rgba(30,60,130,.28)}
+.letter .q{font-size:64px;line-height:.5;font-weight:800;opacity:.85;height:28px}
+.letter .lead{font-size:20px;font-weight:500;margin-top:18px;opacity:.95}
+.letter h2{font-size:clamp(34px,4vw,54px);font-weight:700;line-height:1.05;letter-spacing:-.05em;margin:22px auto 0;max-width:720px}
+.letter p.more{max-width:520px;margin:22px auto 0;font-size:19px;line-height:1.45;opacity:.95}
+.letter .btn{margin-top:40px;height:54px}
+
+/* ---------- eyebrow ---------- */
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--ink);letter-spacing:-.01em}
+.eyebrow img{width:18px;height:18px;border-radius:50%}
+.eyebrow.c{justify-content:center}
+
+/* ---------- pinned 3-tab story ---------- */
+.pin{position:relative;height:440vh;background:#fff}
+.pin-sticky{position:sticky;top:0;height:100vh;min-height:620px;overflow:hidden}
+.pin-grid{position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:120px 120px;background-position:center;-webkit-mask-image:radial-gradient(ellipse 60% 55% at 50% 55%,#000 30%,transparent 75%);mask-image:radial-gradient(ellipse 60% 55% at 50% 55%,#000 30%,transparent 75%);opacity:.7}
+.panel{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .7s var(--ease),visibility .7s}
+.panel.on{opacity:1;visibility:visible}
+.panel-head{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:flex-start;gap:40px;padding-top:clamp(36px,7vh,72px)}
+.panel-head h3{font-size:clamp(36px,3.6vw,52px);font-weight:700;line-height:1.02;letter-spacing:-.055em;margin-top:10px;max-width:560px}
+.panel-head p{max-width:380px;font-size:15px;line-height:1.5;color:var(--ink-2);padding-top:28px}
+.panel-body{position:absolute;left:0;right:0;top:clamp(200px,30vh,260px);bottom:120px}
+
+/* panel 1: chat */
+.chat-stage{position:relative;height:100%;max-width:900px;margin:0 auto;display:flex;align-items:center;gap:clamp(24px,4vw,56px);padding:0 var(--pad)}
+.chat{flex:1;display:flex;flex-direction:column;gap:12px;min-width:0}
+.msg{max-width:340px;padding:13px 19px;border-radius:24px;font-size:15px;line-height:1.38;font-weight:500;opacity:0;transform:translateY(14px) scale(.98);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.msg.in{opacity:1;transform:none}
+.msg.me{align-self:flex-end;background:var(--ink);color:#fff;border-bottom-right-radius:8px}
+.msg.sh{align-self:flex-start;background:#fff;box-shadow:0 12px 34px -14px rgba(0,0,0,.25);border:1px solid var(--line);border-bottom-left-radius:8px}
+.msg.sh small{display:block;font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--muted);margin-bottom:3px}
+.msg.note{align-self:center;background:none;color:var(--muted);font-size:13px;padding:4px 0}
+
+/* panel 2: mind map */
+.map{position:relative;height:100%;max-width:1240px;margin:0 auto}
+.node{position:absolute;transform:translate(-50%,-50%);text-align:center;opacity:0;transition:opacity .6s var(--ease),transform .6s var(--ease)}
+.panel.on .node{opacity:1}
+.node .cap{font-size:12.5px;font-weight:500;line-height:1.3;color:var(--ink-2);margin-top:8px;white-space:nowrap}
+.orb{width:clamp(108px,10vw,134px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;margin:0 auto;background:radial-gradient(circle at 32% 28%,#fff,#e9e9ec 55%,#cfcfd6);box-shadow:inset 0 -10px 24px rgba(0,0,0,.08),0 20px 40px -20px rgba(0,0,0,.35);position:relative}
+.orb i{font-style:normal;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.06em}
+.orb span{position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);background:#fff;border-radius:999px;padding:6px 14px;font-size:13.5px;font-weight:700;box-shadow:0 8px 24px -10px rgba(0,0,0,.3);white-space:nowrap}
+.orb + .cap{margin-top:22px;color:var(--muted)}
+.tag{background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:12.5px;font-weight:600;white-space:nowrap;box-shadow:0 8px 20px -12px rgba(0,0,0,.25)}
+.tag.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.hand{position:absolute;font-size:13px;font-weight:600;color:var(--ink);transform:rotate(-8deg);white-space:nowrap}
+
+/* panel 3: real help */
+.help-bg{position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 40%,#c9a587,#8a6a52 70%,#6d5442);filter:blur(2.5px) saturate(.85);transform:scale(1.04)}
+.help-bg::after{content:""}
+.help-fade{position:absolute;inset:0;background:linear-gradient(to bottom,#fff 0,rgba(255,255,255,0) 18%,rgba(255,255,255,0) 72%,#fff 100%),linear-gradient(to right,rgba(255,255,255,.85) 0,rgba(255,255,255,0) 22%,rgba(255,255,255,0) 78%,rgba(255,255,255,.85) 100%),rgba(20,16,12,.18)}
+.help{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;padding:0 var(--pad) 90px}
+.arc{display:flex;gap:clamp(20px,9vw,150px);margin-bottom:34px;font-size:14px;font-weight:500}
+.arc span:nth-child(1){transform:rotate(-9deg) translateY(10px)} .arc span:nth-child(3){transform:rotate(8deg) translateY(10px)}
+.help h3{font-size:clamp(40px,4.6vw,66px);font-weight:700;line-height:1.02;letter-spacing:-.055em;max-width:780px;text-shadow:0 2px 30px rgba(0,0,0,.25)}
+.help .k{margin-top:36px;font-size:14px;font-weight:500;opacity:.9}
+.crisis{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap;justify-content:center}
+.crisis a{display:inline-flex;align-items:center;gap:10px;height:50px;padding:0 22px;border-radius:999px;background:#fff;color:var(--ink);font-weight:700;font-size:15px;box-shadow:0 12px 30px -12px rgba(0,0,0,.4)}
+.crisis a:nth-child(2){background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.help .fine{margin-top:16px;font-size:13px;opacity:.85}
+
+/* tabs */
+.tabs{position:absolute;left:50%;bottom:clamp(24px,5vh,44px);transform:translateX(-50%);z-index:6;display:flex;gap:4px;padding:8px;border-radius:999px;background:rgba(244,244,245,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 10px 30px -16px rgba(0,0,0,.25)}
+.tabs button{position:relative;z-index:1;height:40px;padding:0 18px;border-radius:999px;font-size:14px;font-weight:500;color:#8a8a92;transition:color .35s}
+.tabs button.on{color:var(--ink)}
+.tabs .ind{position:absolute;z-index:0;top:8px;height:40px;border-radius:999px;background:#fff;box-shadow:0 4px 14px -6px rgba(0,0,0,.2);transition:left .5s var(--ease),width .5s var(--ease)}
+
+/* ---------- features ---------- */
+.features{padding:140px 0 60px;text-align:center}
+.h2{font-size:clamp(34px,3.6vw,52px);font-weight:700;line-height:1.05;letter-spacing:-.05em;margin-top:12px}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:56px 32px;margin-top:64px;text-align:left}
+.feat .tile{position:relative;height:300px;border-radius:var(--r-xl);background:var(--soft);overflow:hidden;display:flex;justify-content:center}
+.feat .lb{font-size:14px;color:var(--muted);margin:22px 18px 0}
+.feat h4{font-size:22px;font-weight:700;letter-spacing:-.04em;line-height:1.2;margin:6px 18px 0}
+.feat p{font-size:15px;color:var(--ink-2);line-height:1.45;margin:10px 18px 0}
+.feat .go{display:inline-flex;align-items:center;gap:6px;margin:14px 18px 0;font-size:14px;font-weight:600}
+.feat .go svg{width:14px;height:14px;transition:transform .3s}
+.feat .go:hover svg{transform:translateX(3px)}
+
+/* ---------- stories carousel ---------- */
+.stories{padding:110px 0 40px}
+.stories .h2{text-align:center;max-width:760px;margin-left:auto;margin-right:auto}
+.stories .sub{text-align:center;color:var(--ink-2);font-size:17px;margin-top:16px;padding:0 20px}
+.track{display:flex;gap:24px;overflow-x:auto;scroll-snap-type:x mandatory;padding:48px calc(50vw - min(450px,44vw)) 20px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.track::-webkit-scrollbar{display:none}
+.story{flex:none;width:min(900px,88vw);scroll-snap-align:center;border-radius:var(--r-xl);padding:clamp(28px,3.4vw,44px);display:grid;grid-template-columns:1fr 1fr;gap:36px;color:#fff;min-height:440px;position:relative;overflow:hidden;transition:transform .5s var(--ease),opacity .5s}
+.story.c1{background:#141416}.story.c2{background:#3b4351}.story.c3{background:#e8e4dd;color:var(--ink)}.story.c4{background:#2a2a2e}.story.c5{background:#557ac4}.story.c6{background:#0b0b0c}
+.story .no{font-size:13px;font-weight:600;opacity:.65}
+.story h4{font-size:24px;font-weight:700;letter-spacing:-.04em;line-height:1.15;margin-top:12px}
+.story .tl{font-size:15px;font-weight:600;opacity:.8;margin-top:4px}
+.story p{font-size:15.5px;line-height:1.5;opacity:.88;margin-top:18px;max-width:380px}
+.story .who{position:absolute;left:clamp(28px,3.4vw,44px);bottom:clamp(24px,3vw,36px);display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600}
+.story .who img{width:30px;height:30px;border-radius:50%;border:2px solid rgba(255,255,255,.7)}
+.story .who span{display:block;font-size:12.5px;font-weight:500;opacity:.6}
+.story .pic{position:relative;align-self:center}
+.story .pic .bubble{left:-28px;bottom:26px;transform:rotate(-4deg);max-width:250px;font-weight:600}
+.dots{display:flex;justify-content:center;gap:8px;margin-top:14px}
+.dots button{width:8px;height:8px;border-radius:50%;background:#d6d6da;transition:all .35s var(--ease)}
+.dots button.on{background:var(--ink);width:22px;border-radius:99px}
+.car-nav{display:flex;justify-content:center;gap:10px;margin-top:22px}
+.car-nav button{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;transition:border-color .3s}
+.car-nav button:hover{border-color:var(--ink)}
+.car-nav svg{width:16px;height:16px}
+
+/* ---------- team ---------- */
+.team{padding:140px 0 40px}
+.team-top{display:flex;justify-content:space-between;align-items:flex-end;gap:40px}
+.team-top .h2{text-align:left;max-width:680px}
+.team-top>div{flex:1 1 auto}
+.team-top p{max-width:420px;font-size:16px;color:var(--ink-2);line-height:1.5}
+.team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:28px;margin-top:56px}
+.mate .ph{border-radius:var(--r-lg);overflow:hidden;aspect-ratio:1;background:var(--soft)}
+.mate .ph img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.05);transition:filter .6s var(--ease),transform .8s var(--ease)}
+.mate:hover .ph img{filter:none;transform:scale(1.04)}
+.mate .rl{font-size:13px;color:var(--muted);margin-top:16px;line-height:1.35}
+.mate h4{font-size:19px;font-weight:700;letter-spacing:-.035em;margin-top:4px}
+.principles{display:flex;flex-wrap:wrap;gap:10px;margin-top:40px}
+.principles span{border:1px solid var(--line);border-radius:999px;padding:9px 16px;font-size:14px;font-weight:500}
+
+/* ---------- CTA ---------- */
+.cta{padding:150px 0 70px}
+.cta .wrap{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:40px}
+.cta h2{font-size:clamp(54px,7vw,104px);font-weight:800;line-height:.92;letter-spacing:-.07em}
+.cta p{font-size:17px;color:var(--ink-2);max-width:440px;margin-top:22px;line-height:1.45}
+.cta .btns{display:flex;flex-wrap:wrap;gap:12px;margin-top:34px}
+.cta .avail{color:var(--muted)}
+
+/* ---------- footer ---------- */
+.foot{padding:90px 0 40px}
+.foot-top{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:40px;align-items:start}
+.foot .brand p{font-size:14px;color:var(--muted);max-width:300px;margin-top:14px;line-height:1.5}
+.social{display:flex;gap:16px;margin-top:26px}
+.social a{width:22px;height:22px;opacity:.85}.social a:hover{opacity:1}
+.social svg{width:22px;height:22px}
+.foot h5{font-size:15px;font-weight:700;margin-bottom:14px}
+.foot ul{list-style:none;display:grid;gap:10px}
+.foot li a{font-size:15px;color:var(--ink-2)}.foot li a:hover{color:var(--ink)}
+.foot-bot{display:flex;justify-content:space-between;gap:30px;margin-top:56px;padding-top:24px;border-top:1px solid var(--line);font-size:12.5px;color:#9a9aa1;line-height:1.5}
+.foot-bot p{max-width:720px}
+.foot-bot b{color:var(--ink-2)}
+
+/* ---------- reveal ---------- */
+.rv{opacity:0;transform:translateY(28px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+.rv.in{opacity:1;transform:none}
+.d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}
+
+/* ---------- responsive ---------- */
+@media (max-width:1100px){
+  .feat-grid{grid-template-columns:repeat(2,1fr)}
+  .team-grid{grid-template-columns:repeat(2,1fr)}
+  .foot-top{grid-template-columns:1fr 1fr 1fr}
+  .foot .brand{grid-column:1/-1}
+}
+@media (max-width:900px){
+  .laurel{display:none}
+  .hero{max-height:none;min-height:auto;padding:130px 0 90px}
+  .hero .wrap{grid-template-columns:1fr;gap:80px}
+  .letter{padding:70px 0 170px}
+  /* pinned story unpins and stacks on small screens */
+  .pin{height:auto}
+  .pin-sticky{position:relative;height:auto;min-height:0;overflow:visible}
+  .pin-grid,.tabs{display:none}
+  .panel{position:relative;inset:auto;opacity:1;visibility:visible;padding-bottom:70px}
+  .panel-head{flex-direction:column;gap:0}
+  .panel-head p{padding-top:14px}
+  .panel-body{position:relative;top:auto;bottom:auto;margin-top:34px}
+  .chat-stage{flex-direction:column;align-items:stretch}
+  .msg{opacity:1;transform:none}
+  .map{display:grid;grid-template-columns:1fr 1fr;gap:28px 16px;padding:0 var(--pad);height:auto}
+  .node{position:relative;transform:none!important;left:auto!important;top:auto!important;opacity:1}
+  .node.you{grid-column:1/-1;width:auto}
+  .node.deco{display:none}
+  .node .cap{white-space:normal}
+  .panel-3{min-height:640px;padding-bottom:0;overflow:hidden}
+  .help{min-height:640px;padding:80px var(--pad)}
+  .help-fade{background:radial-gradient(ellipse 90% 80% at 50% 50%,transparent 40%,rgba(255,255,255,.85) 85%,#fff 98%)}
+  .story{grid-template-columns:1fr;min-height:0;padding-bottom:96px}
+  .story .pic{max-width:340px}
+  .team-top{flex-direction:column;align-items:flex-start;gap:16px}
+  .cta .wrap{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .hdr .wrap{height:88px}
+  .logo span{display:none}
+  .h1{font-size:clamp(44px,13vw,60px)}
+  .hero-sub{font-size:16px}
+  .stage .bubble{font-size:13px}
+  .mini .n{font-size:32px}
+  .letter .lead{font-size:17px}
+  .letter p.more{font-size:16px}
+  .feat-grid{grid-template-columns:1fr;gap:44px}
+  .team-grid{grid-template-columns:1fr 1fr;gap:18px}
+  .mate h4{font-size:16px}
+  .story .pic .bubble{left:-8px}
+  .arc{gap:14px;font-size:12px}
+  .foot-top{grid-template-columns:1fr 1fr}
+  .foot-bot{flex-direction:column}
+}
+/* ---------- hero v2: 3D character breaking out of a portrait glass card ---------- */
+.stage{position:relative;justify-self:end;width:min(100%,400px,calc((100vh - 230px)*.714));min-width:290px;aspect-ratio:400/560;margin-right:clamp(0px,4vw,70px)}
+.card-glass{position:absolute;inset:0;border-radius:36px;overflow:hidden;background:linear-gradient(165deg,rgba(255,255,255,.38),rgba(255,255,255,.1) 55%,rgba(255,255,255,.2));border:1px solid rgba(255,255,255,.6);box-shadow:0 30px 80px -30px rgba(20,50,110,.45),inset 0 1px 0 rgba(255,255,255,.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.card-glass::after{content:"";position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(to top,rgba(255,255,255,.28),rgba(255,255,255,0))}
+.floor{position:absolute;left:22%;right:22%;bottom:-8%;height:7%;z-index:1;background:radial-gradient(ellipse at center,rgba(18,40,92,.38),rgba(18,40,92,0) 70%);pointer-events:none}
+.stage .bubble{z-index:3;top:4%;right:-22%;max-width:250px}
+.mini{z-index:3;left:-17%;bottom:7%}
+
+/* ---------- realistic iPhone mockup (drawn at native 393x852, scaled with --k) ---------- */
+.dev{--k:.5;position:relative;flex:none;width:calc(413px*var(--k));height:calc(872px*var(--k))}
+.iph{position:absolute;left:0;top:0;width:413px;height:872px;transform:scale(var(--k));transform-origin:0 0;border-radius:70px;padding:11px;
+  background:linear-gradient(135deg,#5a5a60 0%,#1d1d20 14%,#2e2e33 48%,#18181b 84%,#4a4a50 100%);
+  box-shadow:inset 0 0 0 1.5px #6c6c73,inset 0 0 0 5px #0a0a0b,inset 0 2px 1px 5px rgba(255,255,255,.08),0 0 0 1px rgba(0,0,0,.55),0 70px 90px -40px rgba(12,22,44,.55),0 34px 44px -30px rgba(0,0,0,.5)}
+.iph::before{content:"";position:absolute;left:-5px;top:166px;width:6px;height:56px;border-radius:3px 0 0 3px;background:linear-gradient(90deg,#3c3c42,#202024);box-shadow:0 86px 0 #26262a,0 160px 0 #26262a}
+.iph::after{content:"";position:absolute;right:-5px;top:262px;width:6px;height:104px;border-radius:0 3px 3px 0;background:linear-gradient(270deg,#3c3c42,#202024)}
+.scr{position:relative;width:100%;height:100%;border-radius:59px;overflow:hidden;background:#fff;isolation:isolate;color:#111}
+.scr.dark{background:#0d0f14;color:#fff}
+.isl{position:absolute;top:11px;left:50%;margin-left:-63px;width:126px;height:37px;border-radius:20px;background:#000;z-index:20}
+.isl::after{content:"";position:absolute;right:16px;top:12px;width:13px;height:13px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#2a3550,#05070c 60%)}
+.sb{position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:4px 32px 0 50px;font:600 17px/1 -apple-system,"SF Pro Text",var(--font);letter-spacing:-.02em;z-index:19}
+.sb .ic{display:flex;gap:6px;align-items:center}
+.hi{position:absolute;bottom:8px;left:50%;margin-left:-68px;width:136px;height:5px;border-radius:3px;background:#111;z-index:20}
+.scr.dark .hi{background:#fff}
+.glare{position:absolute;inset:11px;border-radius:59px;pointer-events:none;z-index:30;background:linear-gradient(115deg,rgba(255,255,255,.24) 0%,rgba(255,255,255,.07) 24%,rgba(255,255,255,0) 38%,rgba(255,255,255,0) 78%,rgba(255,255,255,.06) 100%)}
+.dev::after{content:"";position:absolute;left:8%;right:8%;bottom:calc(-18px*var(--k)*2);height:calc(40px*var(--k)*2);background:radial-gradient(ellipse at center,rgba(0,0,0,.22),transparent 70%);z-index:-1;filter:blur(4px)}
+
+/* live screens */
+.ui{position:absolute;inset:0;padding-top:54px;display:flex;flex-direction:column;font-family:var(--font);font-size:16px;line-height:1.35;letter-spacing:-.015em;text-align:left}
+.ui [data-s]{opacity:0;transform:translateY(12px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.ui [data-s].in{opacity:1;transform:none}
+.ui .gone{display:none!important}
+.ap-nav{display:flex;align-items:center;gap:12px;padding:12px 20px 14px;border-bottom:1px solid #f0f0f2}
+.ap-nav .bk{color:#111;display:grid;place-items:center;width:20px}
+.ap-nav img{width:40px;height:40px;border-radius:50%}
+.ap-nav b{display:block;font-size:17px;font-weight:700;letter-spacing:-.03em}
+.ap-nav small{display:flex;align-items:center;gap:6px;font-size:13px;color:#7a7a82}
+.ap-nav .dot{width:7px;height:7px;border-radius:50%;background:#34c759}
+.b{max-width:78%;padding:12px 16px;border-radius:22px;font-size:16px;line-height:1.36;font-weight:500}
+.b.me{align-self:flex-end;background:#111113;color:#fff;border-bottom-right-radius:7px}
+.b.sh{align-self:flex-start;background:#f2f2f4;border-bottom-left-radius:7px}
+.b.sh small{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;color:#8a8a92;margin-bottom:3px}
+.b.typing{display:flex;gap:5px;padding:16px 18px}
+.b.typing i{width:8px;height:8px;border-radius:50%;background:#a3a3ab;animation:tdot 1.1s infinite}
+.b.typing i:nth-child(2){animation-delay:.15s}.b.typing i:nth-child(3){animation-delay:.3s}
+@keyframes tdot{0%,60%,100%{transform:none;opacity:.5}30%{transform:translateY(-4px);opacity:1}}
+.thread{flex:1;display:flex;flex-direction:column;gap:10px;padding:16px 18px;justify-content:flex-end;padding-bottom:22px}
+.day{align-self:center;font-size:12.5px;color:#9a9aa2;font-weight:600;margin-bottom:auto;padding-top:6px}
+.nt{align-self:center;font-size:13px;color:#8a8a92;text-align:center;padding:2px 10px}
+.ap-in{display:flex;align-items:center;gap:10px;margin:0 16px 34px;padding:8px 8px 8px 18px;border:1px solid #e6e6ea;border-radius:999px;color:#a0a0a8;font-size:16px}
+.ap-in span{flex:1}.ap-in i{width:34px;height:34px;border-radius:50%;background:#111;display:grid;place-items:center}
+/* friend */
+.fr-body{padding:22px 20px;display:flex;flex-direction:column;gap:14px}
+.fr-body label{font-size:13px;font-weight:700;color:#8a8a92;letter-spacing:.02em;text-transform:uppercase}
+.fr-box{min-height:96px;border-radius:20px;background:#f4f4f6;padding:16px;font-size:17px;font-weight:500;line-height:1.4}
+.fr-box [data-s]{transform:none}
+.caret{display:inline-block;width:2px;height:20px;background:#3478f6;vertical-align:-4px;margin-left:1px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.fr-btn{align-self:stretch;text-align:center;background:#111;color:#fff;border-radius:999px;padding:14px;font-weight:700;font-size:16px}
+.fr-read{display:flex;align-items:center;gap:10px;font-size:14px;color:#8a8a92;padding:4px 2px}
+.fr-read i{width:16px;height:16px;border-radius:50%;border:2.5px solid #d4d4da;border-top-color:#111;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fr-steps{display:flex;flex-direction:column;gap:10px}
+.st{display:flex;gap:14px;align-items:center;padding:14px 16px;border-radius:18px;border:1px solid #ececf0;font-size:15.5px;font-weight:600;line-height:1.3}
+.st b{flex:none;width:34px;height:34px;border-radius:50%;background:#f2f2f4;display:grid;place-items:center;font-size:13px}
+.st.alert{background:#111;color:#fff;border-color:#111}.st.alert b{background:#ff6b4a;color:#fff;font-size:16px}
+/* crisis */
+.cr-ui{background:linear-gradient(180deg,#eaf1ff 0%,#f7f4ff 45%,#fff 100%);padding:96px 26px 40px;align-items:center;text-align:center}
+.cr-ic{width:72px;height:72px;border-radius:50%;background:#fff;color:#ff6b6b;display:grid;place-items:center;box-shadow:0 18px 40px -16px rgba(60,80,160,.45)}
+.cr-ui h5{font-size:40px;font-weight:800;letter-spacing:-.05em;margin-top:26px;line-height:1}
+.cr-ui p{font-size:16.5px;line-height:1.45;color:#3a3a42;margin-top:16px;text-align:center}
+.cr-btns{display:flex;flex-direction:column;gap:12px;width:100%;margin-top:34px}
+.cr-btns a{display:flex;align-items:center;justify-content:center;gap:10px;height:58px;border-radius:999px;background:#fff;border:1px solid #e3e3ea;font-weight:700;font-size:17px}
+.cr-btns a.p{background:#111;color:#fff;border-color:#111;position:relative}
+.cr-btns a.p.in{animation:ring 2.2s .6s infinite}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(17,17,19,.35)}70%{box-shadow:0 0 0 14px rgba(17,17,19,0)}100%{box-shadow:0 0 0 0 rgba(17,17,19,0)}}
+.cr-btns a.g{background:none;border-color:transparent;color:#6b6b72;font-weight:600}
+.cr-ui small{margin-top:auto;font-size:12.5px;color:#9a9aa2;line-height:1.4}
+/* privacy */
+.pv-ui{background:#f2f2f7;padding:64px 16px 30px;gap:14px}
+.pv-h small{display:block;font-size:15px;color:#3478f6;font-weight:500;padding-left:4px}
+.pv-h b{display:block;font-size:34px;font-weight:800;letter-spacing:-.04em;padding-left:4px;margin-top:4px}
+.pv-big{background:#111;color:#fff;border-radius:22px;padding:18px 20px}
+.pv-big span{font-size:13px;opacity:.7;font-weight:600}
+.pv-big b{display:block;font-size:42px;font-weight:800;letter-spacing:-.05em;line-height:1.05;margin-top:6px}
+.pv-big b em{font-style:normal}
+.pv-big small{font-size:12.5px;opacity:.6}
+.pv-g{background:#fff;border-radius:18px;overflow:hidden}
+.pv-g .r{display:flex;align-items:center;gap:10px;padding:14px 16px;font-size:15.5px;font-weight:600;border-top:1px solid #efeff3;transition:background .3s}
+.pv-g .r:first-child{border-top:0}
+.pv-g .r span{flex:1;text-align:right;font-size:13px;font-weight:500;color:#8a8a92}
+.pv-g .r b{margin-left:auto;font-weight:600;color:#6b6b72;font-size:15px}
+.pv-g .r em{margin-left:auto;font-style:normal;font-size:13px;color:#8a8a92;font-weight:500}
+.pv-g .r.red{color:#e5484d}
+.pv-g .r.pr{background:#ececf1}
+.tg{flex:none;width:50px;height:30px;border-radius:99px;background:#e3e3e8;position:relative;transition:background .35s}
+.tg::after{content:"";position:absolute;left:2px;top:2px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:transform .35s var(--ease)}
+.tg.on{background:#34c759}.tg.on::after{transform:translateX(20px)}
+.tg.lk{opacity:.55}
+.toast{position:absolute;left:24px;right:24px;bottom:40px;background:rgba(17,17,19,.92);color:#fff;border-radius:16px;padding:14px 16px;font-size:14.5px;font-weight:600;text-align:center}
+/* four layers */
+.ly-ui{padding:54px 0 0;background:#fff}
+.ly-h{display:flex;align-items:center;gap:12px;padding:12px 20px 14px;border-bottom:1px solid #f0f0f2}
+.ly-h img{width:40px;height:40px;border-radius:50%}
+.ly-h b{display:block;font-size:17px;font-weight:700;letter-spacing:-.03em}.ly-h small{font-size:13px;color:#7a7a82}
+.ly-h .pill{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;background:#f2f2f4;border-radius:99px;padding:6px 11px}
+.ly-h .pill i{width:7px;height:7px;border-radius:50%;background:#34c759}
+.ly-msg{display:flex;flex-direction:column;align-items:flex-end;gap:5px;padding:18px 18px 6px}
+.ly-msg small{font-size:12px;color:#9a9aa2;font-weight:600}
+.ly-msg .b{font-size:17px}
+.ly-bar{display:flex;align-items:center;gap:10px;padding:12px 20px 4px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#9a9aa2}
+.ly-bar u{flex:1;height:5px;border-radius:9px;background:#efeff2;overflow:hidden}
+.ly-bar u i{display:block;height:100%;width:0;background:#111;border-radius:9px;transition:width .6s var(--ease)}
+.ly-list{display:flex;flex-direction:column;gap:16px;padding:16px 16px 10px}
+.ly-ui .ly-r{position:relative;display:flex;align-items:center;gap:12px;padding:15px 14px;border-radius:18px;border:1px solid #ececf0;background:#fff;opacity:.38;transform:none;transition:opacity .45s,border-color .45s,box-shadow .45s,background .45s}
+.ly-ui .ly-r.in{opacity:1}
+.ly-r>i{flex:none;width:40px;height:40px;border-radius:12px;background:#f2f2f4;display:grid;place-items:center;font-style:normal;font-size:13px;font-weight:800;color:#6b6b72;transition:background .45s,color .45s}
+.ly-r.in>i{background:#111;color:#fff}
+.ly-r div{flex:1;min-width:0}
+.ly-r b{display:block;font-size:15px;font-weight:700;letter-spacing:-.025em}
+.ly-r span{display:block;font-size:12.5px;color:#8a8a92;line-height:1.3;margin-top:1px}
+.ly-r em{position:absolute;right:12px;top:-11px;font-style:normal;font-size:12px;font-weight:700;background:#111;color:#fff;border-radius:99px;padding:5px 10px;opacity:0;transform:translateY(6px) scale(.9);transition:opacity .4s .25s,transform .4s .25s var(--ease)}
+.ly-r.in em{opacity:1;transform:none}
+.ly-r s{position:absolute;left:14px;right:14px;bottom:5px;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,#3478f6,transparent) no-repeat;background-size:40% 100%;opacity:0}
+.ly-r.cur{border-color:#111;box-shadow:0 14px 30px -18px rgba(0,0,0,.45)}
+.ly-r.cur s{opacity:1;animation:scan 1.2s ease-in-out infinite}
+@keyframes scan{0%{background-position:-70% 0}100%{background-position:170% 0}}
+.ly-dec{margin:8px 16px 0;padding:16px 16px 14px;border-radius:22px;background:#111;color:#fff}
+.ly-dec code{font:600 12.5px ui-monospace,SFMono-Regular,Menlo,monospace;color:#9fb6ff}
+.ly-dec b{display:block;font-size:17px;font-weight:700;letter-spacing:-.03em;margin-top:6px;line-height:1.25}
+.ly-btns{display:flex;gap:6px;margin-top:12px}
+.ly-btns a{flex:1 1 auto;text-align:center;font-size:12.5px;font-weight:700;padding:9px 6px;border-radius:99px;background:rgba(255,255,255,.12);white-space:nowrap}
+.ly-btns a.p{background:#fff;color:#111}
+
+/* ---------- MacBook mockup (native 760 wide, scaled with --k) ---------- */
+.mbp{--k:.45;position:relative;flex:none;width:calc(760px*var(--k));height:calc(476px*var(--k))}
+.mbp-k{position:absolute;left:0;top:0;width:760px;height:476px;transform:scale(var(--k));transform-origin:0 0}
+.mbp-lid{position:absolute;left:60px;top:0;width:640px;height:440px;border-radius:26px 26px 6px 6px;background:#0b0b0d;padding:16px 16px 22px;box-shadow:inset 0 0 0 2px #2b2b30,0 0 0 1.5px #9a9aa2,0 50px 70px -40px rgba(10,20,40,.55)}
+.mbp-scr{position:relative;width:100%;height:100%;border-radius:8px;overflow:hidden;background:linear-gradient(160deg,#8fb3ef 0%,#b9cff5 45%,#e9d9f2 100%);padding:0;font-size:13px;color:#111}
+.mbp-notch{position:absolute;left:50%;top:16px;margin-left:-50px;width:100px;height:18px;background:#0b0b0d;border-radius:0 0 9px 9px}
+.mbp-base{position:absolute;left:0;top:438px;width:760px;height:20px;border-radius:2px 2px 16px 16px;background:linear-gradient(180deg,#e3e4e8 0%,#c8c9ce 45%,#9c9da3 100%);box-shadow:0 26px 40px -18px rgba(0,0,0,.45)}
+.mbp-base i{position:absolute;left:50%;top:0;margin-left:-60px;width:120px;height:8px;border-radius:0 0 10px 10px;background:linear-gradient(180deg,#a9aab0,#cfd0d5)}
+.mb-bar{height:24px;display:flex;align-items:center;gap:16px;padding:0 14px;background:rgba(255,255,255,.45);backdrop-filter:blur(10px);font-size:12.5px;font-weight:500}
+.mb-bar b{font-weight:700}
+.mb-bar .rt{margin-left:auto;display:flex;align-items:center;gap:12px}
+.mb-bar .shb{font-style:normal;font-size:10px;font-weight:800;background:#111;color:#fff;border-radius:5px;padding:2px 4px}
+.mb-win{position:absolute;left:22px;top:70px;width:272px;height:240px;border-radius:12px;background:#fffdf6;box-shadow:0 24px 50px -20px rgba(20,30,60,.45),0 0 0 .5px rgba(0,0,0,.15);overflow:hidden}
+.mb-tl{display:flex;align-items:center;gap:7px;height:32px;padding:0 12px;background:#f6f3ea;border-bottom:1px solid #ebe6d8;font-size:12px;color:#8a8578;font-weight:600}
+.mb-tl i{width:11px;height:11px;border-radius:50%;background:#ff5f57}.mb-tl i:nth-child(2){background:#febc2e}.mb-tl i:nth-child(3){background:#28c840}
+.mb-tl span{margin-left:auto;margin-right:auto;padding-right:40px}
+.mb-txt{padding:18px 18px;font-size:18px;font-weight:500;line-height:1.45;color:#2a2a2e}
+.mb-txt [data-s]{transform:none}
+.mb-pop{position:absolute;right:14px;top:36px;width:300px;border-radius:16px;padding:12px 14px 12px;background:rgba(255,255,255,.88);backdrop-filter:blur(18px);box-shadow:0 22px 50px -18px rgba(20,30,70,.5),0 0 0 .5px rgba(0,0,0,.12)}
+.mbp .ui [data-s].mb-pop{transform:translateX(30px)}
+.mbp .ui [data-s].mb-pop.in{transform:none}
+.mb-ph{display:flex;align-items:center;gap:7px}
+.mb-ph img{width:20px;height:20px;border-radius:5px}
+.mb-ph small{font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#6b6b72}
+.mb-ph em{margin-left:auto;font-style:normal;font-size:11px;color:#9a9aa2}
+.mb-pop p{font-size:15px;line-height:1.38;font-weight:500;margin-top:7px}
+.mb-bt{display:flex;gap:6px;margin-top:10px}
+.mb-bt a{flex:1;text-align:center;font-size:12.5px;font-weight:700;padding:8px 4px;border-radius:8px;background:rgba(0,0,0,.06);white-space:nowrap;transition:transform .2s,background .2s}
+.mb-bt a.p{background:#111;color:#fff}
+.mb-bt a.pr{transform:scale(.94);background:#3a3a40}
+
+/* ---------- feature tiles with tilted devices ---------- */
+.feat .tile{height:clamp(450px,37vw,540px);align-items:center;perspective:1400px;background:radial-gradient(ellipse 80% 60% at 50% 32%,#fbfbfc,#eeeef0);overflow:hidden}
+.feat .tile .dev{--k:.5;margin-top:4px;transform:rotateY(-15deg) rotateX(7deg) rotateZ(1.5deg);transition:transform .9s var(--ease)}
+.feat:nth-child(even) .tile .dev{transform:rotateY(14deg) rotateX(7deg) rotateZ(-1.5deg)}
+.feat:hover .tile .dev{transform:rotateY(-4deg) rotateX(2deg) translateY(-6px)}
+.feat .tile .mbp{transform:rotateX(10deg) rotateY(-8deg);transition:transform .9s var(--ease);margin-top:20px}
+.feat:hover .tile .mbp{transform:rotateX(4deg) rotateY(-2deg)}
+
+@media (min-width:1300px){.feat .tile .dev{--k:.56}.feat .tile .mbp{--k:.47}}
+/* ---------- panel 2 v2: phone walkthrough of the four layers ---------- */
+.panel-2 .panel-body{top:clamp(186px,24vh,226px);bottom:clamp(92px,12vh,118px)}
+.map .dev.big{position:absolute;left:50%;top:0;transform:translateX(-50%)}
+.lnode{width:clamp(190px,17vw,236px);text-align:left;padding:14px 16px;border-radius:22px;background:#fff;border:1px solid var(--line);box-shadow:0 18px 40px -26px rgba(0,0,0,.3);opacity:.45!important;transition:opacity .5s var(--ease),border-color .5s,box-shadow .5s,transform .6s var(--ease)!important}
+.lnode.lit{opacity:1!important}
+.lnode.cur{border-color:var(--ink);box-shadow:0 24px 50px -24px rgba(0,0,0,.45)}
+.lnode .hd{display:flex;align-items:center;gap:10px}
+.lnode i{flex:none;width:36px;height:36px;border-radius:11px;background:var(--soft);display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:800;color:var(--muted);transition:background .5s,color .5s}
+.lnode.lit i{background:var(--ink);color:#fff}
+.lnode b{font-size:16px;letter-spacing:-.035em}
+.lnode .cap{white-space:normal;margin-top:8px;color:var(--muted)}
+.lnode em{display:inline-block;margin-top:8px;font-style:normal;font-size:12px;font-weight:700;background:var(--soft);border-radius:99px;padding:4px 10px;transition:background .5s,color .5s}
+.lnode.lit em{background:var(--ink);color:#fff}
+.lnode.l1,.lnode.l3{transform:translate(-100%,-50%)!important}.lnode.l2,.lnode.l4{transform:translate(0,-50%)!important}
+.stk .av{width:clamp(70px,6.6vw,92px);height:clamp(70px,6.6vw,92px);margin:0 auto;border-radius:24px;border:4px solid #fff;background:linear-gradient(170deg,#eef3fd,#d9e3f6);box-shadow:0 12px 30px -12px rgba(0,0,0,.4);overflow:hidden}
+.stk .av img{width:100%;height:100%;object-fit:cover}
+.stk.tl .av{transform:rotate(-6deg)}.stk.tr .av{transform:rotate(5deg)}
+.decide{position:absolute;left:50%;bottom:-2px;transform:translateX(-50%)}
+
+/* panel 1 v2: rendered character instead of a photo */
+.chat-fig{position:relative;flex:none;height:min(100%,470px);aspect-ratio:1280/1640}
+.chat-fig img{position:relative;z-index:1;width:100%;height:100%;object-fit:contain}
+.chat-fig::before{content:"";position:absolute;left:8%;right:8%;bottom:4%;height:20%;border-radius:50%;background:radial-gradient(ellipse at center,rgba(0,0,0,.16),transparent 68%)}
+.chat-fig::after{content:"";position:absolute;inset:8% 4% 10%;border-radius:40px;background:linear-gradient(170deg,#f3f6fc,#e7ecf6);z-index:0}
+
+/* stories v2 */
+.story .pic .frame{position:relative;aspect-ratio:1120/1240;border-radius:26px;overflow:hidden;background:radial-gradient(ellipse 70% 60% at 50% 38%,rgba(255,255,255,.26),rgba(255,255,255,.05) 72%);border:1px solid rgba(255,255,255,.22);transform:rotate(3deg);box-shadow:0 30px 60px -28px rgba(0,0,0,.55)}
+.story.c3 .pic .frame{background:radial-gradient(ellipse 70% 60% at 50% 38%,#fff,#ddd7cd 80%);border-color:rgba(0,0,0,.06)}
+.story:nth-child(even) .pic .frame{transform:rotate(-3deg)}
+.story .pic .frame img{width:100%;height:100%;object-fit:contain;object-position:50% 100%}
+.story .pic .bubble{z-index:2}
+
+/* CTA v2 */
+.cta-art{position:relative;height:520px;display:flex;align-items:flex-end;justify-content:center}
+.cta-art .person{position:relative;z-index:1;height:100%;width:auto;margin-right:22%}
+.cta-art .dev{position:absolute;--k:.44;right:8%;bottom:5%;z-index:2;transform:perspective(1200px) rotateY(-14deg) rotateZ(5deg)}
+.cta-art .shadow{position:absolute;left:12%;right:12%;bottom:-8px;height:44px;background:radial-gradient(ellipse at center,rgba(0,0,0,.18),transparent 70%)}
+.foot .credit{margin-top:10px}
+.foot .credit a{text-decoration:underline;text-underline-offset:2px}
+.map{--pw:280px}
+.lgrid{display:contents}
+.lnode.l1,.lnode.l3{left:calc(50% - var(--pw)/2 - 44px)!important}
+.lnode.l2,.lnode.l4{left:calc(50% + var(--pw)/2 + 44px)!important}
+.lnode.l1,.lnode.l2{top:24%!important}.lnode.l3,.lnode.l4{top:72%!important}
+.lnode::after{content:"";position:absolute;top:50%;width:36px;border-top:1.5px dashed #cfcfd6}
+.lnode.l1::after,.lnode.l3::after{left:100%}.lnode.l2::after,.lnode.l4::after{right:100%}
+.lnode.lit::after{border-top-color:var(--ink)}
+@media (max-width:1100px){
+  .stk.deco{display:none}
+  .lnode{width:180px}
+}
+@media (max-width:900px){
+  .stage{justify-self:center;margin:20px auto 0;width:min(78vw,380px);min-width:0}
+  .stage .bubble{right:-10%;top:-2%}
+  .mini{left:-12%;bottom:4%}
+  .chat-fig{height:320px;align-self:center}
+  .map{display:flex!important;flex-direction:column;align-items:center;gap:22px}
+  .map .dev.big{position:relative;left:auto;transform:none;--k:.62}
+  .lgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:520px}
+  .lnode,.lnode.l1,.lnode.l2,.lnode.l3,.lnode.l4{position:relative!important;left:auto!important;top:auto!important;transform:none!important;width:auto;opacity:1!important}
+  .lnode::after{display:none}
+  .panel-2 .panel-body{top:auto;bottom:auto}
+  .cta-art{height:440px;order:2}
+}
+@media (max-width:560px){
+  .stage{width:min(74vw,320px);margin-top:84px}
+  .stage .bubble{right:-10%;top:-27%;max-width:220px}
+  .mini{left:-16%;bottom:2%;width:160px}
+  .feat .tile{height:470px}
+  .feat .tile .mbp{--k:.42}
+  .map .dev.big{--k:.6}
+  .lgrid{gap:10px}
+  .lnode{padding:12px;border-radius:18px}
+  .lnode i{width:30px;height:30px;border-radius:9px;font-size:11px}
+  .lnode b{font-size:14.5px}
+  .lnode .cap{font-size:12px}
+  .lnode em{font-size:11px;padding:4px 8px;white-space:normal}
+  .hero .wrap{gap:56px}
+  .cta-art{height:400px}
+  .cta-art .dev{--k:.36;right:2%}
+}
+
+.ly-ui .ap-in{margin-top:auto}
+
+/* ---------- v3: illustrated people (Abhinav, Sree, Nehanth) ---------- */
+.hero-btns{display:flex;flex-wrap:wrap;align-items:center;gap:12px;width:fit-content;max-width:100%}
+.hero .stage{z-index:2}
+.stage .scene{position:absolute;inset:0;z-index:2;pointer-events:none}
+.scene>.ppl,.scene>.bubble,.scene>.mini{opacity:0;transform:translateY(46px);transition:opacity .55s var(--ease),transform .9s var(--ease)}
+.scene>.mini{transform:translateY(46px) rotate(-4deg)}
+.scene.on>.ppl,.scene.on>.bubble{opacity:1;transform:none}
+.scene.on>.mini{opacity:1;transform:rotate(-4deg)}
+.scene.on>.bubble{transition-delay:.14s}.scene.on>.mini{transition-delay:.28s}
+.scene.out>.ppl,.scene.out>.bubble{opacity:0;transform:translateY(-46px);transition-delay:0s}
+.scene.out>.mini{opacity:0;transform:translateY(-46px) rotate(-4deg);transition-delay:.06s}
+.stage.snap *{transition:none!important}
+.scene.on>.bubble,.scene.on>.mini{pointer-events:auto}
+.scene .ppl{position:absolute;left:0;right:0;margin:0 auto;bottom:-5%;height:122%;width:auto;max-width:none;z-index:1;filter:drop-shadow(0 22px 26px rgba(18,40,92,.26))}
+.scene.on .ppl{animation:pfloat 8s ease-in-out infinite}
+@keyframes pfloat{0%,100%{translate:calc(var(--px,0)*14px) 0}50%{translate:calc(var(--px,0)*14px) -7px}}
+.stage .bubble{max-width:250px}
+.bubble.joke{padding:10px 12px 9px}
+.bubble .me-b{display:block;background:var(--ink);color:#fff;border-radius:16px 16px 6px 16px;padding:9px 13px;font-weight:600}
+.bubble .q{display:block;font-size:12px;color:var(--muted);margin-top:6px;text-align:center}
+.mini.chip .hd{display:flex;align-items:center;gap:8px}
+.mini.chip i{flex:none;width:30px;height:30px;border-radius:9px;background:var(--ink);color:#fff;display:grid;place-items:center;font-style:normal;font-size:11px;font-weight:800}
+.mini.chip .t{font-size:15px;font-weight:700;line-height:1.25;margin-top:10px;letter-spacing:-.03em}
+.mini.mac{width:252px;padding:13px 14px 12px}
+.mini .mh{display:flex;align-items:center;gap:6px}
+.mini .mh em{font-style:normal;font-size:9.5px;font-weight:800;background:var(--ink);color:#fff;border-radius:5px;padding:2px 4px}
+.mini .mh small{font-size:10px;font-weight:800;letter-spacing:.08em;color:var(--muted)}
+.mini .mh span{margin-left:auto;font-size:11px;color:#9a9aa2}
+.mini.mac p{font-size:13px;line-height:1.35;font-weight:500;margin-top:7px}
+.mini .mb{display:flex;gap:4px;margin-top:9px}
+.mini .mb a{flex:1 1 auto;text-align:center;font-size:10.5px;font-weight:700;padding:6px 4px;border-radius:7px;background:rgba(0,0,0,.06);white-space:nowrap}
+.mini .mb a.p{background:var(--ink);color:#fff}
+.mini.steps{width:228px}
+.mini.steps ol{list-style:none;margin-top:9px;display:grid;gap:7px;counter-reset:st}
+.mini.steps li{counter-increment:st;display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;line-height:1.3}
+.mini.steps li::before{content:"0" counter(st);flex:none;width:22px;height:22px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-size:10px;font-weight:800}
+.mini.steps li:last-child::before{content:"!";background:#ff6b4a;color:#fff}
+.sdots{position:absolute;left:50%;bottom:-66px;transform:translateX(-50%);display:flex;gap:6px;z-index:4;padding:6px 8px;border-radius:99px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.sdots button{width:20px;height:20px;display:grid;place-items:center}
+.sdots button::before{content:"";width:8px;height:8px;border-radius:99px;background:rgba(255,255,255,.6);transition:width .35s var(--ease),background .35s}
+.sdots button.on{width:30px}.sdots button.on::before{width:22px;background:#fff}
+
+/* panel 1 */
+.chat-stage{max-width:1180px}
+.signals{list-style:none;flex:0 0 220px;display:grid;gap:10px;align-self:center}
+.signals li{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px 14px;font-size:13.5px;font-weight:600;line-height:1.3;box-shadow:0 12px 30px -20px rgba(0,0,0,.3)}
+.signals li:nth-child(odd){transform:rotate(-1.5deg)}.signals li:nth-child(even){transform:rotate(1.2deg) translateX(10px)}
+.signals i{flex:none;width:8px;height:8px;border-radius:50%;background:var(--sky);margin-top:5px}
+.chat-fig{aspect-ratio:341/1174}
+.chat-fig::after{inset:12% -34% 3%}
+.chat-fig::before{left:-20%;right:-20%;bottom:0;height:8%}
+
+/* panel 2 */
+.stk .av img{object-position:50% 12%}
+.lyou{position:absolute;left:calc(50% - var(--pw)/2 - 44px);top:48%;transform:translate(-100%,-50%);width:clamp(190px,17vw,236px);padding:10px 14px;border-radius:16px;background:var(--ink);color:#fff;text-align:left;z-index:2;box-shadow:0 16px 34px -18px rgba(0,0,0,.5)}
+.lyou b{display:block;font-size:13.5px;letter-spacing:-.02em}
+.lyou span{display:block;font-size:11.5px;opacity:.78;line-height:1.3;margin-top:2px}
+
+/* panel 3 */
+.help-bg .backs{position:absolute;left:50%;bottom:-3%;height:86%;transform:translateX(-50%);display:flex;align-items:flex-end;gap:3vw}
+.help-bg .backs img{height:100%;width:auto;max-width:none}
+.help-bg .backs img:nth-child(2){height:95%}
+
+/* stories */
+.story .pic .frame img{position:absolute;left:0;right:0;top:7%;margin:0 auto;height:170%;width:auto;max-width:none;object-fit:initial}
+.story .who .wav{flex:none;width:34px;height:34px;border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,.75);background:linear-gradient(170deg,#eef3fd,#d9e3f6)}
+.story.c3 .who .wav{border-color:#fff}
+.story .who .wav img{width:100%;height:100%;object-fit:cover;object-position:50% 12%;border:0;border-radius:0}
+
+/* numbers */
+.numbers{padding:120px 0 30px;text-align:center}
+.feat-sub{color:var(--ink-2);font-size:17px;margin-top:14px;padding:0 10px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:56px;text-align:left}
+.stat{background:var(--soft);border-radius:var(--r-xl);padding:34px 30px}
+.stat b{display:block;font-size:clamp(46px,5vw,72px);font-weight:800;letter-spacing:-.06em;line-height:1.05}
+.stat h4{font-size:18px;font-weight:700;margin-top:12px;letter-spacing:-.03em}
+.stat p{font-size:15px;color:var(--ink-2);margin-top:6px;line-height:1.45}
+.ldet{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:24px;text-align:left}
+.lc{position:relative;border:1px solid var(--line);border-radius:var(--r-lg);padding:22px 22px 24px;background:#fff;box-shadow:0 18px 40px -30px rgba(0,0,0,.3)}
+.lc .lh{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:var(--muted);min-height:44px}
+.lc .lh i{flex:none;width:32px;height:32px;border-radius:10px;background:var(--ink);color:#fff;display:grid;place-items:center;font-style:normal;font-size:11.5px;font-weight:800}
+.lc .av{margin-left:auto;flex:none;width:44px;height:44px;border-radius:14px;overflow:hidden;border:3px solid #fff;box-shadow:0 8px 20px -8px rgba(0,0,0,.35);background:linear-gradient(170deg,#eef3fd,#d9e3f6);transform:rotate(5deg)}
+.lc .av img{width:100%;height:100%;object-fit:cover;object-position:50% 12%}
+.lc>b{display:block;font-size:26px;font-weight:800;letter-spacing:-.045em;margin-top:12px;line-height:1.15}
+.lc p{font-size:14.5px;color:var(--ink-2);line-height:1.45;margin-top:6px}
+.lc .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.lc .chips span{font-size:12.5px;font-weight:600;background:var(--soft);border-radius:99px;padding:5px 10px}
+.lc.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.lc.dark p{color:rgba(255,255,255,.78)}.lc.dark .lh{color:rgba(255,255,255,.7)}.lc.dark .lh i{background:#fff;color:var(--ink)}
+
+/* team */
+.team-top p b{color:var(--ink);font-weight:700}
+.mate .ph{display:block}
+.mate h4{display:flex;align-items:center;gap:8px}
+.mate .li{flex:none;width:18px;height:18px;color:var(--muted)}.mate .li:hover{color:var(--ink)}
+.mate .li svg{width:18px;height:18px}
+.mate details{margin-top:8px}
+.mate summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:var(--ink-2)}
+.mate summary::-webkit-details-marker{display:none}
+.mate summary::after{content:"+";display:grid;place-items:center;width:18px;height:18px;border-radius:50%;border:1px solid var(--line);font-size:12px;line-height:1}
+.mate details[open] summary::after{content:"–"}
+.mate details p{font-size:13.5px;line-height:1.5;color:var(--ink-2);margin-top:8px}
+.team-bot{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;margin-top:44px;padding:26px 30px;border-radius:var(--r-lg);background:var(--soft)}
+.touch b{display:block;font-size:20px;letter-spacing:-.03em}
+.touch span{display:block;font-size:15px;color:var(--ink-2);margin-top:2px}
+.touch a{display:inline-block;margin-top:6px;font-weight:700;text-decoration:underline;text-underline-offset:3px;word-break:break-all}
+
+/* CTA */
+.cta .eyebrow{display:block;color:var(--muted);margin-bottom:14px}
+.cta-art .trio{position:relative;z-index:1;height:100%;display:flex;align-items:flex-end;margin-right:22%}
+.cta-art .trio img{height:93%;width:auto;max-width:none;margin:0 -3%;filter:drop-shadow(0 16px 18px rgba(0,0,0,.14))}
+.cta-art .trio .p1{position:relative;z-index:2;height:100%}
+
+.foot-top{grid-template-columns:1.4fr repeat(4,1fr)}
+@media (max-width:1100px){
+  .lyou{width:180px}
+  .foot-top{grid-template-columns:repeat(4,1fr)}
+}
+@media (max-width:900px){
+  .signals{flex:none;grid-template-columns:1fr 1fr;width:100%}
+  .signals li:nth-child(n){transform:none}
+  .chat-fig{height:340px}
+  .lyou{position:relative;left:auto;top:auto;transform:none;width:auto;grid-column:1/-1}
+  .stats{grid-template-columns:1fr}
+  .ldet{grid-template-columns:1fr 1fr}
+  .help-bg .backs{height:70%}
+  .cta-art .trio{margin-right:26%}
+  .cta .wrap{grid-template-columns:minmax(0,1fr)}
+  .story .pic .bubble{left:10px;max-width:calc(100% - 20px)}
+  .stage .bubble{top:11%;right:-9%;max-width:220px}
+}
+@media (max-width:560px){
+  .signals{grid-template-columns:1fr}
+  .ldet{grid-template-columns:1fr}
+  .mini.mac{width:206px;padding:11px 11px 10px}
+  .mini.mac p{font-size:12px}
+  .mini .mb a{font-size:9.5px;padding:5px 3px}
+  .mini.steps{width:190px}
+  .mini.steps li{font-size:11.5px}
+  .mini.chip .t{font-size:13.5px}
+  .foot-top{grid-template-columns:1fr 1fr}
+  .team-bot{padding:22px}
+  .cta-art{justify-content:flex-start}
+  .cta-art .trio{margin-right:0;height:100%}
+  .cta-art .trio img{height:76%;margin:0 -5%}
+  .cta-art .trio .p1{height:82%}
+  .stage{margin-top:64px}
+  .story .pic .bubble{left:10px}
+  .stage .bubble{top:9%;right:-7%;max-width:200px}
+  .mini{left:-9%}
+}
+@media (prefers-reduced-motion:reduce){
+  .scene .ppl{animation:none}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .rv,.msg{opacity:1;transform:none}
+  .ui [data-s]{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ SKY: header + hero + letter ============ -->
+<div class="sky">
+  <header class="hdr">
+    <div class="wrap">
+      <a class="logo" href="/replika" aria-label="SilentHelp home"><img src="/static/img/badge-128.png" alt=""><span>SilentHelp</span></a>
+      <div class="laurel" aria-label="Free forever for students, families and schools">
+        <svg viewBox="0 0 26 44" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M20 42C9 36 4 26 6 12"/><path d="M6 14c-3-2-4-5-3-8 3 1 4 4 3 8zM6 22c-4-1-5-4-5-7 3 0 5 3 5 7zM8 30c-4 0-6-3-6-6 3 0 6 2 6 6zM12 37c-4 1-7-1-8-4 3-1 6 0 8 4z"/></svg>
+        <div><b>Free forever</b><span>students · families · schools</span></div>
+        <svg viewBox="0 0 26 44" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" style="transform:scaleX(-1)"><path d="M20 42C9 36 4 26 6 12"/><path d="M6 14c-3-2-4-5-3-8 3 1 4 4 3 8zM6 22c-4-1-5-4-5-7 3 0 5 3 5 7zM8 30c-4 0-6-3-6-6 3 0 6 2 6 6zM12 37c-4 1-7-1-8-4 3-1 6 0 8 4z"/></svg>
+      </div>
+      <a class="glass-pill" href="/app">Start free</a>
+    </div>
+  </header>
+
+  <section class="hero" id="top">
+    <div class="wrap">
+      <div>
+        <h1 class="h1">Support that<br>notices
+          <span class="cycle" aria-hidden="true"><span class="on">before you ask</span><span>quiet signals</span><span>what's unsaid</span><span>late nights</span></span>
+          <span class="sr">before you have to ask</span>
+        </h1>
+        <p class="hero-sub">A private, on-device wellbeing companion for students, families, and school counselors.</p>
+        <div class="hero-cta">
+          <div class="hero-btns"><a class="btn btn-dark" href="/app">Start free <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span></a>
+          <a class="btn btn-ghost" href="/stage">See it run</a></div>
+          <div class="avail">Available for
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8 1.6 0 2 .8 3.4.8 1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.7-1-2.7-4.1zM13.9 5c.7-.9 1.2-2 1-3.2-1 0-2.3.7-3 1.6-.7.8-1.2 2-1.1 3.1 1.2.1 2.3-.6 3.1-1.5z"/></svg>Mac and
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.7 5.6 3.7 9s-1.2 6.4-3.7 9c-2.5-2.6-3.7-5.6-3.7-9S9.5 5.6 12 3z"/></svg>web</div>
+        </div>
+      </div>
+
+      <div class="stage" aria-roledescription="carousel" aria-label="People SilentHelp is built for">
+        <div class="card-glass" aria-hidden="true"></div><div class="floor" aria-hidden="true"></div>
+        <div class="scene on" data-i="0">
+          <img class="ppl" src="/static/img/replika/people/abhinav-front.webp" alt="Abhinav, an illustrated student in a navy striped sweater, standing relaxed" width="403" height="1206" fetchpriority="high">
+          <div class="bubble"><small>SILENTHELP</small>Hey — that sounded heavy. You don't have to carry it alone tonight.</div>
+          <div class="mini"><div class="k">Real people, awake now</div><div class="n">988</div><div class="s">Call or text — or <b>text HOME to 741741</b></div></div>
+        </div>
+        <div class="scene" data-i="1" aria-hidden="true">
+          <img class="ppl" src="/static/img/replika/people/sree-34.webp" alt="Sree, an illustrated student in a cream hoodie and sunglasses, turned three-quarters" width="335" height="1129" loading="lazy">
+          <div class="bubble joke"><span class="me-b">this test is killing me 😂</span><span class="q">· stays quiet — it read the joke ·</span></div>
+          <div class="mini chip"><div class="hd"><i>L2</i><div class="k">Layer 2 · Semantic</div></div><div class="t">Reads meaning — a joke stays a joke.</div></div>
+        </div>
+        <div class="scene" data-i="2" aria-hidden="true">
+          <img class="ppl" src="/static/img/replika/people/nehanth-front.webp" alt="Nehanth, an illustrated student in a navy quarter-zip with earbuds, standing" width="359" height="1176" loading="lazy">
+          <div class="bubble"><small>SILENTHELP</small>I'm here. What has tonight been like?</div>
+          <div class="mini mac"><div class="mh"><em>SH</em><small>SILENTHELP</small><span>11:52 PM</span></div><p>Hey — that sounded heavy. Want to talk it through?</p><div class="mb"><a class="p">Talk it through</a><a>Ignore 1h</a><a>Dismiss</a></div></div>
+        </div>
+        <div class="scene" data-i="3" aria-hidden="true">
+          <img class="ppl" src="/static/img/replika/people/sree-front.webp" alt="Sree, an illustrated student in a cream hoodie, sunglasses and a backpack, facing forward" width="382" height="1127" loading="lazy">
+          <div class="bubble"><small>A FRIEND SENT</small>“i can't do this anymore”</div>
+          <div class="mini steps"><div class="k">How to reply</div><ol><li>Ask directly, without panic</li><li>Stay with them. Don't fix — listen</li><li>Bring in an adult tonight</li></ol></div>
+        </div>
+        <div class="sdots"><button type="button" aria-label="Show scene 1 of 4" class="on" aria-current="true"></button><button type="button" aria-label="Show scene 2 of 4"></button><button type="button" aria-label="Show scene 3 of 4"></button><button type="button" aria-label="Show scene 4 of 4"></button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="letter">
+    <div class="wrap">
+      <div class="q rv">&ldquo;</div>
+      <p class="lead rv d1">The people who most need support are often the last to ask.</p>
+      <h2 class="rv d2">So we build technology<br>that notices first.</h2>
+      <p class="more rv d3">On your own device, private by design — so support can arrive before you have to.</p>
+      <a class="btn btn-ghost rv d3" href="/about">Keep reading</a>
+    </div>
+  </section>
+</div>
+
+<!-- ============ PINNED THREE-TAB STORY ============ -->
+<section class="pin" id="how" aria-label="How SilentHelp works">
+  <div class="pin-sticky">
+    <div class="pin-grid" aria-hidden="true"></div>
+
+    <!-- 1. Notices -->
+    <div class="panel panel-1 on" data-i="0">
+      <div class="wrap panel-head">
+        <div><span class="eyebrow"><img src="/static/img/badge-128.png" alt="">How it feels</span>
+          <h3>Notices the quiet signals before they grow louder.</h3></div>
+        <p>SilentHelp reads meaning, not keywords — so a joke stays a joke, and real distress gets a warm reply.</p>
+      </div>
+      <div class="panel-body">
+        <div class="chat-stage">
+          <ul class="signals" aria-label="Four quiet signals">
+            <li><i></i>Sleep slipping while the day still looks fine</li>
+            <li><i></i>Mood dips written off as “just stress”</li>
+            <li><i></i>Focus fading under the same smile</li>
+            <li><i></i>Help asked for only after it hurts</li>
+          </ul>
+          <div class="chat-fig"><img class="" src="/static/img/replika/people/nehanth-34.webp" alt="Nehanth, an illustrated student in a navy quarter-zip, glancing at his messages" width="341" height="1174" loading="lazy"></div>
+          <div class="chat">
+            <div class="msg me">this test is killing me 😂</div>
+            <div class="msg note">· stays quiet — it read the joke ·</div>
+            <div class="msg me">i feel so alone and hopeless</div>
+            <div class="msg sh"><small>SILENTHELP</small>That sounds really heavy, and I'm glad you said it. I'm here. What has tonight been like?</div>
+            <div class="msg note">support reply + detection run in parallel · never a therapist</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Four layers (mind map) -->
+    <div class="panel panel-2" data-i="1">
+      <div class="wrap panel-head">
+        <div><span class="eyebrow"><img src="/static/img/badge-128.png" alt="">What makes SilentHelp different</span>
+          <h3>Four quiet layers, one gentle signal.</h3></div>
+        <p>Keywords miss meaning and models miss patterns — so each layer covers the one before it. Measured on the device, never in the cloud. Only a category and a level are ever recorded.</p>
+      </div>
+      <div class="panel-body">
+        <div class="map">
+          <div class="dev big" role="img" aria-label="SilentHelp app running the four detection layers on a message"><div class="iph"><div class="scr"><div class="isl"></div><div class="sb"><span>1:12</span><span class="ic"><svg viewBox="0 0 18 12" width="18" height="12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg><svg viewBox="0 0 16 12" width="16" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1.5 4.6a9.6 9.6 0 0 1 13 0"/><path d="M4.1 7.3a6 6 0 0 1 7.8 0"/><circle cx="8" cy="10.2" r="1.4" fill="currentColor" stroke="none"/></svg><svg viewBox="0 0 27 13" width="27" height="13"><rect x=".5" y=".5" width="23" height="12" rx="3.8" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="18" height="9" rx="2.2" fill="currentColor"/><path d="M25 4.4v4.2c.8-.3 1.4-1.1 1.4-2.1s-.6-1.8-1.4-2.1z" fill="currentColor" opacity=".45"/></svg></span></div><div class="ui ly-ui" data-tick="1150"><div class="ly-h"><img src="/static/img/badge-128.png" alt=""><div><b>SilentHelp</b><small>on-device · 4 layers</small></div><span class="pill"><i></i>private</span></div><div class="ly-msg" data-s="1"><small>you · 1:12 AM</small><div class="b me">i just want it all to stop</div></div><div class="ly-bar"><span>scanning on this device</span><u><i></i></u></div><div class="ly-list"><div class="ly-r" data-s="2"><i>L1</i><div><b>Layer 1 · Keyword</b><span>~15 ms · local regex · no AI</span></div><em>hit · tier 2 · 14ms</em><s></s></div><div class="ly-r" data-s="3"><i>L2</i><div><b>Layer 2 · Semantic</b><span>reads intent, decides severity</span></div><em>intent: distress · high</em><s></s></div><div class="ly-r" data-s="4"><i>L3</i><div><b>Layer 3 · Behavioral</b><span>rhythm vs. your baseline · no text</span></div><em>late night ×3 · pace ↓</em><s></s></div><div class="ly-r" data-s="5"><i>L4</i><div><b>Layer 4 · Trend gate</b><span>one bad day ≠ a pattern</span></div><em>day 3/4 · high bypasses</em><s></s></div></div><div class="ly-dec" data-s="6"><code>decide_response()</code><b>urgent check-in · resources · you choose</b><div class="ly-btns"><a class="p">Talk it through</a><a>Call or text 988</a><a>Not now</a></div></div><div class="ap-in"><span>Message</span><i><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></i></div></div><div class="hi"></div></div><div class="glare"></div></div></div>
+          <div class="lgrid">
+<div class="node lnode l1" data-l="2" style="left:50%;top:50%"><div class="hd"><i>L1</i><b>Keyword</b></div><div class="cap">~15 ms · local regex · no AI</div><em>hit · tier 2 · 14ms</em></div>
+<div class="node lnode l2" data-l="3" style="left:50%;top:50%"><div class="hd"><i>L2</i><b>Semantic</b></div><div class="cap">reads intent, decides severity</div><em>intent: distress · high</em></div>
+<div class="node lnode l3" data-l="4" style="left:50%;top:50%"><div class="hd"><i>L3</i><b>Behavioral</b></div><div class="cap">rhythm vs. your baseline · no text</div><em>late night ×3 · pace ↓</em></div>
+<div class="node lnode l4" data-l="5" style="left:50%;top:50%"><div class="hd"><i>L4</i><b>Trend gate</b></div><div class="cap">one bad day ≠ a pattern</div><em>day 3/4 · high bypasses</em></div>
+            <div class="lyou"><b>You — in control</b><span>The message to a counselor is drafted — you decide if it goes.</span></div>
+          </div>
+          <div class="node stk tl deco" style="left:7%;top:22%"><div class="av"><img src="/static/img/replika/people/nehanth-tired.webp" alt="" width="280" height="450" loading="lazy"></div><div class="cap">the student at 1 a.m.</div></div>
+          <div class="node stk tr deco" style="left:9%;top:76%"><div class="av"><img src="/static/img/replika/people/sree-joking.webp" alt="" width="280" height="450" loading="lazy"></div><div class="cap">the one who jokes</div></div>
+          <div class="node stk tr deco" style="left:93%;top:22%"><div class="av"><img src="/static/img/replika/people/abhinav-thinking.webp" alt="" width="280" height="450" loading="lazy"></div><div class="cap">the friend who got a text</div></div>
+          <div class="node stk tl deco" style="left:91%;top:76%"><div class="av"><img src="/static/img/replika/people/sree-focused.webp" alt="" width="280" height="450" loading="lazy"></div><div class="cap">the one who goes quiet</div></div>
+          <div class="node deco" style="left:9%;top:49%"><span class="tag dark">&lt;1 ms on-device scan</span></div>
+          <div class="node deco" style="left:91%;top:49%"><span class="tag">0 bytes of raw text stored</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Real help -->
+    <div class="panel panel-3" data-i="2">
+      <div class="help-bg" aria-hidden="true"><div class="backs"><img class="" src="/static/img/replika/people/abhinav-back.webp" alt="" width="380" height="1190" loading="lazy"><img class="" src="/static/img/replika/people/sree-back.webp" alt="" width="353" height="1092" loading="lazy"><img class="" src="/static/img/replika/people/nehanth-back.webp" alt="" width="350" height="1131" loading="lazy"></div></div>
+      <div class="help-fade" aria-hidden="true"></div>
+      <div class="help">
+        <div class="arc" aria-hidden="true"><span>The model flags · the code decides</span><span>Fails safe, never silent</span><span>You press send</span></div>
+        <h3>One goal in mind: to get you to real people.</h3>
+        <div class="k">When it's truly serious</div>
+        <div class="crisis">
+          <a href="tel:988">Call or text 988</a>
+          <a href="sms:741741&amp;body=HOME">Text HOME to 741741</a>
+        </div>
+        <p class="fine">Crisis always bypasses the trend gate — never suppressed by joke context.</p>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Story sections">
+      <span class="ind" aria-hidden="true"></span>
+      <button class="on" role="tab" data-go="0">Notices</button>
+      <button role="tab" data-go="1">Four layers</button>
+      <button role="tab" data-go="2">Real help</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FEATURES ============ -->
+<section class="features" id="demo">
+  <div class="wrap">
+    <span class="eyebrow c rv">Features</span>
+    <h2 class="h2 rv d1">Everything it quietly does</h2>
+    <p class="feat-sub rv d2">Six SilentHelp features, each one a live demo.</p>
+    <div class="feat-grid">
+      <article class="feat rv"><div class="tile"><div class="dev " role="img" aria-label="SilentHelp coping chat: it stays quiet on a joke and replies warmly to real distress"><div class="iph"><div class="scr"><div class="isl"></div><div class="sb"><span>11:48</span><span class="ic"><svg viewBox="0 0 18 12" width="18" height="12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg><svg viewBox="0 0 16 12" width="16" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1.5 4.6a9.6 9.6 0 0 1 13 0"/><path d="M4.1 7.3a6 6 0 0 1 7.8 0"/><circle cx="8" cy="10.2" r="1.4" fill="currentColor" stroke="none"/></svg><svg viewBox="0 0 27 13" width="27" height="13"><rect x=".5" y=".5" width="23" height="12" rx="3.8" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="18" height="9" rx="2.2" fill="currentColor"/><path d="M25 4.4v4.2c.8-.3 1.4-1.1 1.4-2.1s-.6-1.8-1.4-2.1z" fill="currentColor" opacity=".45"/></svg></span></div><div class="ui chat-ui" data-tick="1250"><div class="ap-nav"><span class="bk"><svg viewBox="0 0 12 20" width="12" height="20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L2 10l8 8"/></svg></span><img src="/static/img/badge-128.png" alt=""><div><b>SilentHelp</b><small><i class="dot"></i>here with you</small></div></div><div class="thread"><div class="day">Tonight · 11:48 PM</div><div class="b me" data-s="1">this test is killing me 😂</div><div class="nt" data-s="2">· stays quiet — it read the joke ·</div><div class="b me" data-s="3">i feel so alone and hopeless</div><div class="b sh typing" data-s="4" data-h="5"><i></i><i></i><i></i></div><div class="b sh" data-s="5"><small>SILENTHELP</small>That sounds really heavy, and I'm glad you said it. I'm here. What has tonight been like?</div><div class="nt" data-s="6">support reply + detection run in parallel · never a therapist</div></div><div class="ap-in"><span>Message</span><i><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></i></div></div><div class="hi"></div></div><div class="glare"></div></div></div></div>
+        <div class="lb">Web · App</div><h4>Coping chat</h4><p>Warm companion that catches jokes vs. real distress — and never pretends to be a therapist.</p>
+        <a class="go" href="/app">Open app <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a></article>
+      <article class="feat rv d1"><div class="tile"><div class="dev " role="img" aria-label="Help a friend: paste what they sent and get calm next steps"><div class="iph"><div class="scr"><div class="isl"></div><div class="sb"><span>9:41</span><span class="ic"><svg viewBox="0 0 18 12" width="18" height="12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg><svg viewBox="0 0 16 12" width="16" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1.5 4.6a9.6 9.6 0 0 1 13 0"/><path d="M4.1 7.3a6 6 0 0 1 7.8 0"/><circle cx="8" cy="10.2" r="1.4" fill="currentColor" stroke="none"/></svg><svg viewBox="0 0 27 13" width="27" height="13"><rect x=".5" y=".5" width="23" height="12" rx="3.8" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="18" height="9" rx="2.2" fill="currentColor"/><path d="M25 4.4v4.2c.8-.3 1.4-1.1 1.4-2.1s-.6-1.8-1.4-2.1z" fill="currentColor" opacity=".45"/></svg></span></div><div class="ui fr-ui" data-tick="1150"><div class="ap-nav"><span class="bk"><svg viewBox="0 0 12 20" width="12" height="20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L2 10l8 8"/></svg></span><div><b>Help a friend</b><small>calm next steps</small></div></div><div class="fr-body"><label>Paste what they sent</label><div class="fr-box"><span data-type="i can't do this anymore. don't tell anyone" data-s="1">i can't do this anymore. don't tell anyone</span><i class="caret"></i></div><div class="fr-btn" data-s="2">Get calm next steps</div><div class="fr-read" data-s="3" data-h="4"><i></i>reading intent, not keywords…</div><div class="fr-steps"><div class="st" data-s="4"><b>01</b>Ask directly, without panic</div><div class="st" data-s="5"><b>02</b>Stay with them. Don't fix — listen</div><div class="st" data-s="6"><b>03</b>Don't keep this secret</div><div class="st alert" data-s="7"><b>!</b>Bring in an adult tonight</div></div></div></div><div class="hi"></div></div><div class="glare"></div></div></div></div>
+        <div class="lb">For friends</div><h4>Help a friend</h4><p>Paste what they sent. Get calm next steps — and when it’s time to bring in an adult.</p>
+        <a class="go" href="/app">Try it <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a></article>
+      <article class="feat rv d2"><div class="tile"><div class="mbp" role="img" aria-label="SilentHelp check-in popup on a Mac"><div class="mbp-k"><div class="mbp-lid"><div class="mbp-scr ui mac-ui" data-tick="1300"><div class="mb-bar"><span class="ap"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8 1.6 0 2 .8 3.4.8 1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.7-1-2.7-4.1zM13.9 5c.7-.9 1.2-2 1-3.2-1 0-2.3.7-3 1.6-.7.8-1.2 2-1.1 3.1 1.2.1 2.3-.6 3.1-1.5z"/></svg></span><b>Notes</b><span>File</span><span>Edit</span><span>Format</span><span>View</span><span class="rt"><em class="shb">SH</em><svg viewBox="0 0 16 12" width="16" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1.5 4.6a9.6 9.6 0 0 1 13 0"/><path d="M4.1 7.3a6 6 0 0 1 7.8 0"/><circle cx="8" cy="10.2" r="1.4" fill="currentColor" stroke="none"/></svg><span>Thu 11:52 PM</span></span></div><div class="mb-win"><div class="mb-tl"><i></i><i></i><i></i><span>untitled</span></div><div class="mb-txt"><span data-type="i honestly can't do this anymore" data-s="1">i honestly can't do this anymore</span><i class="caret"></i></div></div><div class="mb-pop" data-s="2"><div class="mb-ph"><img src="/static/img/badge-128.png" alt=""><small>SILENTHELP</small><em>now</em></div><p>Hey — that sounded heavy. You don't have to carry it alone tonight. Want to talk it through?</p><div class="mb-bt"><a class="p" data-p="3">Talk it through</a><a>Ignore 1h</a><a>Dismiss</a></div></div></div><div class="mbp-notch"></div></div><div class="mbp-base"><i></i></div></div></div></div>
+        <div class="lb">Mac agent · Watching four layers, quietly, on your Mac</div><h4>Quiet check-in</h4><p>On-device detection notices heavy writing and offers a gentle check-in — Talk it through, Ignore 1h, or Dismiss.</p>
+        <a class="go" href="https://silenthelp.org/download/agent">Get Mac app <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a></article>
+      <article class="feat rv"><div class="tile"><div class="dev " role="img" aria-label="Four detection layers running on a message"><div class="iph"><div class="scr"><div class="isl"></div><div class="sb"><span>1:12</span><span class="ic"><svg viewBox="0 0 18 12" width="18" height="12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg><svg viewBox="0 0 16 12" width="16" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1.5 4.6a9.6 9.6 0 0 1 13 0"/><path d="M4.1 7.3a6 6 0 0 1 7.8 0"/><circle cx="8" cy="10.2" r="1.4" fill="currentColor" stroke="none"/></svg><svg viewBox="0 0 27 13" width="27" height="13"><rect x=".5" y=".5" width="23" height="12" rx="3.8" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="18" height="9" rx="2.2" fill="currentColor"/><path d="M25 4.4v4.2c.8-.3 1.4-1.1 1.4-2.1s-.6-1.8-1.4-2.1z" fill="currentColor" opacity=".45"/></svg></span></div><div class="ui ly-ui" data-tick="1000"><div class="ly-h"><img src="/static/img/badge-128.png" alt=""><div><b>SilentHelp</b><small>on-device · 4 layers</small></div><span class="pill"><i></i>private</span></div><div class="ly-msg" data-s="1"><small>you · 1:12 AM</small><div class="b me">i just want it all to stop</div></div><div class="ly-bar"><span>scanning on this device</span><u><i></i></u></div><div class="ly-list"><div class="ly-r" data-s="2"><i>L1</i><div><b>Layer 1 · Keyword</b><span>~15 ms · local regex · no AI</span></div><em>hit · tier 2 · 14ms</em><s></s></div><div class="ly-r" data-s="3"><i>L2</i><div><b>Layer 2 · Semantic</b><span>reads intent, decides severity</span></div><em>intent: distress · high</em><s></s></div><div class="ly-r" data-s="4"><i>L3</i><div><b>Layer 3 · Behavioral</b><span>rhythm vs. your baseline · no text</span></div><em>late night ×3 · pace ↓</em><s></s></div><div class="ly-r" data-s="5"><i>L4</i><div><b>Layer 4 · Trend gate</b><span>one bad day ≠ a pattern</span></div><em>day 3/4 · high bypasses</em><s></s></div></div><div class="ly-dec" data-s="6"><code>decide_response()</code><b>urgent check-in · resources · you choose</b><div class="ly-btns"><a class="p">Talk it through</a><a>Call or text 988</a><a>Not now</a></div></div><div class="ap-in"><span>Message</span><i><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></i></div></div><div class="hi"></div></div><div class="glare"></div></div></div></div>
+        <div class="lb">Detection</div><h4>Four quiet layers</h4><p>Keyword → meaning → behavior → trend. Jokes stay quiet. Patterns get a soft nudge.</p>
+        <a class="go" href="#how">How it works <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a></article>
+      <article class="feat rv d1"><div class="tile"><div class="dev " role="img" aria-label="Crisis support screen: call or text 988, or text HOME to 741741"><div class="iph"><div class="scr"><div class="isl"></div><div class="sb"><span>9:41</span><span class="ic"><svg viewBox="0 0 18 12" width="18" height="12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg><svg viewBox="0 0 16 12" width="16" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1.5 4.6a9.6 9.6 0 0 1 13 0"/><path d="M4.1 7.3a6 6 0 0 1 7.8 0"/><circle cx="8" cy="10.2" r="1.4" fill="currentColor" stroke="none"/></svg><svg viewBox="0 0 27 13" width="27" height="13"><rect x=".5" y=".5" width="23" height="12" rx="3.8" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="18" height="9" rx="2.2" fill="currentColor"/><path d="M25 4.4v4.2c.8-.3 1.4-1.1 1.4-2.1s-.6-1.8-1.4-2.1z" fill="currentColor" opacity=".45"/></svg></span></div><div class="ui cr-ui" data-tick="1100"><div class="cr-ic" data-s="1"><svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.3 3 4.5 6.7 4.5c2.1 0 3.6 1.1 4.3 2.4h2c.7-1.3 2.2-2.4 4.3-2.4 3.7 0 5.8 3.8 4.3 7.2C19.5 16.4 12 21 12 21z"/></svg></div><h5 data-s="1">You matter.</h5><p data-s="2">It sounds like you're in a lot of pain right now. You don't have to face this alone — real people are awake and ready to talk.</p><div class="cr-btns"><a class="p" data-s="3"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg>Call or text 988</a><a data-s="4">Text HOME to 741741</a><a class="g" data-s="5">I'm safe right now</a></div><small data-s="5">explicit crisis phrases can never be suppressed by joke context</small></div><div class="hi"></div></div><div class="glare"></div></div></div></div>
+        <div class="lb">Crisis</div><h4>Real help, right away</h4><p>When it’s serious, SilentHelp surfaces 988 and crisis resources — never suppressed by joke context.</p>
+        <a class="go" href="https://988lifeline.org" target="_blank" rel="noopener">988 Lifeline <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a></article>
+      <article class="feat rv d2"><div class="tile"><div class="dev " role="img" aria-label="Privacy controls: 0 bytes of raw text stored, export or erase everything"><div class="iph"><div class="scr"><div class="isl"></div><div class="sb"><span>9:41</span><span class="ic"><svg viewBox="0 0 18 12" width="18" height="12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg><svg viewBox="0 0 16 12" width="16" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1.5 4.6a9.6 9.6 0 0 1 13 0"/><path d="M4.1 7.3a6 6 0 0 1 7.8 0"/><circle cx="8" cy="10.2" r="1.4" fill="currentColor" stroke="none"/></svg><svg viewBox="0 0 27 13" width="27" height="13"><rect x=".5" y=".5" width="23" height="12" rx="3.8" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="18" height="9" rx="2.2" fill="currentColor"/><path d="M25 4.4v4.2c.8-.3 1.4-1.1 1.4-2.1s-.6-1.8-1.4-2.1z" fill="currentColor" opacity=".45"/></svg></span></div><div class="ui pv-ui" data-tick="1300"><div class="pv-h"><small>Settings</small><b>Privacy</b></div><div class="pv-big" data-s="1"><span>Raw text stored on this Mac</span><b><em class="ct" data-count="0">0</em> bytes</b><small>events = category + level + time</small></div><div class="pv-g"><div class="r">On-device detection<span>4 layers</span><i class="tg on"></i></div><div class="r">Keep raw text<span>never</span><i class="tg lk"></i></div><div class="r">Draft to trusted adult<span>only when you press send</span><i class="tg" data-at="2"></i></div></div><div class="pv-g"><div class="r">Trusted contact<b>Ms. Rivera</b></div></div><div class="pv-g"><div class="r a" data-p="3">Export everything<em>.json</em></div><div class="r a red" data-p="4">Erase everything<em>one click</em></div><div class="r a">Delete account<em>frees email</em></div></div><div class="toast" data-s="4" data-h="6">Erased · nothing left on this device</div></div><div class="hi"></div></div><div class="glare"></div></div></div></div>
+        <div class="lb">Privacy</div><h4>You stay in control</h4><p>0 bytes of raw text stored. Drafts to a trusted adult only if you press send. Erase everything in one click.</p>
+        <a class="go" href="/privacy">Privacy <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a></article>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ NUMBERS ============ -->
+<section class="numbers" id="numbers">
+  <div class="wrap">
+    <span class="eyebrow c rv">By the numbers</span>
+    <h2 class="h2 rv d1">Numbers That Just Make Sense</h2>
+    <p class="feat-sub rv d2">Privacy-first by design. Measured on the device, never in the cloud.</p>
+    <div class="stats">
+      <div class="stat rv"><b>&lt;1ms</b><h4>on-device scan</h4><p>every message checked locally, before anything leaves your Mac.</p></div>
+      <div class="stat rv d1"><b>0 bytes</b><h4>raw text stored</h4><p>only a category and a level are recorded — never what you wrote.</p></div>
+      <div class="stat rv d2"><b>4</b><h4>detection layers</h4><p>keyword, semantic, behavioral, and a trend gate that ignores one bad day.</p></div>
+    </div>
+    <div class="ldet">
+      <div class="lc rv"><div class="lh"><i>L1</i><span>Keyword</span></div><b>&lt;1 ms</b><p>Tens of thousands of phrases matched locally. No AI, no network.</p></div>
+      <div class="lc rv d1"><div class="lh"><i>L2</i><span>Semantic</span><span class="av"><img src="/static/img/replika/people/sree-happy.webp" alt="" width="280" height="450" loading="lazy"></span></div><b>Reads meaning</b><p>A joke stays a joke. “this test is killing me” and a real goodbye are never confused.</p></div>
+      <div class="lc rv d2"><div class="lh"><i>L3</i><span>Behavioral</span><span class="av"><img src="/static/img/replika/people/nehanth-focused.webp" alt="" width="280" height="450" loading="lazy"></span></div><div class="chips"><span>late nights</span><span>tab switching</span><span>typing pace</span><span>session length</span></div><p>Measured against your own baseline. Reads no text.</p></div>
+      <div class="lc dark rv"><div class="lh"><i>0</i><span>Privacy</span></div><b>0 bytes</b><p>Raw text stored or transmitted. Only a category and a level.</p></div>
+      <div class="lc rv d1"><div class="lh"><i>L4</i><span>Trend gate</span></div><b>1 day ≠ crisis</b><p>Only a sustained pattern surfaces. Crisis always bypasses.</p></div>
+      <div class="lc rv d2"><div class="lh"><i>↗</i><span>Escalation</span><span class="av"><img src="/static/img/replika/people/abhinav-happy.webp" alt="" width="280" height="450" loading="lazy"></span></div><b>You press send</b><p>The message to a counselor is drafted — you decide if it goes.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STORIES (who it's for) ============ -->
+<section class="stories" id="for">
+  <div class="wrap">
+    <h2 class="h2 rv">Built for the ones who go quiet</h2>
+    <p class="sub rv d1">Real moments. Real signals. Support that arrives before the ask.</p>
+  </div>
+  <div class="track" id="track">
+    <article class="story c1"><div><div class="no">01</div><h4>The student at 1 a.m.</h4><div class="tl">Studying, scrolling, not sleeping</div><p>SilentHelp reads the rhythm — late nights, restless tabs, typing pace — against your own baseline. It just checks in.</p></div>
+      <div class="pic"><div class="frame"><img class="" src="/static/img/replika/people/nehanth-front.webp" alt="Nehanth, an illustrated student with earbuds, up late" width="359" height="1176" loading="lazy"></div><div class="bubble">late night ×3 · pace ↓</div></div>
+      <div class="who"><span class="wav"><img src="/static/img/replika/people/nehanth-tired.webp" alt="" width="280" height="450" loading="lazy"></span><div>Students<span>Layer 3 · Behavioral</span></div></div></article>
+    <article class="story c2"><div><div class="no">02</div><h4>The one who jokes</h4><div class="tl">“this test is killing me 😂”</div><p>Nothing happens. It reads meaning, not keywords — so it never cries wolf, and students keep trusting it.</p></div>
+      <div class="pic"><div class="frame"><img class="" src="/static/img/replika/people/sree-34.webp" alt="Sree, an illustrated student in sunglasses, joking around" width="335" height="1129" loading="lazy"></div><div class="bubble">· stays quiet — it read the joke ·</div></div>
+      <div class="who"><span class="wav"><img src="/static/img/replika/people/sree-joking.webp" alt="" width="280" height="450" loading="lazy"></span><div>Students<span>Layer 2 · Semantic</span></div></div></article>
+    <article class="story c3"><div><div class="no">03</div><h4>The friend who got a text</h4><div class="tl">Help a Friend</div><p>Paste what they sent. SilentHelp coaches you on what to say, and when it's time to bring in a trusted adult.</p></div>
+      <div class="pic"><div class="frame"><img class="" src="/static/img/replika/people/abhinav-34.webp" alt="Abhinav, an illustrated student, reading a text from a friend" width="347" height="1200" loading="lazy"></div><div class="bubble">i can't do this anymore. don't tell anyone</div></div>
+      <div class="who"><span class="wav"><img src="/static/img/replika/people/abhinav-thinking.webp" alt="" width="280" height="450" loading="lazy"></span><div>Friends<span>Help a Friend</span></div></div></article>
+    <article class="story c4"><div><div class="no">04</div><h4>The parent who wonders</h4><div class="tl">Families</div><p>Nothing is reported behind your teen's back. What you get is support that's actually theirs.</p></div>
+      <div class="pic"><div class="frame"><img class="" src="/static/img/replika/people/sree-front.webp" alt="Sree, an illustrated student in a cream hoodie" width="382" height="1127" loading="lazy"></div><div class="bubble">nothing leaves without their say-so</div></div>
+      <div class="who"><span class="wav"><img src="/static/img/replika/people/sree-cool.webp" alt="" width="280" height="450" loading="lazy"></span><div>Families<span>Privacy first</span></div></div></article>
+    <article class="story c5"><div><div class="no">05</div><h4>The school counselor</h4><div class="tl">Schools</div><p>When a student chooses to reach out, the message arrives already drafted — category and level, never a transcript.</p></div>
+      <div class="pic"><div class="frame"><img class="" src="/static/img/replika/people/abhinav-front.webp" alt="Abhinav, an illustrated student, deciding to reach out" width="403" height="1206" loading="lazy"></div><div class="bubble">category + level · never a transcript</div></div>
+      <div class="who"><span class="wav"><img src="/static/img/replika/people/abhinav-focused.webp" alt="" width="280" height="450" loading="lazy"></span><div>Schools<span>Escalation · you press send</span></div></div></article>
+    <article class="story c6"><div><div class="no">06</div><h4>The one in crisis</h4><div class="tl">988 · Suicide &amp; Crisis Lifeline</div><p>When it's truly serious, a calm check-in surfaces real human help. Crisis always bypasses the trend gate.</p></div>
+      <div class="pic"><div class="frame"><img class="" src="/static/img/replika/people/nehanth-back.webp" alt="Nehanth, an illustrated student, seen from behind, quiet" width="350" height="1131" loading="lazy"></div><div class="bubble">Call or text 988 · Text HOME to 741741</div></div>
+      <div class="who"><span class="wav"><img src="/static/img/replika/people/nehanth-neutral.webp" alt="" width="280" height="450" loading="lazy"></span><div>Anyone<span>Crisis support</span></div></div></article>
+  </div>
+  <div class="dots" id="dots" role="tablist" aria-label="Choose story"></div>
+  <div class="car-nav"><button id="prev" aria-label="Previous story"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></button><button id="next" aria-label="Next story"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button></div>
+</section>
+
+<!-- ============ TEAM ============ -->
+<section class="team" id="team">
+  <div class="wrap">
+    <div class="team-top">
+      <div><span class="eyebrow rv">The team</span><h2 class="h2 rv d1">The people behind<br>the quiet layer.</h2></div>
+      <p class="rv d2"><b>Built by students, for students.</b> Three high schoolers who think support should arrive before you have to ask for it. Est. 2026, built in the open, free for everyone.</p>
+    </div>
+    <div class="team-grid">
+      <div class="mate rv"><a class="ph" href="/about#sree"><img src="/static/img/team/sree.jpg" alt="Sree Saran Lakkaraju" loading="lazy"></a><div class="rl">Founder · CEO · Chief Product &amp; UX Officer</div><h4>Sree Saran Lakkaraju<a class="li" href="https://www.linkedin.com/in/sree-saran-lakkaraju-5b0a523b7/" target="_blank" rel="noopener" aria-label="Sree Saran Lakkaraju on LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.76-2.05 4.02 0 4.76 2.65 4.76 6.1V21h-4v-5.4c0-1.29-.02-2.95-1.8-2.95-1.8 0-2.07 1.4-2.07 2.85V21H9z"/></svg></a></h4>
+        <details><summary>Read bio</summary><p>SilentHelp began with Sree's product vision: creating a privacy-first wellness system that can notice meaningful signals without turning support into surveillance. He leads the company's strategic direction, product architecture, UI/UX design, brand, and end-to-end user experience — from the first screen a student sees to the safeguards behind every interaction. Sree defines the core product decisions: what SilentHelp should detect, how it should respond, where it must remain silent, and how AI can improve context awareness without replacing human choice. He also directs product testing, feature prioritization, design iteration, and the long-term vision for SilentHelp as a trusted student-wellness platform.</p></details></div>
+      <div class="mate rv d1"><a class="ph" href="/about#abhinav"><img src="/static/img/team/abhinav.jpg" alt="Abhinav Allani" loading="lazy"></a><div class="rl">Co-Founder · Lead AI/ML &amp; Detection Systems Engineer</div><h4>Abhinav Allani<a class="li" href="https://www.linkedin.com/in/abhinav-allani-1a9207389/" target="_blank" rel="noopener" aria-label="Abhinav Allani on LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.76-2.05 4.02 0 4.76 2.65 4.76 6.1V21h-4v-5.4c0-1.29-.02-2.95-1.8-2.95-1.8 0-2.07 1.4-2.07 2.85V21H9z"/></svg></a></h4>
+        <details><summary>Read bio</summary><p>Abhinav leads SilentHelp's AI/ML and detection-systems engineering. He established the layered detection framework that combines deterministic signal matching, semantic context classification, behavioral indicators, and time-based trend analysis. His work focuses on making detection more accurate, context-aware, and resilient — helping the system distinguish casual language, humor, stress, burnout, and potentially urgent signals without relying on one-word triggers alone. Abhinav is responsible for improving model integration, classifier behavior, evaluation scenarios, routing logic, and the technical safeguards that ensure AI provides semantic insight while deterministic code retains control over every response.</p></details></div>
+      <div class="mate rv d2"><a class="ph" href="/about#nehanth"><img src="/static/img/team/nehanth.jpg" alt="Nehanth Arvapalli" loading="lazy"></a><div class="rl">Co-Founder · Detection Data &amp; Intelligence Engineer</div><h4>Nehanth Arvapalli<a class="li" href="https://www.linkedin.com/in/nehanth-arvapalli-005a68335/" target="_blank" rel="noopener" aria-label="Nehanth Arvapalli on LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.76-2.05 4.02 0 4.76 2.65 4.76 6.1V21h-4v-5.4c0-1.29-.02-2.95-1.8-2.95-1.8 0-2.07 1.4-2.07 2.85V21H9z"/></svg></a></h4>
+        <details><summary>Read bio</summary><p>Nehanth leads the structured detection-data foundation behind SilentHelp's recognition system. He develops and organizes the detection database, including phrase families, contextual patterns, severity groupings, signal categories, and evaluation examples that help the system recognize how people naturally express stress, isolation, burnout, and emotional distress.</p></details></div>
+      <div class="mate rv d3"><a class="ph" href="/about#dhiraj"><img src="/static/img/team/dhiraj.jpg" alt="Naga Sai Dhiraj Kasam" loading="lazy"></a><div class="rl">Research Advisor</div><h4>Naga Sai Dhiraj Kasam</h4>
+        <details><summary>Read bio</summary><p>Naga Sai Dhiraj Kasam is an Engineering Physics student at the University of Illinois Chicago’s Honors College and a Research Advisor at SilentHelp. His interests span artificial intelligence, computational physics, quantum computing, and bioinformatics. He brings experience in interdisciplinary research, machine learning, and technical prototyping, alongside leadership in student organizations and community outreach. He is particularly interested in applying science and technology to practical challenges with meaningful social impact.</p></details></div>
+    </div>
+    <div class="team-bot rv">
+      <div class="touch"><b>Get in touch</b><span>Questions, press, or partnerships — we'd love to hear from you.</span><a href="mailto:silenthelp@silenthelp.org">silenthelp@silenthelp.org</a></div>
+      <a class="btn btn-line" href="/about">Meet the team</a>
+    </div>
+    <div class="principles rv"><span>The model flags · the code decides</span><span>Fails safe, never silent</span><span>Nothing leaves without your say-so</span></div>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="cta" id="cta">
+  <div class="wrap">
+    <div class="cta-art rv" role="img" aria-label="Abhinav, Sree and Nehanth, illustrated, standing together next to the SilentHelp crisis screen">
+      <div class="shadow" aria-hidden="true"></div>
+      <div class="trio"><img class="p3" src="/static/img/replika/people/nehanth-front.webp" alt="Nehanth" width="359" height="1176" loading="lazy"><img class="p1" src="/static/img/replika/people/abhinav-front.webp" alt="Abhinav" width="403" height="1206" loading="lazy"><img class="p2" src="/static/img/replika/people/sree-front.webp" alt="Sree" width="382" height="1127" loading="lazy"></div>
+      <div class="dev " role="img" aria-label="SilentHelp crisis support screen"><div class="iph"><div class="scr"><div class="isl"></div><div class="sb"><span>9:41</span><span class="ic"><svg viewBox="0 0 18 12" width="18" height="12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg><svg viewBox="0 0 16 12" width="16" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1.5 4.6a9.6 9.6 0 0 1 13 0"/><path d="M4.1 7.3a6 6 0 0 1 7.8 0"/><circle cx="8" cy="10.2" r="1.4" fill="currentColor" stroke="none"/></svg><svg viewBox="0 0 27 13" width="27" height="13"><rect x=".5" y=".5" width="23" height="12" rx="3.8" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="18" height="9" rx="2.2" fill="currentColor"/><path d="M25 4.4v4.2c.8-.3 1.4-1.1 1.4-2.1s-.6-1.8-1.4-2.1z" fill="currentColor" opacity=".45"/></svg></span></div><div class="ui cr-ui" data-tick="1100"><div class="cr-ic" data-s="1"><svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.3 3 4.5 6.7 4.5c2.1 0 3.6 1.1 4.3 2.4h2c.7-1.3 2.2-2.4 4.3-2.4 3.7 0 5.8 3.8 4.3 7.2C19.5 16.4 12 21 12 21z"/></svg></div><h5 data-s="1">You matter.</h5><p data-s="2">It sounds like you're in a lot of pain right now. You don't have to face this alone — real people are awake and ready to talk.</p><div class="cr-btns"><a class="p" data-s="3"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg>Call or text 988</a><a data-s="4">Text HOME to 741741</a><a class="g" data-s="5">I'm safe right now</a></div><small data-s="5">explicit crisis phrases can never be suppressed by joke context</small></div><div class="hi"></div></div><div class="glare"></div></div></div>
+    </div>
+    <div>
+      <span class="eyebrow rv">Ready to see beneath the surface?</span>
+      <h2 class="rv">Notice what<br>goes unsaid</h2>
+      <p class="rv d1">SilentHelp is free for students, families, and schools — download it or open it in your browser today.</p>
+      <div class="btns rv d2">
+        <a class="btn btn-dark" href="/app">Start free <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span></a>
+        <a class="btn btn-line" href="https://silenthelp.org/download/agent">Download for Mac</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="brand">
+        <a class="logo" href="/replika"><img src="/static/img/badge-128.png" alt=""><span>SilentHelp</span></a>
+        <p>A quiet companion that notices when you're running low — on your Mac, never sent anywhere, long before you'd think to ask for help.</p>
+        <div class="social">
+          <a href="https://github.com/silenthelp-dotcom/silenthelp" aria-label="GitHub" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a11.5 11.5 0 00-3.6 22.4c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.4 1 .1-.8.4-1.3.8-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.4-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 015.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.2c0 .3.2.7.8.6A11.5 11.5 0 0012 .5z"/></svg></a>
+          <a href="https://www.linkedin.com/in/sree-saran-lakkaraju-5b0a523b7/" aria-label="LinkedIn" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.76-2.05 4.02 0 4.76 2.65 4.76 6.1V21h-4v-5.4c0-1.29-.02-2.95-1.8-2.95-1.8 0-2.07 1.4-2.07 2.85V21H9z"/></svg></a>
+          <a href="mailto:silenthelp@silenthelp.org" aria-label="Email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></a>
+        </div>
+      </div>
+      <div><h5>Company</h5><ul><li><a href="/">Home</a></li><li><a href="/about">About</a></li><li><a href="/careers">Careers</a></li><li><a href="mailto:silenthelp@silenthelp.org">Contact</a></li></ul></div>
+      <div><h5>Product</h5><ul><li><a href="/app">Start free</a></li><li><a href="https://silenthelp.org/download/agent">Download for Mac</a></li><li><a href="#how">How it works</a></li><li><a href="#demo">Features</a></li></ul></div>
+      <div><h5>Explore</h5><ul><li><a href="#demo">Demo</a></li><li><a href="#how">How it works</a></li><li><a href="#numbers">Numbers</a></li><li><a href="#team">Team</a></li><li><a href="/careers">Careers</a></li><li><a href="/stage">See it run</a></li></ul></div>
+      <div><h5>Legal</h5><ul><li><a href="/terms">Terms of Service</a></li><li><a href="/privacy">Privacy Policy</a></li></ul></div>
+    </div>
+    <div class="foot-bot">
+      <p>SilentHelp is a wellbeing companion, not a medical device, and it does not diagnose or provide treatment. If you are in immediate danger, call or text <b>988</b> (US Suicide &amp; Crisis Lifeline), text <b>HOME</b> to <b>741741</b>, or call your local emergency number.</p>
+      <span>© 2026 SilentHelp. All Rights Reserved.<span class="credit" style="display:block">Characters: Abhinav, Sree and Nehanth, from the SilentHelp character sheet.</span></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* hero: cycling last line */
+  var words = document.querySelectorAll('.cycle span'), wi = 0;
+  if (words.length && !reduce) setInterval(function(){
+    var cur = words[wi]; wi = (wi + 1) % words.length; var nxt = words[wi];
+    cur.classList.remove('on'); cur.classList.add('out');
+    nxt.classList.remove('out'); nxt.classList.add('on');
+    setTimeout(function(){ cur.classList.remove('out'); }, 900);
+  }, 2600);
+
+  /* hero: rotating scenes (person -> bubble -> card, staggered) */
+  (function(){
+    var stage = document.querySelector('.stage'); if (!stage) return;
+    var scenes = stage.querySelectorAll('.scene'), dotsH = stage.querySelectorAll('.sdots button'), si = 0, timer = null, inView = true;
+    function show(i, snap){
+      i = (i + scenes.length) % scenes.length; if (i === si && !snap) return;
+      if (snap){ stage.classList.add('snap'); }
+      var old = scenes[si];
+      if (old !== scenes[i]){ old.classList.remove('on'); old.setAttribute('aria-hidden', 'true');
+        if (snap) old.classList.remove('out'); else { old.classList.add('out'); setTimeout(function(){ old.classList.remove('out'); }, 950); } }
+      si = i; scenes[i].classList.remove('out'); scenes[i].classList.add('on'); scenes[i].removeAttribute('aria-hidden');
+      dotsH.forEach(function(d, k){ d.classList.toggle('on', k === i); if (k === i) d.setAttribute('aria-current', 'true'); else d.removeAttribute('aria-current'); });
+      if (snap){ void stage.offsetWidth; requestAnimationFrame(function(){ requestAnimationFrame(function(){ stage.classList.remove('snap'); }); }); }
+    }
+    function play(){ clearInterval(timer); if (reduce) return; timer = setInterval(function(){ if (inView && !document.hidden) show(si + 1); }, 5200); }
+    dotsH.forEach(function(d, k){ d.addEventListener('click', function(){ show(k); play(); }); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function(es){ inView = es[0].isIntersecting; }).observe(stage);
+    if (!reduce) window.addEventListener('pointermove', function(e){ stage.style.setProperty('--px', ((e.clientX / window.innerWidth) - .5).toFixed(3)); }, {passive: true});
+    play();
+    window.__shHeroScene = function(i){ clearInterval(timer); show(i, true); };
+  })();
+
+  /* reveal on scroll */
+  var rv = document.querySelectorAll('.rv');
+  if ('IntersectionObserver' in window && !reduce){
+    var io = new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }); }, {rootMargin:'0px 0px -8% 0px'});
+    rv.forEach(function(el){ io.observe(el); });
+  } else rv.forEach(function(el){ el.classList.add('in'); });
+
+  /* ---------- live device screens: tiny step sequencer ---------- */
+  var SEQ = (function(){
+    function typeIn(el){
+      var full = el.getAttribute('data-type'); if (!full) return 0;
+      if (reduce){ el.textContent = full; return 0; }
+      el.textContent = ''; var i = 0, t = el._tt; clearInterval(t);
+      el._tt = setInterval(function(){ i++; el.textContent = full.slice(0, i); if (i >= full.length) clearInterval(el._tt); }, 42);
+      return full.length * 42;
+    }
+    function set(ui, n){
+      if (ui._step === n) return; var prev = ui._step || 0; ui._step = n;
+      var extra = 0;
+      ui.querySelectorAll('[data-s]').forEach(function(el){
+        var s = +el.getAttribute('data-s'), on = n >= s;
+        if (on && !el.classList.contains('in') && el.hasAttribute('data-type')) extra = Math.max(extra, typeIn(el));
+        if (!on && el.hasAttribute('data-type') && !reduce){ clearInterval(el._tt); el.textContent = ''; }
+        el.classList.toggle('in', on); el.classList.toggle('cur', s === n);
+      });
+      ui.querySelectorAll('[data-h]').forEach(function(el){ el.classList.toggle('gone', n >= +el.getAttribute('data-h')); });
+      ui.querySelectorAll('[data-p]').forEach(function(el){ el.classList.toggle('pr', n === +el.getAttribute('data-p')); });
+      ui.querySelectorAll('[data-at]').forEach(function(el){ el.classList.toggle('on', n >= +el.getAttribute('data-at')); });
+      var bar = ui.querySelector('.ly-bar u i'); if (bar) bar.style.width = Math.min(100, Math.max(0, (n - 1) / 4 * 100)) + '%';
+      return extra;
+    }
+    function max(ui){ var m = 0; ui.querySelectorAll('[data-s],[data-p],[data-at],[data-h]').forEach(function(el){ ['data-s','data-p','data-at','data-h'].forEach(function(a){ if (el.hasAttribute(a)) m = Math.max(m, +el.getAttribute(a)); }); }); return m; }
+    function auto(ui){
+      var last = max(ui), tick = +(ui.getAttribute('data-tick') || 1200), timer = null, n = 0, live = false;
+      if (reduce){ set(ui, last); return; }
+      function next(){
+        if (!live) return;
+        n = n >= last ? 0 : n + 1;
+        var extra = set(ui, n) || 0;
+        timer = setTimeout(next, n >= last ? 3200 : (n === 0 ? 700 : tick + extra));
+      }
+      set(ui, 0);
+      if (!('IntersectionObserver' in window)){ live = true; next(); return; }
+      new IntersectionObserver(function(es){ es.forEach(function(e){
+        if (e.isIntersecting && !live){ live = true; clearTimeout(timer); timer = setTimeout(next, 500); }
+        else if (!e.isIntersecting && live){ live = false; clearTimeout(timer); }
+      }); }, {threshold: .35}).observe(ui.closest('.dev,.mbp') || ui);
+    }
+    return {set: set, auto: auto, max: max};
+  })();
+  window.__shSeq = SEQ;
+  document.querySelectorAll('.ui[data-tick]').forEach(function(ui){ if (!ui.closest('.dev.big')) SEQ.auto(ui); });
+
+  /* pinned three-tab story */
+  var pin = document.querySelector('.pin'), panels = pin.querySelectorAll('.panel'),
+      tabs = pin.querySelectorAll('.tabs button'), ind = pin.querySelector('.tabs .ind'),
+      msgs = pin.querySelectorAll('.panel-1 .msg'), mq = window.matchMedia('(max-width:900px)'), cur = -1,
+      P1 = .26, P2 = .74, big = pin.querySelector('.dev.big'), bigUI = big && big.querySelector('.ui'),
+      map = pin.querySelector('.map'), lnodes = pin.querySelectorAll('.lnode'), body2 = pin.querySelector('.panel-2 .panel-body');
+  var STEPQ = [.04, .17, .31, .45, .59, .74];
+  function layerStep(n){ SEQ.set(bigUI, n); lnodes.forEach(function(el){ var s = +el.dataset.l; el.classList.toggle('lit', n >= s); el.classList.toggle('cur', n === s); }); }
+  function fitBig(){ if (!big) return; if (mq.matches){ big.style.removeProperty('--k'); return; }
+    var k = Math.max(.42, Math.min(.8, body2.clientHeight / 872)); big.style.setProperty('--k', k.toFixed(4)); map.style.setProperty('--pw', (413 * k).toFixed(1) + 'px'); }
+  function moveInd(i){ var b = tabs[i]; ind.style.left = b.offsetLeft + 'px'; ind.style.width = b.offsetWidth + 'px'; }
+  function setPanel(i){
+    if (i === cur) return; cur = i;
+    panels.forEach(function(p, k){ p.classList.toggle('on', k === i); });
+    tabs.forEach(function(t, k){ t.classList.toggle('on', k === i); t.setAttribute('aria-selected', k === i); });
+    moveInd(i);
+  }
+  function onScroll(){
+    if (mq.matches){ msgs.forEach(function(m){ m.classList.add('in'); }); return; }
+    var r = pin.getBoundingClientRect(), total = pin.offsetHeight - window.innerHeight;
+    var p = Math.min(1, Math.max(0, -r.top / total));
+    var i = p < P1 ? 0 : (p < P2 ? 1 : 2);
+    setPanel(i);
+    // panel 1: messages appear one by one across its stretch
+    var local = Math.min(1, p / P1 / 0.85);
+    msgs.forEach(function(m, k){ m.classList.toggle('in', reduce || local > (k + 0.4) / (msgs.length + 0.4)); });
+    // panel 2: the phone walks through L1 -> L4 -> decision as you scroll
+    if (bigUI){ var q = (p - P1) / (P2 - P1), n = 0; STEPQ.forEach(function(t, k){ if (q >= t) n = k + 1; }); layerStep(n); }
+  }
+  tabs.forEach(function(t){ t.addEventListener('click', function(){
+    var i = +t.dataset.go, total = pin.offsetHeight - window.innerHeight;
+    var top = pin.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({top: top + total * [0.2, P1 + 0.03, P2 + 0.08][i], behavior: reduce ? 'auto' : 'smooth'});
+  }); });
+  window.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('resize', function(){ moveInd(Math.max(cur,0)); fitBig(); onScroll(); });
+  fitBig(); if (bigUI && mq.matches) SEQ.auto(bigUI);
+  if (bigUI){ var lmo = new MutationObserver(function(){ var n = bigUI._step || 0; lnodes.forEach(function(el){ var s = +el.dataset.l; el.classList.toggle('lit', n >= s); el.classList.toggle('cur', n === s); }); });
+    lmo.observe(bigUI, {subtree: true, attributes: true, attributeFilter: ['class']}); }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ moveInd(Math.max(cur,0)); });
+  setPanel(0); onScroll();
+
+  /* stories carousel */
+  var track = document.getElementById('track'), cards = track.querySelectorAll('.story'),
+      dots = document.getElementById('dots');
+  cards.forEach(function(c, k){
+    var d = document.createElement('button'); d.setAttribute('aria-label', 'Story ' + (k + 1));
+    d.addEventListener('click', function(){ go(k); }); dots.appendChild(d);
+  });
+  function go(k){ k = Math.max(0, Math.min(cards.length - 1, k)); var c = cards[k];
+    track.scrollTo({left: c.offsetLeft - (track.clientWidth - c.offsetWidth) / 2, behavior: reduce ? 'auto' : 'smooth'}); }
+  function active(){ var mid = track.scrollLeft + track.clientWidth / 2, best = 0, bd = 1e9;
+    cards.forEach(function(c, k){ var d = Math.abs(c.offsetLeft + c.offsetWidth / 2 - mid); if (d < bd){ bd = d; best = k; } });
+    return best; }
+  function syncDots(){ var a = active(); dots.querySelectorAll('button').forEach(function(d, k){ d.classList.toggle('on', k === a); }); }
+  track.addEventListener('scroll', function(){ window.requestAnimationFrame(syncDots); }, {passive:true});
+  document.getElementById('prev').addEventListener('click', function(){ go(active() - 1); });
+  document.getElementById('next').addEventListener('click', function(){ go(active() + 1); });
+  syncDots();
+})();
+</script>
+</body>
+</html>

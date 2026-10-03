@@ -2518,5 +2518,14 @@ App.init();
 })();
 </script>
 
+<!-- Voice mode (BETA, local prototype). Loads ONLY with /app?voice=1 and needs the
+     local voice service on 127.0.0.1:5077 (~/silenthelp-voice). Spoken turns go
+     through the same App.send() path, so all detection / crisis handling is unchanged. -->
+<script>
+if (/[?&]voice=(1|open)(&|$)/.test(location.search)) {
+  var shv = document.createElement('script'); shv.src = '/static/voice-mode.js?v=3'; document.body.appendChild(shv);
+}
+</script>
+
 </body>
 </html>
