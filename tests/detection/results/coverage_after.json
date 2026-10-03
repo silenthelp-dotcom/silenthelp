@@ -1,0 +1,370 @@
+{
+ "label": "working-tree",
+ "db_terms": 499,
+ "plain_full": 499,
+ "plain_detected": 499,
+ "variants": 10799,
+ "variants_full": 10786,
+ "variants_detected": 10786,
+ "per_group": {
+  "level1.states": {
+   "terms": 56,
+   "plain_det": 56,
+   "plain_full": 56,
+   "sent_det": 56,
+   "sent_full": 56,
+   "var_n": 1228,
+   "var_det": 1227,
+   "var_full": 1227
+  },
+  "level2.states": {
+   "terms": 101,
+   "plain_det": 101,
+   "plain_full": 101,
+   "sent_det": 101,
+   "sent_full": 101,
+   "var_n": 2219,
+   "var_det": 2218,
+   "var_full": 2218
+  },
+  "level3.self_harm_actions": {
+   "terms": 123,
+   "plain_det": 123,
+   "plain_full": 123,
+   "sent_det": 123,
+   "sent_full": 123,
+   "var_n": 2675,
+   "var_det": 2673,
+   "var_full": 2673
+  },
+  "level3.reported_crisis_actions": {
+   "terms": 26,
+   "plain_det": 26,
+   "plain_full": 26,
+   "sent_det": 26,
+   "sent_full": 26,
+   "var_n": 568,
+   "var_det": 568,
+   "var_full": 568
+  },
+  "level3.threat_actions": {
+   "terms": 22,
+   "plain_det": 22,
+   "plain_full": 22,
+   "sent_det": 22,
+   "sent_full": 22,
+   "var_n": 479,
+   "var_det": 478,
+   "var_full": 478
+  },
+  "level3.violent_actions": {
+   "terms": 24,
+   "plain_det": 24,
+   "plain_full": 24,
+   "sent_det": 24,
+   "sent_full": 24,
+   "var_n": 500,
+   "var_det": 495,
+   "var_full": 495
+  },
+  "level1.exact": {
+   "terms": 6,
+   "plain_det": 6,
+   "plain_full": 6,
+   "sent_det": 6,
+   "sent_full": 6,
+   "var_n": 130,
+   "var_det": 130,
+   "var_full": 130
+  },
+  "level2.exact": {
+   "terms": 40,
+   "plain_det": 40,
+   "plain_full": 40,
+   "sent_det": 40,
+   "sent_full": 40,
+   "var_n": 880,
+   "var_det": 880,
+   "var_full": 880
+  },
+  "level3.exact": {
+   "terms": 65,
+   "plain_det": 65,
+   "plain_full": 65,
+   "sent_det": 65,
+   "sent_full": 65,
+   "var_n": 1404,
+   "var_det": 1404,
+   "var_full": 1404
+  },
+  "fuzzy_words": {
+   "terms": 36,
+   "plain_det": 36,
+   "plain_full": 36,
+   "sent_det": 36,
+   "sent_full": 36,
+   "var_n": 716,
+   "var_det": 713,
+   "var_full": 713
+  },
+  "slang(not in db)": {
+   "terms": 20,
+   "plain_det": 20,
+   "plain_full": 20,
+   "sent_det": 20,
+   "sent_full": 20,
+   "var_n": 391,
+   "var_det": 388,
+   "var_full": 388
+  }
+ },
+ "per_variant": {
+  "sentence": [
+   519,
+   519,
+   519
+  ],
+  "upper": [
+   519,
+   519,
+   519
+  ],
+  "mixed_case": [
+   519,
+   519,
+   519
+  ],
+  "title": [
+   519,
+   519,
+   519
+  ],
+  "punct_bang": [
+   519,
+   519,
+   519
+  ],
+  "punct_ellipsis": [
+   519,
+   519,
+   519
+  ],
+  "punct_wrapped": [
+   519,
+   519,
+   519
+  ],
+  "emoji_end": [
+   519,
+   519,
+   519
+  ],
+  "emoji_start": [
+   519,
+   519,
+   519
+  ],
+  "emoji_mid": [
+   519,
+   519,
+   519
+  ],
+  "double_space": [
+   519,
+   519,
+   519
+  ],
+  "slang_contract": [
+   519,
+   519,
+   519
+  ],
+  "no_space": [
+   457,
+   457,
+   457
+  ],
+  "hyphenated": [
+   457,
+   457,
+   457
+  ],
+  "spaced_letters": [
+   517,
+   517,
+   517
+  ],
+  "leet": [
+   496,
+   496,
+   496
+  ],
+  "leet_symbols": [
+   482,
+   482,
+   482
+  ],
+  "stretched": [
+   517,
+   517,
+   517
+  ],
+  "stretched_end": [
+   517,
+   517,
+   517
+  ],
+  "typo_drop": [
+   502,
+   490,
+   490
+  ],
+  "typo_swap": [
+   502,
+   500,
+   500
+  ],
+  "typo_double": [
+   502,
+   501,
+   501
+  ],
+  "dotted": [
+   13,
+   12,
+   12
+  ]
+ },
+ "guard_failures": [],
+ "missed_plain": [],
+ "missed_variants": [
+  [
+   "level1.states",
+   "too busy to rest",
+   "typo_drop",
+   "ngl im too buy to rest rn",
+   0,
+   1
+  ],
+  [
+   "level2.states",
+   "so lost",
+   "typo_drop",
+   "honestly im so lot lately",
+   0,
+   2
+  ],
+  [
+   "level3.self_harm_actions",
+   "left a note",
+   "typo_drop",
+   "ok so honestly let a note, idk",
+   0,
+   4
+  ],
+  [
+   "level3.self_harm_actions",
+   "starve myself",
+   "typo_drop",
+   "ok so honestly stave myself, idk",
+   0,
+   4
+  ],
+  [
+   "level3.threat_actions",
+   "hurt me",
+   "typo_drop",
+   "he threatened to hut me",
+   0,
+   4
+  ],
+  [
+   "level3.violent_actions",
+   "beat up",
+   "typo_drop",
+   "im going to bet up him",
+   0,
+   4
+  ],
+  [
+   "level3.violent_actions",
+   "hurt",
+   "typo_drop",
+   "im going to hut him",
+   0,
+   4
+  ],
+  [
+   "level3.violent_actions",
+   "make pay",
+   "typo_drop",
+   "im going to mae him pay",
+   0,
+   4
+  ],
+  [
+   "level3.violent_actions",
+   "shoot",
+   "typo_drop",
+   "im going to shot him",
+   0,
+   4
+  ],
+  [
+   "level3.violent_actions",
+   "take out",
+   "typo_drop",
+   "im going to tae out him",
+   0,
+   4
+  ],
+  [
+   "fuzzy_words",
+   "scared",
+   "typo_double",
+   "i feel scarred",
+   0,
+   2
+  ],
+  [
+   "fuzzy_words",
+   "tired",
+   "typo_drop",
+   "i feel tied",
+   0,
+   1
+  ],
+  [
+   "fuzzy_words",
+   "tired",
+   "typo_swap",
+   "i feel tried",
+   0,
+   1
+  ],
+  [
+   "slang(not in db)",
+   "sewer slide",
+   "typo_drop",
+   "thinking about seer slide ngl",
+   0,
+   4
+  ],
+  [
+   "slang(not in db)",
+   "sh",
+   "dotted",
+   "i relapsed on s.h last night",
+   0,
+   3
+  ],
+  [
+   "slang(not in db)",
+   "kmsss",
+   "typo_swap",
+   "ksmss",
+   0,
+   4
+  ]
+ ]
+}

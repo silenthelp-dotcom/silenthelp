@@ -1,0 +1,1929 @@
+{
+ "schema": "silenthelp.eval/v1",
+ "scoring": {
+  "joke": "pass if final level <= 1 (none/low: no popup)",
+  "benign": "pass if final level <= 1",
+  "ambiguous": "pass if final level >= 1 (lean toward flagging)",
+  "serious": "pass if final level >= 2 (moderate+), or >= 3 (high/crisis, shows 988/741741) when acute"
+ },
+ "levels": {
+  "0": "none",
+  "1": "low",
+  "2": "moderate",
+  "3": "high",
+  "4": "crisis"
+ },
+ "items": [
+  {
+   "id": "joke-001",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "this homework is killing me",
+   "note": ""
+  },
+  {
+   "id": "joke-002",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "I'm gonna die lol",
+   "note": ""
+  },
+  {
+   "id": "joke-003",
+   "split": "holdout",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "kms this test 💀",
+   "note": ""
+  },
+  {
+   "id": "joke-004",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "bro if i have to sit through one more ted talk in english class i'm gonna kms",
+   "note": ""
+  },
+  {
+   "id": "joke-005",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "my mom is gonna kill me when she sees this grade 😭",
+   "note": ""
+  },
+  {
+   "id": "joke-006",
+   "split": "holdout",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "i literally died when he walked in 💀💀",
+   "note": ""
+  },
+  {
+   "id": "joke-007",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "this chem lab is the death of me",
+   "note": ""
+  },
+  {
+   "id": "joke-008",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "ugh mondays make me want to die lmao",
+   "note": ""
+  },
+  {
+   "id": "joke-009",
+   "split": "holdout",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "i'd rather die than present first",
+   "note": ""
+  },
+  {
+   "id": "joke-010",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "if the wifi cuts out one more time i'm throwing myself out the window lol",
+   "note": ""
+  },
+  {
+   "id": "joke-011",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "coach made us run suicides for an hour, i'm dead",
+   "note": ""
+  },
+  {
+   "id": "joke-012",
+   "split": "holdout",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "that comeback was so savage i'm deceased",
+   "note": ""
+  },
+  {
+   "id": "joke-013",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "she's gonna murder me for spoiling the finale",
+   "note": ""
+  },
+  {
+   "id": "joke-014",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "kill me now, group project with tyler again",
+   "note": ""
+  },
+  {
+   "id": "joke-015",
+   "split": "holdout",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "omg i want to die that was so embarrassing hahaha",
+   "note": ""
+  },
+  {
+   "id": "joke-016",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "ap calc is actually going to be the end of me",
+   "note": ""
+  },
+  {
+   "id": "joke-017",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "i'm literally dying of cringe rn",
+   "note": ""
+  },
+  {
+   "id": "joke-018",
+   "split": "holdout",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "i will end you in mario kart tonight",
+   "note": ""
+  },
+  {
+   "id": "joke-019",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "we're gonna get destroyed in the game friday lol",
+   "note": ""
+  },
+  {
+   "id": "joke-020",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "dead ass this cafeteria pizza is a crime",
+   "note": ""
+  },
+  {
+   "id": "joke-021",
+   "split": "holdout",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "my brain is fried, someone put me out of my misery 😂",
+   "note": ""
+  },
+  {
+   "id": "joke-022",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "if i fail this quiz i'm moving to antarctica and changing my name",
+   "note": ""
+  },
+  {
+   "id": "joke-023",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "kys 😂 jk that meme was fire",
+   "note": ""
+  },
+  {
+   "id": "joke-024",
+   "split": "holdout",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "i'm so done with this semester 🙄",
+   "note": ""
+  },
+  {
+   "id": "joke-025",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "this playlist hits so hard i could cry",
+   "note": ""
+  },
+  {
+   "id": "joke-026",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "physics is trying to kill me fr",
+   "note": ""
+  },
+  {
+   "id": "joke-027",
+   "split": "holdout",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "i'm about to crash out over this essay lmao",
+   "note": ""
+  },
+  {
+   "id": "joke-028",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "today was so long i'm literally a corpse",
+   "note": ""
+  },
+  {
+   "id": "joke-029",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "hang me, i forgot my own presentation date 💀",
+   "note": ""
+  },
+  {
+   "id": "joke-030",
+   "split": "holdout",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "the way i'd sell my soul for a snow day",
+   "note": ""
+  },
+  {
+   "id": "joke-031",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "that test cooked me, i'm cooked, we're all cooked",
+   "note": ""
+  },
+  {
+   "id": "joke-032",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "i'm gonna strangle my brother he ate my leftovers",
+   "note": ""
+  },
+  {
+   "id": "joke-033",
+   "split": "holdout",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "i'm dying to see the new spiderman",
+   "note": ""
+  },
+  {
+   "id": "joke-034",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "we killed it at the debate tournament!!",
+   "note": ""
+  },
+  {
+   "id": "joke-035",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "rip my sleep schedule ⚰️",
+   "note": ""
+  },
+  {
+   "id": "joke-036",
+   "split": "holdout",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "i'm so tired i could sleep for a hundred years lol",
+   "note": ""
+  },
+  {
+   "id": "joke-037",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "homework is my villain origin story",
+   "note": ""
+  },
+  {
+   "id": "joke-038",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "brb gonna go cry in the shower about this grade lol",
+   "note": ""
+  },
+  {
+   "id": "joke-039",
+   "split": "holdout",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "i'm literally shaking i got front row tickets!!!",
+   "note": ""
+  },
+  {
+   "id": "joke-040",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "if i hear that song one more time i'm going to lose it 😂",
+   "note": ""
+  },
+  {
+   "id": "joke-041",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "my teacher said the test is easy. i'm going to die lmaooo",
+   "note": ""
+  },
+  {
+   "id": "joke-042",
+   "split": "holdout",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "lowkey wanna die every time i hear my voice on a recording lol",
+   "note": ""
+  },
+  {
+   "id": "joke-043",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "send help i agreed to babysit 4 kids",
+   "note": ""
+  },
+  {
+   "id": "joke-044",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "i shot my shot and got rejected 💀 rip me",
+   "note": ""
+  },
+  {
+   "id": "joke-045",
+   "split": "holdout",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "this cold is killing me ngl, i've been sneezing all day",
+   "note": ""
+  },
+  {
+   "id": "joke-046",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "i'm drowning in college apps lol",
+   "note": ""
+  },
+  {
+   "id": "joke-047",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "if my parents see my screen time i'm a dead man",
+   "note": ""
+  },
+  {
+   "id": "joke-048",
+   "split": "holdout",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "unalive me pls this zoom is 3 hours",
+   "note": ""
+  },
+  {
+   "id": "joke-049",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "ngl that horror movie scared me to death",
+   "note": ""
+  },
+  {
+   "id": "joke-050",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "my fantasy team died this week",
+   "note": ""
+  },
+  {
+   "id": "joke-051",
+   "split": "holdout",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "i'm suicidal over this lineup change lmao",
+   "note": ""
+  },
+  {
+   "id": "joke-052",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "kmsss my sister just used my toothbrush 🤢",
+   "note": ""
+  },
+  {
+   "id": "joke-053",
+   "split": "dev",
+   "kind": "joke",
+   "label": "joke",
+   "acute": false,
+   "history": [],
+   "text": "the bio final is gonna end me i swear 😭",
+   "note": ""
+  },
+  {
+   "id": "seri-001",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i'm going to kill myself tonight",
+   "note": ""
+  },
+  {
+   "id": "seri-002",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i have the pills saved up and i think tonight is the night",
+   "note": ""
+  },
+  {
+   "id": "seri-003",
+   "split": "holdout",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i wrote letters to my family. i just want them to know it's not their fault",
+   "note": ""
+  },
+  {
+   "id": "seri-004",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i looked up how many of my mom's sleeping pills it would take",
+   "note": ""
+  },
+  {
+   "id": "seri-005",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "my dad keeps his gun in the closet and i keep thinking about it",
+   "note": ""
+  },
+  {
+   "id": "seri-006",
+   "split": "holdout",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i don't want to be alive anymore",
+   "note": ""
+  },
+  {
+   "id": "seri-007",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i've been cutting again and it's getting deeper",
+   "note": ""
+  },
+  {
+   "id": "seri-008",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i'm giving my stuff away to my friends this week, they can have it more than me",
+   "note": ""
+  },
+  {
+   "id": "seri-009",
+   "split": "holdout",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "this is my last message. thank you for being my friend",
+   "note": ""
+  },
+  {
+   "id": "seri-010",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i'm standing on the bridge right now",
+   "note": ""
+  },
+  {
+   "id": "seri-011",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i keep planning how i'd do it",
+   "note": ""
+  },
+  {
+   "id": "seri-012",
+   "split": "holdout",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i can't stop thinking about ending it all",
+   "note": ""
+  },
+  {
+   "id": "seri-013",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "lol i'm going to kms for real this time, i'm not joking",
+   "note": ""
+  },
+  {
+   "id": "seri-014",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i'm not kidding i want to die",
+   "note": ""
+  },
+  {
+   "id": "seri-015",
+   "split": "holdout",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i already decided. friday after school.",
+   "note": ""
+  },
+  {
+   "id": "seri-016",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i hurt myself again last night so i could feel something",
+   "note": ""
+  },
+  {
+   "id": "seri-017",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i want to disappear forever and never come back",
+   "note": ""
+  },
+  {
+   "id": "seri-018",
+   "split": "holdout",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "my stepdad hits me when he's drunk and i'm scared to go home",
+   "note": ""
+  },
+  {
+   "id": "seri-019",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i haven't eaten in four days, i don't deserve food",
+   "note": ""
+  },
+  {
+   "id": "seri-020",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "he said if i tell anyone he'll kill me",
+   "note": ""
+  },
+  {
+   "id": "seri-021",
+   "split": "holdout",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "my friend said she's going to take all her pills tonight and made me promise not to tell",
+   "note": ""
+  },
+  {
+   "id": "seri-022",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "I don't see the point anymore",
+   "note": ""
+  },
+  {
+   "id": "seri-023",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "everyone would be better off",
+   "note": ""
+  },
+  {
+   "id": "seri-024",
+   "split": "holdout",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i'm so tired of everything. not sleepy tired. just tired of existing",
+   "note": ""
+  },
+  {
+   "id": "seri-025",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "nobody would even notice if i stopped showing up to anything",
+   "note": ""
+  },
+  {
+   "id": "seri-026",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": false,
+   "history": [],
+   "text": "i feel like a burden to everyone around me",
+   "note": ""
+  },
+  {
+   "id": "seri-027",
+   "split": "holdout",
+   "kind": "serious",
+   "label": "serious",
+   "acute": false,
+   "history": [],
+   "text": "what's even the point of trying when nothing ever gets better",
+   "note": ""
+  },
+  {
+   "id": "seri-028",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i just want to sleep and not wake up for a really long time",
+   "note": ""
+  },
+  {
+   "id": "seri-029",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "it doesn't matter anymore, soon it won't be my problem",
+   "note": ""
+  },
+  {
+   "id": "seri-030",
+   "split": "holdout",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i don't think i'll be around much longer",
+   "note": ""
+  },
+  {
+   "id": "seri-031",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": false,
+   "history": [],
+   "text": "i feel empty all the time, like i'm just going through the motions",
+   "note": ""
+  },
+  {
+   "id": "seri-032",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": false,
+   "history": [],
+   "text": "i'm done trying. i've been done for a while",
+   "note": ""
+  },
+  {
+   "id": "seri-033",
+   "split": "holdout",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "sometimes i wonder if my family would even cry",
+   "note": ""
+  },
+  {
+   "id": "seri-034",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": false,
+   "history": [],
+   "text": "i can't keep pretending i'm okay",
+   "note": ""
+  },
+  {
+   "id": "seri-035",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": false,
+   "history": [],
+   "text": "i haven't felt anything in weeks. not happy not sad just nothing",
+   "note": ""
+  },
+  {
+   "id": "seri-036",
+   "split": "holdout",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i wish i could just stop existing for a while",
+   "note": ""
+  },
+  {
+   "id": "seri-037",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": false,
+   "history": [],
+   "text": "my life is a waste of space honestly",
+   "note": ""
+  },
+  {
+   "id": "seri-038",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i keep thinking everyone's lives would be easier without me in them",
+   "note": ""
+  },
+  {
+   "id": "seri-039",
+   "split": "holdout",
+   "kind": "serious",
+   "label": "serious",
+   "acute": false,
+   "history": [],
+   "text": "i'm tired of being the problem in every room",
+   "note": ""
+  },
+  {
+   "id": "seri-040",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": false,
+   "history": [],
+   "text": "there's no way things get better for someone like me",
+   "note": ""
+  },
+  {
+   "id": "seri-041",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i don't want to do this anymore. any of it.",
+   "note": ""
+  },
+  {
+   "id": "seri-042",
+   "split": "holdout",
+   "kind": "serious",
+   "label": "serious",
+   "acute": false,
+   "history": [],
+   "text": "i hate myself so much it physically hurts",
+   "note": ""
+  },
+  {
+   "id": "seri-043",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": false,
+   "history": [],
+   "text": "i've been having panic attacks every night and i can't breathe",
+   "note": ""
+  },
+  {
+   "id": "seri-044",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i stopped taking my meds and i don't really care what happens",
+   "note": ""
+  },
+  {
+   "id": "seri-045",
+   "split": "holdout",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i think i'm a burden and i'm starting to think they'd be happier if i was gone",
+   "note": ""
+  },
+  {
+   "id": "seri-046",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": false,
+   "history": [],
+   "text": "nothing makes me happy anymore and i can't remember the last time it did",
+   "note": ""
+  },
+  {
+   "id": "seri-047",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": false,
+   "history": [],
+   "text": "i've been drinking every night just to fall asleep",
+   "note": ""
+  },
+  {
+   "id": "seri-048",
+   "split": "holdout",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i'm scared of what i might do to myself",
+   "note": ""
+  },
+  {
+   "id": "seri-049",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": false,
+   "history": [],
+   "text": "im so lonely i talk to myself just to hear someone",
+   "note": ""
+  },
+  {
+   "id": "seri-050",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": false,
+   "history": [],
+   "text": "i don't belong anywhere and i never will",
+   "note": ""
+  },
+  {
+   "id": "seri-051",
+   "split": "holdout",
+   "kind": "serious",
+   "label": "serious",
+   "acute": false,
+   "history": [],
+   "text": "i keep saying i'm fine but i'm really not fine",
+   "note": ""
+  },
+  {
+   "id": "seri-052",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": false,
+   "history": [],
+   "text": "i miss when i used to want things",
+   "note": ""
+  },
+  {
+   "id": "seri-053",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "ill b gone soon dont worry abt it",
+   "note": ""
+  },
+  {
+   "id": "seri-054",
+   "split": "holdout",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "i just wanna go to sleep forever 😔",
+   "note": ""
+  },
+  {
+   "id": "seri-055",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": false,
+   "history": [],
+   "text": "i made myself throw up after dinner again",
+   "note": ""
+  },
+  {
+   "id": "seri-056",
+   "split": "dev",
+   "kind": "serious",
+   "label": "serious",
+   "acute": false,
+   "history": [],
+   "text": "might just not show up tomorrow. or ever 🙃",
+   "note": ""
+  },
+  {
+   "id": "seri-057",
+   "split": "holdout",
+   "kind": "serious",
+   "label": "serious",
+   "acute": true,
+   "history": [],
+   "text": "sometimes i think about not being here",
+   "note": ""
+  },
+  {
+   "id": "ambi-001",
+   "split": "dev",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "i'm so done",
+   "note": ""
+  },
+  {
+   "id": "ambi-002",
+   "split": "dev",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "i can't do this anymore",
+   "note": ""
+  },
+  {
+   "id": "ambi-003",
+   "split": "holdout",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "i just want it all to stop",
+   "note": ""
+  },
+  {
+   "id": "ambi-004",
+   "split": "dev",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "lmao i'm gonna jump off the roof if he texts me back 'k' again",
+   "note": ""
+  },
+  {
+   "id": "ambi-005",
+   "split": "dev",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "whatever, it doesn't matter",
+   "note": ""
+  },
+  {
+   "id": "ambi-006",
+   "split": "holdout",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "i'm tired",
+   "note": ""
+  },
+  {
+   "id": "ambi-007",
+   "split": "dev",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "honestly what's the point lol",
+   "note": ""
+  },
+  {
+   "id": "ambi-008",
+   "split": "dev",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "no one gets it",
+   "note": ""
+  },
+  {
+   "id": "ambi-009",
+   "split": "holdout",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "kms",
+   "note": ""
+  },
+  {
+   "id": "ambi-010",
+   "split": "dev",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "i want to die",
+   "note": ""
+  },
+  {
+   "id": "ambi-011",
+   "split": "dev",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "everything sucks and i hate it here",
+   "note": ""
+  },
+  {
+   "id": "ambi-012",
+   "split": "holdout",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "i don't even care anymore",
+   "note": ""
+  },
+  {
+   "id": "ambi-013",
+   "split": "dev",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "i feel like i'm drowning",
+   "note": ""
+  },
+  {
+   "id": "ambi-014",
+   "split": "dev",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "i wish i could disappear lol",
+   "note": ""
+  },
+  {
+   "id": "ambi-015",
+   "split": "holdout",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "i'm a failure",
+   "note": ""
+  },
+  {
+   "id": "ambi-016",
+   "split": "dev",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "i just want to run away",
+   "note": ""
+  },
+  {
+   "id": "ambi-017",
+   "split": "dev",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "life is pointless 💀",
+   "note": ""
+  },
+  {
+   "id": "ambi-018",
+   "split": "holdout",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "nobody cares",
+   "note": ""
+  },
+  {
+   "id": "ambi-019",
+   "split": "dev",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "i hate my life lol",
+   "note": ""
+  },
+  {
+   "id": "ambi-020",
+   "split": "dev",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "can't wait for this to all be over",
+   "note": ""
+  },
+  {
+   "id": "ambi-021",
+   "split": "holdout",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "goodbye everyone",
+   "note": ""
+  },
+  {
+   "id": "ambi-022",
+   "split": "dev",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "i'm so sick of being me",
+   "note": ""
+  },
+  {
+   "id": "ambi-023",
+   "split": "dev",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "i don't want to wake up tomorrow lol",
+   "note": ""
+  },
+  {
+   "id": "ambi-024",
+   "split": "holdout",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "whats the point of anything",
+   "note": ""
+  },
+  {
+   "id": "ambi-025",
+   "split": "dev",
+   "kind": "ambiguous",
+   "label": "ambiguous",
+   "acute": false,
+   "history": [],
+   "text": "i'm so tired of trying",
+   "note": ""
+  },
+  {
+   "id": "beni-001",
+   "split": "dev",
+   "kind": "benign",
+   "label": "benign",
+   "acute": false,
+   "history": [],
+   "text": "what's the chem homework for tomorrow",
+   "note": ""
+  },
+  {
+   "id": "beni-002",
+   "split": "dev",
+   "kind": "benign",
+   "label": "benign",
+   "acute": false,
+   "history": [],
+   "text": "i got a 94 on my history test!!",
+   "note": ""
+  },
+  {
+   "id": "beni-003",
+   "split": "holdout",
+   "kind": "benign",
+   "label": "benign",
+   "acute": false,
+   "history": [],
+   "text": "we ran 5 kms at practice today",
+   "note": ""
+  },
+  {
+   "id": "beni-004",
+   "split": "dev",
+   "kind": "benign",
+   "label": "benign",
+   "acute": false,
+   "history": [],
+   "text": "my new skill is juggling",
+   "note": ""
+  },
+  {
+   "id": "beni-005",
+   "split": "dev",
+   "kind": "benign",
+   "label": "benign",
+   "acute": false,
+   "history": [],
+   "text": "i'm dyeing my hair blue this weekend",
+   "note": ""
+  },
+  {
+   "id": "beni-006",
+   "split": "holdout",
+   "kind": "benign",
+   "label": "benign",
+   "acute": false,
+   "history": [],
+   "text": "the character dies at the end of the book and i'm so mad",
+   "note": ""
+  },
+  {
+   "id": "beni-007",
+   "split": "dev",
+   "kind": "benign",
+   "label": "benign",
+   "acute": false,
+   "history": [],
+   "text": "our school is doing a suicide prevention assembly tomorrow",
+   "note": ""
+  },
+  {
+   "id": "beni-008",
+   "split": "dev",
+   "kind": "benign",
+   "label": "benign",
+   "acute": false,
+   "history": [],
+   "text": "can someone send me the notes from bio",
+   "note": ""
+  },
+  {
+   "id": "beni-009",
+   "split": "holdout",
+   "kind": "benign",
+   "label": "benign",
+   "acute": false,
+   "history": [],
+   "text": "i need to cut my hair so bad",
+   "note": ""
+  },
+  {
+   "id": "beni-010",
+   "split": "dev",
+   "kind": "benign",
+   "label": "benign",
+   "acute": false,
+   "history": [],
+   "text": "lol my dog just fell off the couch",
+   "note": ""
+  },
+  {
+   "id": "conv-001",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": true,
+   "history": [
+    "i've been feeling really low for weeks",
+    "i don't think anyone would care if i was gone"
+   ],
+   "text": "lol jk",
+   "note": "retraction after disclosure"
+  },
+  {
+   "id": "conv-002",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": true,
+   "history": [
+    "i'm so tired of everything",
+    "i've been thinking about how to make it stop"
+   ],
+   "text": "i figured out how",
+   "note": ""
+  },
+  {
+   "id": "conv-003",
+   "split": "holdout",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": true,
+   "history": [
+    "nobody at school talks to me anymore",
+    "my parents don't get it either"
+   ],
+   "text": "it doesn't matter, i won't be a problem much longer",
+   "note": ""
+  },
+  {
+   "id": "conv-004",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": true,
+   "history": [
+    "i got the pills from my mom's cabinet"
+   ],
+   "text": "tonight",
+   "note": ""
+  },
+  {
+   "id": "conv-005",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": true,
+   "history": [
+    "i feel like a burden",
+    "everyone would be happier without me"
+   ],
+   "text": "anyway how was your day haha",
+   "note": "deflection after ideation"
+  },
+  {
+   "id": "conv-006",
+   "split": "holdout",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": true,
+   "history": [
+    "i don't see the point in anything",
+    "nothing ever gets better"
+   ],
+   "text": "i'm just so tired",
+   "note": "repeated hopelessness"
+  },
+  {
+   "id": "conv-007",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": true,
+   "history": [
+    "i hate myself",
+    "i keep messing everything up"
+   ],
+   "text": "kms 💀",
+   "note": ""
+  },
+  {
+   "id": "conv-008",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": true,
+   "history": [
+    "i said goodbye to my dog today",
+    "i wrote everyone notes"
+   ],
+   "text": "i'm at peace now 🙂",
+   "note": ""
+  },
+  {
+   "id": "conv-009",
+   "split": "holdout",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": true,
+   "history": [
+    "i haven't eaten since tuesday",
+    "i don't deserve to"
+   ],
+   "text": "it's fine lol",
+   "note": ""
+  },
+  {
+   "id": "conv-010",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": false,
+   "history": [
+    "school's been rough",
+    "my grades are tanking and my dad is furious"
+   ],
+   "text": "i honestly can't do this anymore",
+   "note": ""
+  },
+  {
+   "id": "conv-011",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": true,
+   "history": [
+    "i've been cutting again"
+   ],
+   "text": "don't tell anyone pls",
+   "note": ""
+  },
+  {
+   "id": "conv-012",
+   "split": "holdout",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": true,
+   "history": [
+    "im not okay",
+    "i keep thinking about dying"
+   ],
+   "text": "nvm forget i said anything",
+   "note": ""
+  },
+  {
+   "id": "conv-013",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": true,
+   "history": [
+    "my bf broke up with me",
+    "i can't stop crying"
+   ],
+   "text": "what's the point of anything now",
+   "note": ""
+  },
+  {
+   "id": "conv-014",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": true,
+   "history": [
+    "i bought a rope"
+   ],
+   "text": "don't worry about it",
+   "note": ""
+  },
+  {
+   "id": "conv-015",
+   "split": "holdout",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": true,
+   "history": [
+    "everyone hates me at school",
+    "i'm so alone"
+   ],
+   "text": "i want to disappear lol",
+   "note": ""
+  },
+  {
+   "id": "conv-016",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": false,
+   "history": [
+    "i've been really depressed",
+    "i don't want to talk to anyone"
+   ],
+   "text": "i'm fine now haha",
+   "note": ""
+  },
+  {
+   "id": "conv-017",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": true,
+   "history": [
+    "today was the worst day",
+    "i feel empty"
+   ],
+   "text": "goodnight everyone, thank you for everything",
+   "note": ""
+  },
+  {
+   "id": "conv-018",
+   "split": "holdout",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": true,
+   "history": [
+    "i don't want to go home",
+    "he gets angry when he drinks"
+   ],
+   "text": "i'll be ok i guess",
+   "note": ""
+  },
+  {
+   "id": "conv-019",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": true,
+   "history": [
+    "lol this homework is killing me",
+    "fr everything is killing me lately"
+   ],
+   "text": "honestly i don't even want to be here anymore",
+   "note": "joke escalating to serious"
+  },
+  {
+   "id": "conv-020",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": false,
+   "history": [
+    "haha i'm so dead tomorrow",
+    "test in every class"
+   ],
+   "text": "not even joking i can't keep doing this",
+   "note": ""
+  },
+  {
+   "id": "conv-021",
+   "split": "holdout",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": true,
+   "history": [
+    "kms this test lol"
+   ],
+   "text": "actually not joking i think about it a lot",
+   "note": ""
+  },
+  {
+   "id": "conv-022",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": false,
+   "history": [
+    "i'm so tired",
+    "of everything"
+   ],
+   "text": "lol",
+   "note": ""
+  },
+  {
+   "id": "conv-023",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": true,
+   "history": [
+    "i keep messing everything up",
+    "i always ruin things"
+   ],
+   "text": "maybe they'd be better off",
+   "note": ""
+  },
+  {
+   "id": "conv-024",
+   "split": "holdout",
+   "kind": "conversation",
+   "label": "serious",
+   "acute": false,
+   "history": [
+    "haha i failed again",
+    "of course i did"
+   ],
+   "text": "i'm such a waste lol",
+   "note": ""
+  },
+  {
+   "id": "conv-025",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "joke",
+   "acute": false,
+   "history": [
+    "omg the calc test is tomorrow",
+    "i haven't studied at all lol"
+   ],
+   "text": "i'm gonna die",
+   "note": ""
+  },
+  {
+   "id": "conv-026",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "joke",
+   "acute": false,
+   "history": [
+    "we're playing among us rn",
+    "jake is so sus"
+   ],
+   "text": "i'm gonna kill him lmao",
+   "note": ""
+  },
+  {
+   "id": "conv-027",
+   "split": "holdout",
+   "kind": "conversation",
+   "label": "joke",
+   "acute": false,
+   "history": [
+    "did u see the new episode",
+    "the ending was insane"
+   ],
+   "text": "i literally died 💀",
+   "note": ""
+  },
+  {
+   "id": "conv-028",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "joke",
+   "acute": false,
+   "history": [
+    "coach is making us do conditioning",
+    "like 20 suicides"
+   ],
+   "text": "kill me",
+   "note": ""
+  },
+  {
+   "id": "conv-029",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "joke",
+   "acute": false,
+   "history": [
+    "just got my essay back",
+    "a C after all that work"
+   ],
+   "text": "kms 😭",
+   "note": ""
+  },
+  {
+   "id": "conv-030",
+   "split": "holdout",
+   "kind": "conversation",
+   "label": "joke",
+   "acute": false,
+   "history": [
+    "my little brother keeps stealing my hoodies"
+   ],
+   "text": "i'm going to murder him",
+   "note": ""
+  },
+  {
+   "id": "conv-031",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "joke",
+   "acute": false,
+   "history": [
+    "fortnite tonight?",
+    "bet"
+   ],
+   "text": "imma destroy u",
+   "note": ""
+  },
+  {
+   "id": "conv-032",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "joke",
+   "acute": false,
+   "history": [
+    "the cafeteria food today was nasty"
+   ],
+   "text": "i'd rather starve lol",
+   "note": ""
+  },
+  {
+   "id": "conv-033",
+   "split": "holdout",
+   "kind": "conversation",
+   "label": "joke",
+   "acute": false,
+   "history": [
+    "ugh mondays",
+    "first period is chem"
+   ],
+   "text": "end me",
+   "note": ""
+  },
+  {
+   "id": "conv-034",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "joke",
+   "acute": false,
+   "history": [
+    "we lost the game by one point",
+    "the ref was blind"
+   ],
+   "text": "i want to die rn 😭",
+   "note": ""
+  },
+  {
+   "id": "conv-035",
+   "split": "dev",
+   "kind": "conversation",
+   "label": "joke",
+   "acute": false,
+   "history": [
+    "i got into my dream college!!!"
+   ],
+   "text": "i could die happy rn",
+   "note": ""
+  },
+  {
+   "id": "conv-036",
+   "split": "holdout",
+   "kind": "conversation",
+   "label": "joke",
+   "acute": false,
+   "history": [
+    "my phone died",
+    "and my charger is at home"
+   ],
+   "text": "i'm literally dead",
+   "note": ""
+  }
+ ]
+}

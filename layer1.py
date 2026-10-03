@@ -47,8 +47,12 @@ from __future__ import annotations
 
 import json
 import re
+import unicodedata
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List
+
+import context_signals
 
 _DB_DIR = Path(__file__).resolve().parent / "layer1_db"
 
@@ -192,10 +196,23 @@ def _pair_regex(doc: Dict[str, Any]) -> "re.Pattern | None":
     targets = [t for t in comp.get("person_targets", []) if isinstance(t, str)]
     if not actions or not targets:
         return None
+    # Some actions take their object in the MIDDLE: "make him disappear",
+    # "make them pay", "put him in the hospital". Stored as "make disappear" /
+    # "make pay" / "put in the hospital", they could never match real text.
+    split = []
+    for a in raw:
+        head, _, rest = a.partition(" ")
+        if head in ("make", "put") and rest:
+            heads = [head, {"make": "making", "put": "putting"}[head]]
+            split.append(rf"(?:{_alt(heads)})\s+(?:{_alt(targets)})\s+{re.escape(rest)}")
+    split_alt = ("|" + "|".join(split)) if split else ""
     return re.compile(
-        rf"(?<!\w)(?:{_alt(actions)})\s+(?:{_alt(targets)})(?!\w)",
+        rf"(?<!\w)(?:(?:{_alt(actions)})\s+(?:{_alt(targets)}){split_alt})(?!\w)",
         re.IGNORECASE | re.UNICODE,
     )
+
+
+_DB_PHRASES: set = set()  # every root/exact phrase, for the benign-idiom rule
 
 
 def _load_db() -> List[Dict[str, Any]]:
@@ -216,6 +233,11 @@ def _load_db() -> List[Dict[str, Any]]:
         ]
         # 3. exact standalone phrases
         exact = [e.lower() for e in doc.get("exact_high_precision_phrases", [])]
+        # "he's going to kill me" also as "hes gonna kill me" / "i dont wanna live"
+        for e in list(exact):
+            for v in _contraction_variants(e) + [e.replace("'", "")]:
+                if v not in exact:
+                    exact.append(v)
         exact_re = (
             re.compile(rf"(?<!\w)(?:{_alt(exact)})(?!\w)", re.IGNORECASE | re.UNICODE)
             if exact else None
@@ -229,6 +251,8 @@ def _load_db() -> List[Dict[str, Any]]:
         # per-level joke/idiom guard shipped by the pack
         neg = [re.compile(p, re.IGNORECASE) for p in doc.get("negative_context_regex", [])]
 
+        _DB_PHRASES.update(roots)
+        _DB_PHRASES.update(exact)
         levels.append({
             "file": fname,
             "severity": severity,
@@ -383,6 +407,11 @@ _SELF_ATTRIB_RE = re.compile(
 )
 # How far back to look for that attribution. One short clause.
 _ATTRIB_WINDOW = 40
+# Words that make a short message about someone/something else.
+_OTHER_SUBJECTS = frozenset("""
+my his her their our your he she they it this that the movie show book dog cat
+mom dad friend he's she's they're its it's
+""".split())
 
 
 def _fuzzy_scan(text: str, benign: List[tuple] | None = None) -> Dict[str, int]:
@@ -398,12 +427,18 @@ def _fuzzy_scan(text: str, benign: List[tuple] | None = None) -> Dict[str, int]:
     """
     found: Dict[str, int] = {}
     benign = benign or []
+    words = _WORD_RE.findall(text.lower())
+    # A message that is ONLY a feeling ("depressed", "so lonely", "tired af")
+    # has no other subject: in the student's own chat it is about them.
+    bare_feeling = (0 < len(words) <= 3
+                    and not any(w in _OTHER_SUBJECTS for w in words))
     for m in _WORD_RE.finditer(text.lower()):
         tok = m.group(0)
         if len(tok) < 3 or _is_real_word(tok):
             continue
         # Whose feeling is this? Look back one clause for a first-person marker.
-        if not _SELF_ATTRIB_RE.search(text, max(0, m.start() - _ATTRIB_WINDOW), m.start()):
+        if not bare_feeling and not _SELF_ATTRIB_RE.search(
+                text, max(0, m.start() - _ATTRIB_WINDOW), m.start()):
             continue
         if _in_benign(m.span(), benign):
             continue
@@ -463,6 +498,8 @@ _BENIGN_RE = re.compile(
     # matches the bare word "empty" inside it as level-3 hopelessness ("i feel
     # empty"), which escalated 408 everyday-stress phrases to an urgent crisis
     # popup. Same for the other fuel/capacity idioms.
+    | \b(?:run|running|ran|do|doing|did|made\s+us\s+(?:run|do))\s+(?:\w+\s+){0,2}suicides\b
+    | \b(?:like\s+)?\d+\s+suicides\b
     | \b(?:running|runnin)\s+on\s+(?:empty|fumes)\b
     | \b(?:out\s+of|low\s+on)\s+(?:gas|steam|juice|fuel|spoons|bandwidth)\b
     | \bempty\s+(?:stomach|calories|nest|handed|promise|threat|seat|chair|room|box|bottle|cup|glass|tank|file|folder|list|space)\b
@@ -538,6 +575,21 @@ def _benign_spans(text: str) -> List[tuple]:
 
 def _in_benign(span: tuple, benign: List[tuple]) -> bool:
     return any(s <= span[0] and span[1] <= e for s, e in benign)
+
+
+def _benign_swallows(span: tuple, phrase: str, benign: List[tuple]) -> bool:
+    """Like _in_benign, but a hit that is itself a database phrase survives
+    an idiom that ends exactly where it ends. The idiom list exists to stop
+    stray words inside a longer harmless phrase ("cut myself A SLICE",
+    "dying LAUGHING"); it was also silently deleting database entries that
+    happen to look like idioms ("running on empty", "done with this
+    homework"), which made those entries undetectable."""
+    for s, e in benign:
+        if s <= span[0] and span[1] <= e:
+            if e == span[1] and phrase in _DB_PHRASES:
+                continue
+            return True
+    return False
 
 
 # ---------------------------------------------------------------------------
@@ -629,22 +681,10 @@ CATEGORY_LEVEL = {
 LEVEL_NAME = {0: "none", 1: "low", 2: "moderate", 3: "high", 4: "crisis"}
 
 
-def scan(text: str, *, root_only: bool = True) -> Dict[str, Any]:
-    """Scan one chunk of text. Pure, fast, local. Returns a 1–4 severity level.
-
-    Runs all four matchers (pack grammar rules, legacy slot templates, exact
-    phrases, and starter-independent root vocabulary) and takes the max, so a
-    phrase is caught whether or not the user supplied a first-person starter.
-
-    `root_only` is accepted for call-site compatibility.
-    """
-    text = (text or "").replace("’", "'").replace("‘", "'")
-    text = re.sub(r"\s+", " ", text).strip().lower()
-    if not text:
-        return {"tier3": False, "matched": False, "categories": [], "hits": [],
-                "level": 0, "level_name": "none", "joking_context": False,
-                "received_threat": False}
-
+def _scan_core(text: str) -> Dict[str, Any]:
+    """Keyword scan of ONE already-normalised text (the original four
+    matchers). scan() runs this over several spellings of the message and then
+    applies context."""
     benign = _benign_spans(text)
     laugh_spans = [m.span() for m in _LAUGH_RE.finditer(text)]
     always_serious = bool(_ALWAYS_SERIOUS_RE.search(text))
@@ -663,9 +703,9 @@ def scan(text: str, *, root_only: bool = True) -> Dict[str, Any]:
     mundane = bool(_MUNDANE_OBJECT_RE.search(text))
 
     def _keep(m: "re.Match") -> bool:
-        if _in_benign(m.span(), benign):
-            return False
         phrase = m.group(0).lower()
+        if _benign_swallows(m.span(), phrase, benign):
+            return False
         if not always_serious and phrase in _HYPERBOLE and _near_laugh(m.span()):
             return False
         # An ambiguous root may be matched as part of a slightly longer span
@@ -689,20 +729,27 @@ def scan(text: str, *, root_only: bool = True) -> Dict[str, Any]:
         category = lvl["category"]
         tier = "3" if lvl["bypasses_gate"] else "1"
         # A level's own negative-context guard (jokes/idioms shipped by the
-        # pack). Explicit crisis phrasing overrides it.
-        if not always_serious and any(p.search(text) for p in lvl["neg"]):
-            continue
+        # pack). It used to skip the WHOLE level whenever it matched anywhere,
+        # so "i killed the exam but i want to die" lost its crisis hit. Now it
+        # only removes hits that overlap the idiom itself.
+        neg_spans = [m.span() for p in lvl["neg"] for m in p.finditer(text)]
+
+        def _keep_lvl(m: "re.Match") -> bool:
+            if any(s < m.end() and m.start() < e for s, e in neg_spans):
+                return False
+            return _keep(m)
+
         found = set()
         for _rid, pattern in lvl["rules"]:          # 1. pack grammar
-            found |= {m.group(0) for m in pattern.finditer(text) if _keep(m)}
+            found |= {m.group(0) for m in pattern.finditer(text) if _keep_lvl(m)}
         for _tid, pattern in lvl["templates"]:      # 2. legacy templates
-            found |= {m.group(0) for m in pattern.finditer(text) if _keep(m)}
+            found |= {m.group(0) for m in pattern.finditer(text) if _keep_lvl(m)}
         if lvl["exact_re"] is not None:             # 3. exact phrases
-            found |= {m.group(0) for m in lvl["exact_re"].finditer(text) if _keep(m)}
+            found |= {m.group(0) for m in lvl["exact_re"].finditer(text) if _keep_lvl(m)}
         if lvl["roots_re"] is not None:             # 4. starter-independent roots
-            found |= {m.group(0) for m in lvl["roots_re"].finditer(text) if _keep(m)}
+            found |= {m.group(0) for m in lvl["roots_re"].finditer(text) if _keep_lvl(m)}
         if lvl["pair_re"] is not None:              #    violent action + target
-            found |= {m.group(0) for m in lvl["pair_re"].finditer(text) if _keep(m)}
+            found |= {m.group(0) for m in lvl["pair_re"].finditer(text) if _keep_lvl(m)}
         if found:
             categories.append(category)
             if lvl["bypasses_gate"]:
@@ -734,6 +781,9 @@ def scan(text: str, *, root_only: bool = True) -> Dict[str, Any]:
         "level_name": LEVEL_NAME[level],
         "joking_context": joking and not always_serious,
         "received_threat": received_threat,
+        # An explicit self-harm term survived every idiom guard (used by the
+        # context layer: a joke may lower it, never erase it).
+        "always_serious": any(_ALWAYS_SERIOUS_RE.search(h["phrase"]) for h in hits),
     }
 
 
@@ -747,3 +797,555 @@ STATS = {
         for lvl in _LEVELS
     },
 }
+
+
+# ===========================================================================
+# Spelling-robust matching: every database phrase, however it is typed
+# ===========================================================================
+#
+# Students do not type database phrases verbatim. Measured on the term-coverage
+# harness (tests/detection/term_coverage.py) before this section existed: a
+# database phrase was caught ~96% of the time typed cleanly, but only ~22% with
+# one typo ("kil myself"), ~12% in leetspeak ("k1ll mys3lf"), ~11% spaced out
+# ("k i l l myself") and 0% run together ("#killmyself").
+#
+# scan() therefore runs the unchanged matchers over up to three spellings of
+# the message and keeps the strongest result:
+#   1. the normalised original   (Unicode-folded, invisible chars removed)
+#   2. a de-obfuscated copy      (leetspeak, censoring "s*icide", spaced or
+#                                 dotted letters, run-together phrases, slang
+#                                 and euphemisms, typo correction toward the
+#                                 database vocabulary)
+#   3. copy 2 without filler     ("i don't EVEN want to be here", "he'll")
+# Typo correction only ever rewrites a token that is NOT a real word, toward a
+# word that appears in the database, so "skill", "fill", "studied" stay as
+# they are (see build_typo_guard.py / layer1_db/typo_guard_words.txt).
+
+_INVISIBLE_RE = re.compile(r"[\u200b-\u200f\u2060-\u2064\ufeff\u00ad\u034f]")
+_KM_RE = re.compile(r"(?<![a-z0-9])(\d+(?:\.\d+)?)\s*kms?\b")  # "5 kms" is distance, not "kill myself"
+
+
+def _normalize(text: str) -> str:
+    text = unicodedata.normalize("NFKC", text or "")
+    text = _INVISIBLE_RE.sub("", text)
+    for a in ("’", "‘", "ʼ", "`", "´"):
+        text = text.replace(a, "'")
+    # strip accents ("dïe", "sùicide") but keep emoji intact
+    text = "".join(c for c in unicodedata.normalize("NFKD", text) if not unicodedata.combining(c))
+    text = re.sub(r"\s+", " ", text).strip().lower()
+    return _KM_RE.sub(r"\1 kilometers", text)
+
+
+def _db_words() -> Dict[str, int]:
+    """word -> how often it appears across every database phrase."""
+    freq: Dict[str, int] = {}
+    for fname, _sev, _cat in _DB_FILES:
+        with (_DB_DIR / fname).open(encoding="utf-8") as f:
+            doc = json.load(f)
+        phrases = list(doc.get("exact_high_precision_phrases", []))
+        for vals in (doc.get("components") or {}).values():
+            phrases.extend(v for v in vals if isinstance(v, str))
+        for ph in phrases:
+            for w in re.findall(r"[a-z']+", ph.lower()):
+                freq[w] = freq.get(w, 0) + 1
+    return freq
+
+
+_EXTRA_VOCAB = """
+suicide suicidal myself kill killing die dying dead death overdose pills rope
+gun bridge goodbye alone lonely depressed depression hopeless worthless empty
+numb anxious anxiety panic stressed overwhelmed exhausted tired crying cutting
+unalive unaliving want wanna gonna going tonight tomorrow anymore everyone
+nobody someone point life live living wake sleep forever disappear burden
+sewer slide sudoku
+""".split()
+_VOCAB_FREQ = _db_words()
+for _w in list(_FUZZY_WORDS) + _EXTRA_VOCAB:
+    _VOCAB_FREQ[_w] = _VOCAB_FREQ.get(_w, 0) + 1
+_TYPO_VOCAB = frozenset(w for w in _VOCAB_FREQ if "'" not in w and len(w) >= 2)
+
+
+def _squeeze(w: str) -> str:
+    return _collapse_repeats(w)
+
+
+_SQUEEZED_VOCAB: Dict[str, List[str]] = {}
+for _w in _TYPO_VOCAB:
+    _SQUEEZED_VOCAB.setdefault(_squeeze(_w), []).append(_w)
+
+
+def _typo_budget(word: str) -> int:
+    """Edits allowed when correcting TOWARD `word`: none for short words
+    (one edit on a 3-letter word swallows half the language)."""
+    return 0 if len(word) < 4 else (1 if len(word) < 7 else 2)
+
+
+def _dl(a: str, b: str) -> int:
+    """Damerau-Levenshtein (optimal string alignment) distance."""
+    la, lb = len(a), len(b)
+    d = [[0] * (lb + 1) for _ in range(la + 1)]
+    for i in range(la + 1):
+        d[i][0] = i
+    for j in range(lb + 1):
+        d[0][j] = j
+    for i in range(1, la + 1):
+        for j in range(1, lb + 1):
+            cost = a[i - 1] != b[j - 1]
+            d[i][j] = min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost)
+            if i > 1 and j > 1 and a[i - 1] == b[j - 2] and a[i - 2] == b[j - 1]:
+                d[i][j] = min(d[i][j], d[i - 2][j - 2] + 1)
+    return d[la][lb]
+
+
+def _deletes(w: str, n: int) -> set:
+    out, frontier = {w}, {w}
+    for _ in range(n):
+        frontier = {x[:i] + x[i + 1:] for x in frontier for i in range(len(x))}
+        out |= frontier
+    return out
+
+
+_DELETE_INDEX: Dict[str, List[str]] = {}
+for _w in _TYPO_VOCAB:
+    _b = _typo_budget(_w)
+    if _b:
+        for _d in _deletes(_w, _b):
+            _DELETE_INDEX.setdefault(_d, []).append(_w)
+
+# Consecutive word pairs in database phrases ("kill myself", "end my") — used to
+# pick between candidate corrections and to allow the one real-word fix
+# ("kil myself": "kil" is in some dictionaries, "kill myself" is a db phrase).
+def _all_db_phrases_raw() -> set:
+    out = set(_DB_PHRASES)
+    for fname, _sev, _cat in _DB_FILES:
+        with (_DB_DIR / fname).open(encoding="utf-8") as f:
+            doc = json.load(f)
+        for vals in (doc.get("components") or {}).values():
+            out.update(v.lower() for v in vals if isinstance(v, str))
+    return out
+
+
+_BIGRAMS = set()
+_TRIGRAMS = set()
+_NGRAM_EXTRA = ["sewer slide", "commit sudoku", "self delete", "off myself", "self harm",
+                "kill myself", "want to die", "wanna die", "kill yourself"]
+for _ph in sorted(_all_db_phrases_raw() | set(_NGRAM_EXTRA)):
+    _ws = _ph.split()
+    _BIGRAMS.update(zip(_ws, _ws[1:]))
+    _TRIGRAMS.update(zip(_ws, _ws[1:], _ws[2:]))
+
+
+def _load_typo_guard() -> frozenset:
+    try:
+        with (_DB_DIR / "typo_guard_words.txt").open(encoding="utf-8") as f:
+            return frozenset(l.strip() for l in f if l.strip() and not l.startswith("#"))
+    except OSError:
+        return frozenset()
+
+
+_TYPO_GUARD = _load_typo_guard()
+
+
+def _load_common_words() -> frozenset:
+    try:
+        with (_DB_DIR / "common_words.txt").open(encoding="utf-8") as f:
+            return frozenset(l.strip() for l in f if l.strip() and not l.startswith("#"))
+    except OSError:
+        return frozenset()
+
+
+_COMMON_WORDS = _load_common_words()
+
+
+def _is_known_word(tok: str) -> bool:
+    # Deliberately NOT the host's /usr/share/dict/words: that file is absent on
+    # most servers and full of obscure entries ("neer", "sef") that are typos
+    # in a student's message. The shipped guard list is the same everywhere.
+    return tok in _TYPO_GUARD or tok in _FUZZY_STOPWORDS
+
+
+# Run-together phrases: "#killmyself", "endmylife", "selfharm", "wanttodie".
+def _all_db_phrases() -> set:
+    return _all_db_phrases_raw()
+
+
+_DESPACED: Dict[str, str] = {}
+for _ph in sorted(_all_db_phrases() | set(_NGRAM_EXTRA)):
+    if " " in _ph:
+        _k = _ph.replace(" ", "").replace("'", "")
+        if len(_k) >= 6 and not _is_known_word(_k) and _k not in _TYPO_VOCAB:
+            _DESPACED.setdefault(_k, _ph.replace("'", ""))
+_DESPACED.update({"gokys": "go kill yourself", "offmyself": "off myself",
+                  "commitsudoku": "commit sudoku", "endittonight": "end it tonight",
+                  "sewerslide": "suicide"})
+# Typo'd run-together phrases ("killmself", "selfarm"): squeeze + delete index
+_DESPACED_SQ: Dict[str, str] = {}
+_DESPACED_DEL: Dict[str, List[str]] = {}
+for _k in _DESPACED:
+    _DESPACED_SQ.setdefault(_squeeze(_k), _k)
+    if len(_k) >= 7:
+        for _d in _deletes(_k, 1 if len(_k) < 10 else 2):
+            _DESPACED_DEL.setdefault(_d, []).append(_k)
+
+
+@lru_cache(maxsize=20000)
+def _despaced_fuzzy(tok: str) -> str:
+    if len(tok) < 7 or not tok.isalpha() or tok in _TYPO_VOCAB or _is_known_word(tok):
+        return ""
+    sq = _squeeze(tok)
+    if sq in _DESPACED_SQ:
+        return _DESPACED[_DESPACED_SQ[sq]]
+    best, pick = 99, ""
+    for probe in (tok, sq):
+        for d in _deletes(probe, 2 if len(probe) >= 10 else 1):
+            for k in _DESPACED_DEL.get(d, ()):
+                dist = _dl(probe, k)
+                if dist <= (1 if len(k) < 10 else 2) and (dist, k) < (best, pick or "~"):
+                    best, pick = dist, k
+    return _DESPACED[pick] if pick else ""
+
+_SLANG_TOKENS = {
+    "kys": "kill yourself", "sewerslide": "suicide", "suicde": "suicide",
+    "tmrw": "tomorrow", "tmr": "tomorrow", "tmrrw": "tomorrow", "2moro": "tomorrow",
+    "2nite": "tonight", "tonite": "tonight", "2night": "tonight", "2day": "today",
+    "abt": "about", "bc": "because", "cuz": "because", "bcuz": "because", "becuz": "because",
+    "ppl": "people", "u": "you", "ur": "your", "rly": "really", "rlly": "really",
+    "srsly": "seriously", "dnt": "dont", "wnt": "want", "wana": "wanna", "gona": "gonna",
+    "kno": "know", "wut": "what", "nothin": "nothing", "sumthin": "something",
+    "evry1": "everyone", "every1": "everyone", "some1": "someone", "any1": "anyone",
+    "no1": "no one", "idc": "i dont care", "b4": "before", "h8": "hate", "w/o": "without",
+    "selfharm": "self harm", "killmyself": "kill myself", "kmself": "kill myself",
+}
+_SLANG_PHRASES = [
+    (re.compile(r"\bcommit(?:ting|ted|s)?\s+(?:sudoku|toaster\s+bath|neck\s+rope)\b"), "commit suicide"),
+    (re.compile(r"\bsewer\s*-?\s*slide\b"), "suicide"),
+    (re.compile(r"\bself[\s-]*delet(?:e|ing|ed)\b"), "delete myself"),
+    (re.compile(r"\b(to|wanna|gonna|will|'ll|should|might|just|could|finna|tryna|gotta)\s+off\s+myself\b"),
+     r"\1 kill myself"),
+    (re.compile(r"\b(want to|wanna|gonna|going to|to|might|should|will|finna|tryna|could)\s+(just\s+)?unalive\b"
+                r"(?!\s+(?:myself|me|him|her|them|you|u|ur|urself|yourself|my|his|their|someone|everyone))"),
+     r"\1 \2unalive myself"),
+    (re.compile(r"(\b(?:relaps\w*|urges?\s+to|did|doing|started|been\s+doing|went\s+back\s+to)\s+(?:on\s+)?)sh\b"),
+     r"\1self harm"),
+    (re.compile(r"\bsh\s+again\b"), "self harm again"),
+    (re.compile(r"\bdark\s+tho?ts?\b"), "dark thoughts"),
+    (re.compile(r"\b(want|wanna|going|need|have|got|trying|ready|deserve|supposed|able|how)\s+2\b"), r"\1 to"),
+    (re.compile(r"\b2\s+(die|live|kill|end|be|hurt|disappear)\b"), r"to \1"),
+    (re.compile(r"\bill\s+(be|b|never|just|end|kill|hurt|disappear)\b"), r"i'll \1"),
+    (re.compile(r"\b(i'll|will|gonna|to|wanna|cant|can't|wont|won't|gotta|should|could|would|might|must|not|never)\s+b\b"),
+     r"\1 be"),
+]
+_LEET = str.maketrans({"0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t",
+                       "@": "a", "$": "s", "!": "i", "|": "l", "+": "t"})
+_NUMBERISH = re.compile(r"^\d+(?:s|am|pm|k|m|x|d|g|min|mins|hr|hrs|yo|lbs?|ft|in|v\d+|%)?$")
+
+
+def _is_numberish(core: str) -> bool:
+    """'5th', '10pm', '3d' are numbers, not leetspeak. '3nd' is not an ordinal."""
+    m = re.fullmatch(r"(\d+)(st|nd|rd|th)", core)
+    if m:
+        n = int(m.group(1))
+        want = "th" if 10 <= n % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+        return m.group(2) == want
+    return bool(_NUMBERISH.match(core))
+_SPACED_LETTERS_RE = re.compile(r"(?<![a-z0-9])(?:[a-z][ .\-_*~]){2,}[a-z](?![a-z0-9])")
+_TOKEN_SPLIT_RE = re.compile(r"^([^a-z0-9@$|+*!]*)(.*?)([^a-z0-9*$@|]*)$")
+_FILLERS = frozenset("""even really rly just jus honestly literally actually seriously srsly
+fucking fuckin freaking freakin frickin lowkey highkey deadass genuinely truly totally kinda
+like ngl tbh fr bro bruh dude um uh uhh umm""".split())
+_EXPAND = [(re.compile(r"\b(he|she|they|you|it|we)'?ll\b"), r"\1 will"),
+           (re.compile(r"\b(he|she|it)'s\b"), r"\1 is"), (re.compile(r"\bwon'?t\b"), "will not"),
+           (re.compile(r"\b(imma|ima|i'mma|i'ma)\b"), "i am going to")]
+
+
+def _uncensor(tok: str) -> str:
+    """'s*icide' / 'k**l' -> the database word the stars hide, if unique."""
+    pat = re.compile("^" + re.sub(r"\*+", lambda m: f"[a-z]{{1,{len(m.group(0)) + 1}}}",
+                                  re.escape(tok).replace(r"\*", "*")) + "$")
+    hits = [w for w in _TYPO_VOCAB if len(w) >= 3 and pat.match(w)]
+    if len(hits) == 1:
+        return hits[0]
+    strong = [w for w in hits if w in ("suicide", "suicidal", "kill", "myself", "die", "dead", "self", "harm")]
+    return strong[0] if len(strong) == 1 else tok
+
+
+def _ctx_support(c: str, prev2: str, prev: str, nxt: str, nxt2: str) -> int:
+    if (prev2, prev, c) in _TRIGRAMS or (prev, c, nxt) in _TRIGRAMS or (c, nxt, nxt2) in _TRIGRAMS:
+        return 2
+    return 1 if ((prev, c) in _BIGRAMS or (c, nxt) in _BIGRAMS) else 0
+
+
+def _pick(cands, prev: str, nxt: str, tok: str = "", prev2: str = "", nxt2: str = "") -> str:
+    return sorted(cands, key=lambda c: (-_ctx_support(c, prev2, prev, nxt, nxt2),
+                                        _dl(tok, c) if tok else 0,
+                                        -_VOCAB_FREQ.get(c, 0), c))[0]
+
+
+@lru_cache(maxsize=20000)
+def _candidates(tok: str) -> tuple:
+    """(kind, candidates) for a non-word token: squeeze-equal first, then edits."""
+    sq = _squeeze(tok)
+    same = _SQUEEZED_VOCAB.get(sq)
+    if same:
+        return ("squeeze", tuple(same))
+    if len(tok) == 3:
+        # one inserted letter only: "oky"->"okay", "stb"->"stab", "wih"->"wish"
+        grown = sorted(w for w in _DELETE_INDEX.get(tok, ()) if len(w) == 4)
+        return ("edit", tuple(grown)) if grown else ("none", ())
+    if len(tok) < 4:
+        return ("none", ())
+    best, cands = 99, []
+    for probe in {tok, sq}:
+        for d in _deletes(probe, 2):
+            for w in _DELETE_INDEX.get(d, ()):
+                dist = _dl(probe, w)
+                if dist <= _typo_budget(w) and dist <= best:
+                    if dist < best:
+                        best, cands = dist, []
+                    cands.append(w)
+    return ("edit", tuple(sorted(set(cands))))
+
+
+def _correct(tok: str, prev: str, nxt: str, prev2: str = "", nxt2: str = "") -> str:
+    if len(tok) < 3 or tok in _TYPO_VOCAB or not tok.isalpha():
+        return tok
+    if tok in _COMMON_WORDS:
+        return tok
+    if _is_known_word(tok):
+        # A real word is never "corrected" on its own ("fill myself up" must
+        # not become "kill myself"). Two narrow exceptions, both requiring the
+        # neighbours to spell out a database phrase:
+        #   * a dropped/doubled letter + a database word pair ("kil myself")
+        #   * one edit + a full database word TRIPLE around it ("end my lie",
+        #     "tied of being alive", "let a note")
+        same = _SQUEEZED_VOCAB.get(_squeeze(tok), ())
+        for c in sorted(same):
+            if (prev, c) in _BIGRAMS or (c, nxt) in _BIGRAMS:
+                return c
+        kind, cands = _candidates_edit(tok)
+        for c in cands:
+            if (len(c) >= 4 and ((prev2, prev, c) in _TRIGRAMS or (prev, c, nxt) in _TRIGRAMS
+                                 or (c, nxt, nxt2) in _TRIGRAMS)):
+                return c
+        return tok
+    kind, cands = _candidates(tok)
+    return _pick(cands, prev, nxt, tok, prev2, nxt2) if cands else tok
+
+
+@lru_cache(maxsize=20000)
+def _candidates_edit(tok: str) -> tuple:
+    """Vocabulary words exactly one edit from a real-word token."""
+    out = set()
+    for d in _deletes(tok, 1):
+        for w in _DELETE_INDEX.get(d, ()):
+            if _dl(tok, w) == 1:
+                out.add(w)
+    return ("edit", tuple(sorted(out)))
+
+
+def _is_target(word: str) -> bool:
+    return len(word) >= 3 and (word in _TYPO_VOCAB or word in _DESPACED or word in _SLANG_TOKENS)
+
+
+def _join_letters(m: "re.Match") -> str:
+    """'k i l l' -> 'kill'. The run may swallow a real one-letter word next to
+    it ("h a v i n g a bad day"), so find the longest known word inside it."""
+    letters = re.findall(r"[a-z]", m.group(0))
+    sep = " "
+    for start in range(len(letters)):
+        for end in range(len(letters), start + 2, -1):
+            word = "".join(letters[start:end])
+            if _is_target(word):
+                left = sep.join(letters[:start])
+                rest = letters[end:]
+                right = _join_letters_list(rest) if len(rest) >= 3 else sep.join(rest)
+                return sep.join(x for x in (left, word, right) if x)
+    return m.group(0)
+
+
+def _join_letters_list(letters: List[str]) -> str:
+    fake = re.match(r".*", " ".join(letters))
+    return _join_letters(fake)
+
+
+def _fix_token(core: str, prev: str, nxt: str, prev2: str = "", nxt2: str = "") -> str:
+    if not core:
+        return core
+    if core in _SLANG_TOKENS:
+        return _SLANG_TOKENS[core]
+    if re.search(r"[a-z]", core) and re.search(r"[0-9@$!|+]", core) and not _is_numberish(core):
+        mapped = core.translate(_LEET)
+        # "@jordan" is a mention; "@nym0re" / "@tt@ck" are leetspeak.
+        if not (core.startswith("@") and re.fullmatch(r"@[a-z_]+", core)
+                and not (mapped in _TYPO_VOCAB or _candidates(mapped)[1])):
+            core = mapped
+    if "*" in core and re.search(r"[a-z]", core):
+        core = _uncensor(core)
+    core = core.strip("#")
+    if core in _SLANG_TOKENS:
+        return _SLANG_TOKENS[core]
+    sq = _squeeze(core)
+    if sq != core and sq in _SLANG_TOKENS and len(sq) >= 3:  # "kyyyys"
+        return _SLANG_TOKENS[sq]
+    flat = core.replace("'", "")
+    if flat in _DESPACED:
+        return _DESPACED[flat]
+    fuzzy = _despaced_fuzzy(flat)
+    if fuzzy:
+        return fuzzy
+    return _correct(core, prev, nxt, prev2, nxt2)
+
+
+def _deobfuscate(text: str) -> str:
+    t = _SPACED_LETTERS_RE.sub(_join_letters, text)
+    t = re.sub(r"(?<=[a-z])[-_.~](?=[a-z])", " ", t)
+    raw = t.split(" ")
+    parts = [_TOKEN_SPLIT_RE.match(tok).groups() for tok in raw]
+    cores = [c for _l, c, _t in parts]
+    out = []
+    for i, (lead, core, trail) in enumerate(parts):
+        prev = cores[i - 1] if i else ""
+        prev2 = cores[i - 2] if i > 1 else ""
+        nxt = cores[i + 1] if i + 1 < len(cores) else ""
+        nxt2 = cores[i + 2] if i + 2 < len(cores) else ""
+        out.append(lead + _fix_token(core, prev, nxt, prev2, nxt2) + trail)
+    t = " ".join(out)
+    for rx, rep in _SLANG_PHRASES:
+        t = rx.sub(rep, t)
+    return re.sub(r"\s+", " ", t).strip()
+
+
+def _defill(text: str) -> str:
+    t = text
+    for rx, rep in _EXPAND:
+        t = rx.sub(rep, t)
+    t = " ".join(w for w in t.split(" ") if re.sub(r"[^a-z]", "", w) not in _FILLERS or not w)
+    return re.sub(r"\s+", " ", t).strip()
+
+
+def _variants(norm: str) -> List[str]:
+    out = [norm]
+    d = _deobfuscate(norm)
+    for v in (d, _defill(d)):
+        if v and v not in out:
+            out.append(v)
+    return out
+
+
+def _scan_variants(norm: str) -> "tuple[Dict[str, Any], List[str]]":
+    """Best keyword result across the spellings of one message."""
+    variants = _variants(norm)
+    results = [_scan_core(v) for v in variants]
+    best = max(results, key=lambda r: r["level"])
+    if len(results) > 1:
+        seen, hits, cats = set(), [], []
+        for r in results:
+            for h in r["hits"]:
+                k = (h["phrase"], h["category"])
+                if k not in seen:
+                    seen.add(k); hits.append(h)
+            cats += [c for c in r["categories"] if c not in cats]
+        best = {**best, "hits": hits, "categories": cats, "matched": bool(hits),
+                "received_threat": any(r["received_threat"] for r in results),
+                "always_serious": any(r["always_serious"] for r in results),
+                "joking_context": results[0]["joking_context"]}
+        if best["received_threat"] and best["level"] < 3:
+            best["level"] = 3
+    return best, variants
+
+
+def _analyze(variants: List[str]) -> Dict[str, Any]:
+    """Context signals, unioned over the original and the cleaned-up spelling."""
+    sigs = [context_signals.analyze(v) for v in (variants[0], variants[-1])]
+    out = dict(sigs[0])
+    risk = dict(sigs[0]["risk"])
+    for k, v in sigs[1]["risk"].items():
+        risk[k] = max(risk.get(k, 0), v)
+    out["risk"] = risk
+    for k in ("laugh", "weak_joke", "referent", "gaming", "hyperbole_frame",
+              "serious_marker", "minimise", "continuation_time", "tired", "timeline", "fiction"):
+        out[k] = sigs[0][k] or sigs[1][k]
+    return out
+
+
+def _apply(base: Dict[str, Any], ctx: Dict[str, Any]) -> int:
+    level = max(base["level"], ctx["floor"])
+    if ctx["cap"] is not None:
+        level = min(level, ctx["cap"])
+    return level
+
+
+_MAX_HISTORY = 6
+
+
+def scan(text: str, *, root_only: bool = True, history: "List[str] | None" = None) -> Dict[str, Any]:
+    """Scan one message. Pure, fast, local. Returns a 0–4 severity level.
+
+    Keyword layer: the four database matchers (pack grammar rules, legacy slot
+    templates, exact phrases, starter-independent roots) over the original and
+    the de-obfuscated spellings of the message, max taken.
+
+    Context layer (context_signals): risk signals with no keyword (plan,
+    means, goodbye, passive ideation...), joke/hyperbole markers, and the
+    earlier messages of the conversation. It sets a floor (can only raise)
+    and, for a clear joke with no real risk signal, a cap.
+
+    `history` — earlier messages from the SAME student, oldest first. When
+    omitted, scan() picks it up from the live /api/chat request if there is
+    one (see context_signals.request_history) and otherwise uses none.
+    `root_only` is accepted for call-site compatibility.
+    """
+    norm = _normalize(text)
+    if not norm:
+        return {"tier3": False, "matched": False, "categories": [], "hits": [],
+                "level": 0, "level_name": "none", "joking_context": False,
+                "received_threat": False, "always_serious": False,
+                "keyword_level": 0, "context": None}
+    if history is None:
+        history = context_signals.request_history()
+
+    base, variants = _scan_variants(norm)
+    sig = _analyze(variants)
+
+    hist: List[Dict[str, Any]] = []
+    hist_norms: List[str] = []
+    for h in [h for h in (history or []) if isinstance(h, str)][-_MAX_HISTORY:]:
+        hn = _normalize(h)
+        if not hn:
+            continue
+        hb, hv = _scan_variants(hn)
+        hs = _analyze(hv)
+        hc = context_signals.assess(hs, hb, text=hv[-1])
+        lvl = _apply(hb, hc)
+        hist.append({"level": lvl, "raw_level": hb["level"], "sig": hs,
+                     "joke_capped": hc["cap"] is not None and hc["cap"] < hb["level"]})
+        hist_norms.append(hn)
+
+    joined = None
+    if hist_norms:
+        jv = _variants(" ".join(hist_norms[-2:] + [norm]))
+        joined = _analyze(jv)
+
+    ctx = context_signals.assess(sig, base, hist, joined, text=variants[-1])
+    level = _apply(base, ctx)
+    ctx["adjustment"] = ("raised" if level > base["level"] else
+                         "lowered" if level < base["level"] else "")
+    hits = list(base["hits"])
+    if level > base["level"]:
+        hits.append({"phrase": "+".join(ctx["risk_signals"] + ctx["history_signals"]) or "context",
+                     "category": "context", "tier": "3" if level == 4 else "1"})
+    categories = list(base["categories"])
+    if level > base["level"] and "context" not in categories:
+        categories.append("context")
+    return {
+        **base,
+        "hits": hits,
+        "categories": categories,
+        "matched": bool(hits),
+        "tier3": level == 4,
+        "level": level,
+        "level_name": LEVEL_NAME[level],
+        "keyword_level": base["level"],
+        "joking_context": bool(ctx["cap"] is not None and level < base["level"]) or base["joking_context"],
+        "context": ctx,
+    }

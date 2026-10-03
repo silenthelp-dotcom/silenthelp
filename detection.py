@@ -281,6 +281,19 @@ time"->moderate | "whats the chem homework"->none | "i want to kill you" (receiv
 threat)->crisis | "you should kill yourself" (received)->crisis | "beat you up \
 after school" (received)->high | "nobody likes you youre worthless" \
 (received)->high | "i'll kill you lol jk"->none
+
+Context, joke vs serious:
+- Earlier messages from the same student may be given. Judge the CURRENT \
+message in their light: "lol jk" / "nvm im fine" right after a disclosure of \
+wanting to die is still high; "tonight" or "i have a way" after ideation is \
+crisis; repeated hopelessness across messages is at least moderate.
+- Joke/hyperbole (lol, 💀, 😭, "this test is killing me", "kms this quiz") about \
+something external with NO risk signal -> none/low.
+- A laugh never cancels real risk: a plan, method/means, a time, goodbye or \
+giving-away language, "everyone would be better off without me", or \
+"not joking/fr fr" keeps the risk level.
+- Subtle no-keyword messages count: "i don't see the point anymore"->high, \
+"i won't be around much longer"->high.
 """
 
 
@@ -315,9 +328,58 @@ CRISIS_RESOURCES = [
 # Part 1 — AI classifier
 # ---------------------------------------------------------------------------
 
-def classify_message(text: str) -> Dict[str, Any]:
+# Context bridge: earlier student messages + a deterministic risk floor from
+# Layer 1's context rules (context_signals.py). Free, local, no extra calls.
+_HISTORY_MAX = 6
+_HISTORY_CHARS = 300
+_FLOOR_LEVELS = ("none", "low", "moderate", "high", "crisis")
+
+
+def _history_for(history: "list[str] | None") -> "list[str]":
+    if history is None:
+        try:
+            from context_signals import request_history
+            history = request_history()
+        except Exception:
+            history = []
+    return [str(h)[:_HISTORY_CHARS] for h in history if str(h).strip()][-_HISTORY_MAX:]
+
+
+def _context_bounds(text: str, history: "list[str]") -> "tuple[int, int | None, list]":
+    """(floor, ceiling, reasons) from Layer 1's context rules.
+
+    floor   0-4 from explicit risk signals in the message and the conversation
+            (plan, means, timeline, goodbye, ideation, repeated hopelessness).
+            The model may go above it, never below it.
+    ceiling for a clear joke (laugh/hyperbole about something external, game
+            trash talk, fiction) with NO risk signal, no "not joking" and no
+            earlier distress in the conversation: the most the joke may be
+            rated (usually "low", so it is still logged, never erased).
+            None when any of those risk conditions is present."""
+    try:
+        import layer1
+        ctx = layer1.scan(text, history=history).get("context") or {}
+        cap = ctx.get("cap")
+        return int(ctx.get("floor") or 0), (int(cap) if cap is not None else None), list(ctx.get("reasons") or [])
+    except Exception:
+        return 0, None, []
+
+
+def _user_content(text: str, history: "list[str]") -> str:
+    if not history:
+        return text
+    prior = "\n".join(f"- {h}" for h in history)
+    return (f"Earlier messages from the same student (oldest first, context only):\n{prior}\n\n"
+            f"CURRENT message to classify:\n{text}")
+
+
+def classify_message(text: str, history: "list[str] | None" = None) -> Dict[str, Any]:
     """
     Send ONE message to the classifier and return a structured risk judgment.
+
+    `history` = the student's earlier messages in the same conversation, oldest
+    first. When omitted, it is read from the live Coping Chat request (POST
+    /api/chat) if there is one, so app.py needs no change.
 
     Always returns a dict with at least:
         risk_level, categories, confidence, rationale, _source
@@ -334,11 +396,13 @@ def classify_message(text: str) -> Dict[str, Any]:
         "_source": "fail_safe",
     }
 
+    history = _history_for(history)
+
     # _complete() tries Groq, then the fallback provider, with transient retries.
     try:
         raw = _complete(
             [{"role": "system", "content": CLASSIFIER_SYSTEM_PROMPT},
-             {"role": "user", "content": text}],
+             {"role": "user", "content": _user_content(text, history)}],
             temperature=TEMPERATURE,
         )
     except Exception as exc:  # every provider failed → fail SAFE
@@ -351,6 +415,22 @@ def classify_message(text: str) -> Dict[str, Any]:
         return fail_safe
 
     judgment["_source"] = "model"
+    # Deterministic safety floor: a joke reading by the model can lower a
+    # keyword hit, but never real risk signals (plan, means, timeline, goodbye,
+    # ideation, hopelessness repeated across messages). Only ever RAISES.
+    floor, ceiling, reasons = _context_bounds(text, history)
+    model_idx = _FLOOR_LEVELS.index(judgment["risk_level"])
+    if floor > model_idx:
+        judgment["_model_level"] = judgment["risk_level"]
+        judgment["risk_level"] = _FLOOR_LEVELS[floor]
+        judgment["_floor"] = {"level": _FLOOR_LEVELS[floor], "reasons": reasons}
+        if judgment.get("categories") in (None, [], ["none"]):
+            judgment["categories"] = ["distress"]
+    elif ceiling is not None and model_idx > max(ceiling, floor, 1):
+        # Clear joke, no risk signal anywhere: lower (never to "none").
+        judgment["_model_level"] = judgment["risk_level"]
+        judgment["risk_level"] = _FLOOR_LEVELS[max(ceiling, floor, 1)]
+        judgment["_joke_ceiling"] = {"level": judgment["risk_level"], "reasons": reasons}
     return judgment
 
 

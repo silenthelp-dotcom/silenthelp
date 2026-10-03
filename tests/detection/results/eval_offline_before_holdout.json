@@ -1,0 +1,344 @@
+{
+ "label": "impl:/workspace/sh/before",
+ "mode": "offline",
+ "split": "holdout",
+ "groups": {
+  "joke": [
+   17,
+   14
+  ],
+  "ALL": [
+   59,
+   29
+  ],
+  "serious": [
+   19,
+   4
+  ],
+  "ambiguous": [
+   8,
+   4
+  ],
+  "benign": [
+   3,
+   2
+  ],
+  "conversation/serious": [
+   8,
+   1
+  ],
+  "conversation/joke": [
+   4,
+   4
+  ]
+ },
+ "serious_miss": [
+  22,
+  27
+ ],
+ "acute_below_high": [
+  18,
+  22
+ ],
+ "joke_false_alarm": [
+  4,
+  24
+ ],
+ "results": [
+  {
+   "id": "joke-003",
+   "level": 4,
+   "pass": false
+  },
+  {
+   "id": "joke-006",
+   "level": 0,
+   "pass": true
+  },
+  {
+   "id": "joke-009",
+   "level": 0,
+   "pass": true
+  },
+  {
+   "id": "joke-012",
+   "level": 0,
+   "pass": true
+  },
+  {
+   "id": "joke-015",
+   "level": 0,
+   "pass": true
+  },
+  {
+   "id": "joke-018",
+   "level": 3,
+   "pass": false
+  },
+  {
+   "id": "joke-021",
+   "level": 0,
+   "pass": true
+  },
+  {
+   "id": "joke-024",
+   "level": 0,
+   "pass": true
+  },
+  {
+   "id": "joke-027",
+   "level": 2,
+   "pass": false
+  },
+  {
+   "id": "joke-030",
+   "level": 0,
+   "pass": true
+  },
+  {
+   "id": "joke-033",
+   "level": 0,
+   "pass": true
+  },
+  {
+   "id": "joke-036",
+   "level": 0,
+   "pass": true
+  },
+  {
+   "id": "joke-039",
+   "level": 0,
+   "pass": true
+  },
+  {
+   "id": "joke-042",
+   "level": 0,
+   "pass": true
+  },
+  {
+   "id": "joke-045",
+   "level": 0,
+   "pass": true
+  },
+  {
+   "id": "joke-048",
+   "level": 0,
+   "pass": true
+  },
+  {
+   "id": "joke-051",
+   "level": 0,
+   "pass": true
+  },
+  {
+   "id": "seri-003",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "seri-006",
+   "level": 4,
+   "pass": true
+  },
+  {
+   "id": "seri-009",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "seri-012",
+   "level": 4,
+   "pass": true
+  },
+  {
+   "id": "seri-015",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "seri-018",
+   "level": 2,
+   "pass": false
+  },
+  {
+   "id": "seri-021",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "seri-024",
+   "level": 1,
+   "pass": false
+  },
+  {
+   "id": "seri-027",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "seri-030",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "seri-033",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "seri-036",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "seri-039",
+   "level": 1,
+   "pass": false
+  },
+  {
+   "id": "seri-042",
+   "level": 2,
+   "pass": true
+  },
+  {
+   "id": "seri-045",
+   "level": 4,
+   "pass": true
+  },
+  {
+   "id": "seri-048",
+   "level": 2,
+   "pass": false
+  },
+  {
+   "id": "seri-051",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "seri-054",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "seri-057",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "ambi-003",
+   "level": 4,
+   "pass": true
+  },
+  {
+   "id": "ambi-006",
+   "level": 1,
+   "pass": true
+  },
+  {
+   "id": "ambi-009",
+   "level": 4,
+   "pass": true
+  },
+  {
+   "id": "ambi-012",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "ambi-015",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "ambi-018",
+   "level": 2,
+   "pass": true
+  },
+  {
+   "id": "ambi-021",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "ambi-024",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "beni-003",
+   "level": 4,
+   "pass": false
+  },
+  {
+   "id": "beni-006",
+   "level": 0,
+   "pass": true
+  },
+  {
+   "id": "beni-009",
+   "level": 0,
+   "pass": true
+  },
+  {
+   "id": "conv-003",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "conv-006",
+   "level": 1,
+   "pass": false
+  },
+  {
+   "id": "conv-009",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "conv-012",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "conv-015",
+   "level": 4,
+   "pass": true
+  },
+  {
+   "id": "conv-018",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "conv-021",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "conv-024",
+   "level": 0,
+   "pass": false
+  },
+  {
+   "id": "conv-027",
+   "level": 0,
+   "pass": true
+  },
+  {
+   "id": "conv-030",
+   "level": 0,
+   "pass": true
+  },
+  {
+   "id": "conv-033",
+   "level": 0,
+   "pass": true
+  },
+  {
+   "id": "conv-036",
+   "level": 0,
+   "pass": true
+  }
+ ]
+}
