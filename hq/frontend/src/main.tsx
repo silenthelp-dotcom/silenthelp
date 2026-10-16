@@ -1,5 +1,5 @@
 import React from 'react';import {createRoot} from 'react-dom/client';import {createBrowserRouter,RouterProvider} from 'react-router-dom';
-import '@fontsource/sora/latin-400.css';import '@fontsource/sora/latin-500.css';import '@fontsource/sora/latin-600.css';import '@fontsource/jetbrains-mono/latin-400.css';
+import '@fontsource/inter/latin-400.css';import '@fontsource/inter/latin-500.css';import '@fontsource/inter/latin-600.css';import '@fontsource/inter/latin-700.css';
 import {Provider} from './api';import App from './App';import './styles.css';
 class Boundary extends React.Component<{children:React.ReactNode},{error:boolean}>{state={error:false};static getDerivedStateFromError(){return {error:true}}render(){return this.state.error?<main className="fatal"><h1>Something interrupted the workspace.</h1><p>Your saved work is still stored. Reload to reconnect.</p><button onClick={()=>location.reload()}>Reload workspace</button></main>:this.props.children}}
 createRoot(document.getElementById('root')!).render(<React.StrictMode><Boundary><RouterProvider router={createBrowserRouter([{path:'*',element:<Provider><App/></Provider>}],{basename:import.meta.env.BASE_URL.replace(/\/$/,'')||'/'})}/></Boundary></React.StrictMode>);
