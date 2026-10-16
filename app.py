@@ -934,6 +934,37 @@ def next_features():
     return send_from_directory(os.path.join(app.static_folder, "explore", "next"), "index.html")
 
 
+# SilentHelp HQ (team workspace) at /hq1 — a built React app whose backend is
+# Supabase. Built files live in static/hq1/ (source: hq/, build with
+# HQ_BASE=/hq1/). Unknown paths fall back to index.html for client routing.
+_HQ_DIR = os.path.join(app.static_folder, "hq1")
+_HQ_HEADERS = {
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "X-Frame-Options": "DENY",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    "Content-Security-Policy": (
+        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data: blob:; font-src 'self'; "
+        "connect-src 'self' https://tqdguunpyjmpptsqrwrd.supabase.co wss://tqdguunpyjmpptsqrwrd.supabase.co; "
+        "object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+    ),
+}
+
+
+@app.route("/hq1", strict_slashes=False)
+@app.route("/hq1/<path:sub>")
+def hq_app(sub: str = ""):
+    target = os.path.normpath(os.path.join(_HQ_DIR, sub))
+    is_file = sub and target.startswith(_HQ_DIR + os.sep) and os.path.isfile(target)
+    resp = make_response(send_from_directory(_HQ_DIR, sub if is_file else "index.html"))
+    for k, v in _HQ_HEADERS.items():
+        resp.headers[k] = v
+    if is_file and sub.startswith("assets/"):
+        resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    return resp
+
+
 @app.route("/stage")
 def stage():
     # Demo film set: a wall of six laptops running Messages/Discord/Snapchat/

@@ -5,7 +5,7 @@ const env=(k:string)=>Deno.env.get(k)||'';
 const db=createClient(env('SUPABASE_URL'),env('SUPABASE_SERVICE_ROLE_KEY'),{auth:{persistSession:false,autoRefreshToken:false}});
 const check=<T extends {error:any}>(r:T):T=>{if(r.error)throw new Error(r.error.message);return r};
 export async function handler(req:Request):Promise<Response>{
- const origin=req.headers.get('Origin');const allowed=env('APP_URL').replace(/\/$/,'');
+ const origin=req.headers.get('Origin');const allowed=new URL(env('APP_URL')).origin;
  const headers:Record<string,string>={'Content-Type':'application/json','Cache-Control':'no-store','Vary':'Origin'};
  if(origin===allowed)headers['Access-Control-Allow-Origin']=allowed;
  if(origin&&origin!==allowed)return new Response('Origin forbidden',{status:403});
@@ -46,7 +46,7 @@ export async function handler(req:Request):Promise<Response>{
  if(operation==='invite'){
  if(me.role!=='admin')throw new Error('Administrator required');
  const limited=check(await db.rpc('consume_rate',{k:`invite:${user.id}`,max_requests:10,seconds:3600}));if(!limited.data)throw new Error('Invitation rate limit reached');
- const redirectTo=`${allowed}/invite/accept`;
+ const redirectTo=`${env('APP_URL').replace(/\/$/,'')}/invite/accept`;
  const result=p.temporary_password?await db.auth.admin.createUser({email:p.email,password:p.temporary_password,email_confirm:true}):await db.auth.admin.inviteUserByEmail(p.email,{redirectTo});
  check(result);const invited=result.data.user!;
  const prof=await db.from('profiles').insert({id:invited.id,email:p.email,full_name:p.full_name,role:p.role,department_id:p.department_id||null,must_change_password:true});
