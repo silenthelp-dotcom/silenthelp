@@ -1,0 +1,2 @@
+Policies live in migration 202610150001_core.sql so schema and security deploy atomically.
+Browser users have SELECT only, scoped by active status, password-change flag, role and ownership. Co-assignees cannot read each other's comments, drafts, submissions, or files. There are no browser write policies. Storage is private with no client policies. Privileged commands are executable only by service_role and validate the actor again in SQL. Edge functions obtain the actor from Supabase getUser(), never from request JSON.

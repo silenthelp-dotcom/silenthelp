@@ -1,0 +1,26 @@
+project_id = "silenthelp-hq"
+[api]
+enabled = true
+max_rows = 1000
+[db]
+major_version = 17
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173/invite/accept"]
+jwt_expiry = 3600
+enable_signup = false
+[auth.email]
+enable_signup = false
+enable_confirmations = true
+max_frequency = "60s"
+otp_expiry = 3600
+[functions.hq]
+verify_jwt = false
+import_map = "./functions/deno.json"
+[functions.worker]
+verify_jwt = false
+import_map = "./functions/deno.json"

@@ -1,0 +1,4 @@
+import fs from 'node:fs';
+const url=new URL(process.argv[2]||'');if(url.protocol!=='https:')throw new Error('Use the HTTPS Supabase project origin');
+fs.writeFileSync('frontend/public/_headers',`/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  X-Frame-Options: DENY\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ${url.origin} ${url.origin.replace('https:','wss:')}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'\n/assets/*\n  Cache-Control: public, max-age=31536000, immutable\n`);
+console.log('Generated production headers for your Supabase origin.');
