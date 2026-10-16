@@ -922,6 +922,18 @@ def landing_replika():
     return send_from_directory(app.template_folder, "landing-replika.html")
 
 
+# Research sites served as part of silenthelp.org. Built files live in
+# static/explore/; the privacy site's source is web/privacy-architecture/.
+@app.route("/privacy-architecture", strict_slashes=False)
+def privacy_architecture():
+    return send_from_directory(os.path.join(app.static_folder, "explore", "privacy"), "index.html")
+
+
+@app.route("/next-features", strict_slashes=False)
+def next_features():
+    return send_from_directory(os.path.join(app.static_folder, "explore", "next"), "index.html")
+
+
 @app.route("/stage")
 def stage():
     # Demo film set: a wall of six laptops running Messages/Discord/Snapchat/
