@@ -55,6 +55,12 @@ export async function handler(req:Request):Promise<Response>{
  check(await db.from('activity_logs').insert({actor_id:user.id,action:p.temporary_password?'account.created':'employee.invited',record_id:invited.id,metadata:{role:p.role}}));
  return new Response(JSON.stringify({id:invited.id}),{headers});
  }
+ if(operation==='task.delete'){
+ if(me.role!=='admin')throw new Error('Administrator required');
+ const paths=check(await db.rpc('delete_task',{actor:user.id,t:p.id})).data as string[]|null;
+ if(paths&&paths.length){const rm=await db.storage.from('research').remove(paths);if(rm.error)console.error('task.delete storage cleanup',rm.error.message);}
+ return new Response(JSON.stringify({ok:true}),{headers});
+ }
  if(operation==='file.download'){
  const f=check(await db.from(p.kind==='task'?'task_attachments':'submission_files').select('*').eq('id',p.id).single()).data;
  if(me.role!=='admin'){

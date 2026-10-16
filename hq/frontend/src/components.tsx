@@ -20,3 +20,11 @@ export function Files({kind,record,files,editable=false}:{kind:'task'|'submissio
 export function Progress({value}:{value:number}){return <div className="progress-wrap"><div className="progress"><i style={{width:value+'%'}}/></div><span>{value}%</span></div>}
 export function TextLink({to,children}:{to:string;children:ReactNode}){return <Link className="text-link" to={to}>{children}<ArrowUpRight size={14}/></Link>}
 export function Pager({total,page,setPage,size=12}:{total:number;page:number;setPage:(n:number)=>void;size?:number}){return total>size?<div className="pager"><span>{Math.min(page*size+1,total)}–{Math.min((page+1)*size,total)} of {total}</span><button disabled={page===0} onClick={()=>setPage(page-1)}>Previous</button><button disabled={(page+1)*size>=total} onClick={()=>setPage(page+1)}>Next</button></div>:null}
+
+const RUBRIC=['completeness','evidence_quality','source_credibility','reasoning','clarity'];
+const POINTS:Record<string,number>={strong:100,partial:50,insufficient:0};
+/** Average of the five rubric assessments from an AI review (strong=100, partial=50, insufficient=0). */
+export const reviewScore=(r:any):number|null=>{const v=RUBRIC.map(k=>POINTS[r?.[k]?.assessment]).filter(x=>x!==undefined);return v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):null};
+/** The model's rough guess at machine-written share. Older reviews don't have it. */
+export const aiEstimate=(r:any):number|null=>typeof r?.ai_written_estimate==='number'?Math.round(r.ai_written_estimate):null;
+export function AIScores({result,compact=false}:{result:any;compact?:boolean}){const score=reviewScore(result),est=aiEstimate(result);if(score===null&&est===null)return null;return <div className={'ai-scores'+(compact?' compact':'')}>{score!==null&&<div className="ai-score"><span>AI review score</span><strong>{score}%</strong><small>Rubric: completeness, evidence, sources, reasoning, clarity</small></div>}<div className="ai-estimate"><span>AI-written estimate</span><strong>{est===null?'—':'~'+est+'%'}</strong><small>{est===null?'Run a new AI review to get an estimate.':'Estimate only — it can’t prove AI use. Never use it alone to reject work.'}</small></div></div>}

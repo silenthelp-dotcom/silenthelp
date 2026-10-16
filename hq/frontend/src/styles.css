@@ -40,3 +40,16 @@ input,select,textarea{border-radius:10px;background:#0a0a0a;border-color:rgba(25
 .badge.draft,.badge.not_started{color:#a3a3a3;background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}
 .calendar-cell>span.today{background:#fff;color:#000}
 .check-circle.checked{background:#fff;color:#000}
+
+.button.danger{color:#fca5a5;border-color:rgba(239,68,68,.45);background:transparent}
+.button.danger:hover{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.7)}
+.ai-scores{display:grid;grid-template-columns:1.3fr 1fr;gap:12px;margin:4px 0 18px}
+.ai-scores>div{border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px 16px;background:#080808;display:flex;flex-direction:column;gap:4px}
+.ai-scores span{font:9px var(--mono);letter-spacing:1.2px;text-transform:uppercase;color:#9b9b9b}
+.ai-score strong{font-size:30px;font-weight:600;letter-spacing:-1px;color:#fff}
+.ai-estimate strong{font-size:20px;font-weight:500;color:#d4d4d4}
+.ai-scores small{font-size:9px;line-height:1.5;color:#7a7a7a}
+.ai-estimate small{color:#a3a3a3}
+.ai-scores.compact{width:100%;margin:6px 0}
+.ai-scores.compact .ai-score strong{font-size:22px}.ai-scores.compact .ai-estimate strong{font-size:16px}
+@media(max-width:700px){.ai-scores{grid-template-columns:1fr}}
