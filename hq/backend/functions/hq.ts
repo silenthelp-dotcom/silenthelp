@@ -61,6 +61,32 @@ export async function handler(req:Request):Promise<Response>{
  if(paths&&paths.length){const rm=await db.storage.from('research').remove(paths);if(rm.error)console.error('task.delete storage cleanup',rm.error.message);}
  return new Response(JSON.stringify({ok:true}),{headers});
  }
+ if(operation==='file.prepare'||operation==='file.finish'){
+ // Large files (videos) go straight to Storage with a one-time signed upload URL; this function never holds the bytes.
+ if(me.must_change_password)throw new Error('Change your temporary password first');
+ if(p.kind==='task'){if(me.role!=='admin')throw new Error('Administrator required');check(await db.from('tasks').select('id').eq('id',p.record_id).single());}
+ else{const s=check(await db.from('submissions').select('*').eq('id',p.record_id).single()).data;if(s.author_id!==user.id||!['draft','revision_requested','rejected'].includes(s.status))throw new Error('Submission is not editable');}
+ const safe=p.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+ if(operation==='file.prepare'){
+ validateFile(p.name,p.size);
+ const path=`${p.kind}/${p.record_id}/${crypto.randomUUID()}/${safe}`;
+ const up=check(await db.storage.from('research').createSignedUploadUrl(path)).data!;
+ return new Response(JSON.stringify({path,token:up.token}),{headers});
+ }
+ const pre=`${p.kind}/${p.record_id}/`;const rest=p.path.slice(pre.length);
+ if(!p.path.startsWith(pre)||!/^[0-9a-f-]{36}\/[^/]+$/.test(rest)||rest.split('/')[1]!==safe)throw new Error('Invalid upload path');
+ const remove=()=>db.storage.from('research').remove([p.path]);
+ try{
+ const link=check(await db.storage.from('research').createSignedUrl(p.path,60)).data!.signedUrl;
+ const head=await fetch(link,{headers:{Range:'bytes=0-15'}});if(!head.ok)throw new Error('Upload not found. Try again.');
+ const size=Number(head.headers.get('Content-Range')?.split('/')[1]||head.headers.get('Content-Length')||0);
+ const bytes=new Uint8Array(await head.arrayBuffer()).slice(0,16);
+ const mime=validateFile(p.name,size,bytes);
+ const saved=await db.rpc('register_file',{actor:user.id,kind:p.kind,record:p.record_id,object_path:p.path,filename:p.name,mime_type:mime,byte_size:size});
+ if(saved.error)throw new Error(saved.error.message);
+ return new Response(JSON.stringify(saved.data),{headers});
+ }catch(e){await remove();throw e}
+ }
  if(operation==='file.download'){
  const f=check(await db.from(p.kind==='task'?'task_attachments':'submission_files').select('*').eq('id',p.id).single()).data;
  if(me.role!=='admin'){
