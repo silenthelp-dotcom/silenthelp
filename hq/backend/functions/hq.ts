@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { validateCommand, validateFile } from '../validation/index.ts';
 import { reviewResearch } from '../services/ai.ts';
+import { extractAll } from '../services/extract.ts';
 const env=(k:string)=>Deno.env.get(k)||'';
 const db=createClient(env('SUPABASE_URL'),env('SUPABASE_SERVICE_ROLE_KEY'),{auth:{persistSession:false,autoRefreshToken:false}});
 const check=<T extends {error:any}>(r:T):T=>{if(r.error)throw new Error(r.error.message);return r};
@@ -102,7 +103,9 @@ export async function handler(req:Request):Promise<Response>{
  const version=check(await db.from('submission_versions').select('*').eq('id',p.version_id).single()).data;
  const s=check(await db.from('submissions').select('*').eq('id',version.submission_id).single()).data;
  const task=check(await db.from('tasks').select('*').eq('id',s.task_id).single()).data;
- const result=await reviewResearch(version.content,task,{url:env('AI_API_URL'),key:env('AI_API_KEY'),model:env('AI_MODEL')});
+ const files=check(await db.from('submission_files').select('*').eq('version_id',version.id).order('created_at')).data||[];
+ const attachments=await extractAll(files.map((f:any)=>({name:f.name,mime:f.mime,load:async()=>new Uint8Array(await check(await db.storage.from('research').download(f.path)).data!.arrayBuffer())})));
+ const result=await reviewResearch(version.content,task,{url:env('AI_API_URL'),key:env('AI_API_KEY'),model:env('AI_MODEL')},fetch,attachments);
  check(await db.from('ai_review_results').insert({version_id:version.id,reviewer_id:user.id,result,model:env('AI_MODEL')}));
  check(await db.from('activity_logs').insert({actor_id:user.id,action:'ai.review',record_id:version.id}));
  return new Response(JSON.stringify(result),{headers});

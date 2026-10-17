@@ -1,6 +1,8 @@
 {
   "imports": {
     "@supabase/supabase-js": "npm:@supabase/supabase-js@2.118.0",
-    "zod": "npm:zod@3.25.76"
+    "zod": "npm:zod@3.25.76",
+    "unpdf": "npm:unpdf@1.9.0",
+    "fflate": "npm:fflate@0.8.3"
   }
 }
