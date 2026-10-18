@@ -939,15 +939,6 @@ def landing_blueyard():
     return send_from_directory(app.template_folder, "landing-blueyard.html")
 
 
-@app.route("/cinematic")
-def landing_cinematic():
-    # Alternate front page in a black-tie "gallery" style (marble room +
-    # brushed-metal logo on a plinth, rising product demo, 3D photo gallery).
-    # Static HTML, served like the other landings. Assets: static/cinematic/
-    # (Three.js vendored in static/cinematic/vendor/three).
-    return send_from_directory(app.template_folder, "landing-cinematic.html")
-
-
 # Research sites served as part of silenthelp.org. Built files live in
 # static/explore/; the privacy site's source is web/privacy-architecture/.
 @app.route("/privacy-architecture", strict_slashes=False)
