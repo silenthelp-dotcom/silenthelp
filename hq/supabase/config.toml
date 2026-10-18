@@ -24,3 +24,6 @@ import_map = "./functions/deno.json"
 [functions.worker]
 verify_jwt = false
 import_map = "./functions/deno.json"
+[functions.snapshot]
+verify_jwt = false
+import_map = "./functions/deno.json"

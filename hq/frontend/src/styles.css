@@ -73,3 +73,14 @@ input,select,textarea{border-radius:10px;background:#0a0a0a;border-color:rgba(25
 .button.disabled{opacity:.5;pointer-events:none}
 .person-intro{display:flex;align-items:center;gap:18px;margin:0 0 20px;padding:18px 20px;border:1px solid rgba(255,255,255,.1);border-radius:16px;background:var(--panel,#111)}
 .person-intro p{margin:0;white-space:pre-wrap;line-height:1.55;max-width:70ch}
+.snapshot-head{display:flex;align-items:flex-start;gap:14px}
+.snapshot-head>div{flex:1;min-width:0}
+.snapshot-head h3{margin:4px 0 6px;font-size:17px;font-weight:500;text-wrap:balance}
+.snapshot-head .button small{opacity:.7;margin-left:4px}
+.snapshot-summary{margin:14px 0 0;padding-left:20px;line-height:1.6;max-width:80ch}
+.snapshot-summary li+li{margin-top:4px}
+.snapshot-row{border-top:1px solid rgba(255,255,255,.08)}
+.snapshot-toggle{all:unset;box-sizing:border-box;width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;cursor:pointer}
+.snapshot-toggle:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.snapshot-toggle>span:first-child{display:flex;flex-direction:column;gap:2px}
+.snapshot-row .snapshot-summary{margin:0 0 14px}

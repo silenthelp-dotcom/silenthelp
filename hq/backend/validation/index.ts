@@ -15,7 +15,7 @@ export const schemas={
  'submission.review':z.object({id,version_id:id,decision:z.enum(['under_review','revision_requested','approved','rejected']),feedback:z.string().trim().min(3).max(20000)}),
  'employee.update':z.object({id,full_name:title,role:z.enum(['admin','employee']),active:z.boolean(),department_id:optionalId}),
  'profile.update':z.object({full_name:title,bio:z.string().trim().max(600).optional()}),
- 'avatar.prepare':z.object({name:z.string().min(1).max(240),size:z.number().int().positive()}), 'avatar.finish':z.object({path:z.string().min(1).max(300)}), 'avatar.remove':z.object({}), 'notification.read':z.object({id}),
+ 'avatar.prepare':z.object({name:z.string().min(1).max(240),size:z.number().int().positive()}), 'avatar.finish':z.object({path:z.string().min(1).max(300)}), 'avatar.remove':z.object({}), 'snapshot.download':z.object({id}), 'snapshot.run':z.object({}), 'notification.read':z.object({id}),
  'project.save':z.object({id:optionalId,name:title,description:text,owner_id:optionalId,start_date:z.union([date,z.literal('')]).optional(),target_date:date,status:z.enum(['active','paused','completed']),members:z.array(id).max(100)}),
  'milestone.save':z.object({id:optionalId,project_id:optionalId,title,target_date:date,completed:z.boolean(),risk:text}),
  'department.create':z.object({name:title}),

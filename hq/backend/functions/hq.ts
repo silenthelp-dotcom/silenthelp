@@ -62,6 +62,18 @@ export async function handler(req:Request):Promise<Response>{
  if(paths&&paths.length){const rm=await db.storage.from('research').remove(paths);if(rm.error)console.error('task.delete storage cleanup',rm.error.message);}
  return new Response(JSON.stringify({ok:true}),{headers});
  }
+ if(operation==='snapshot.download'||operation==='snapshot.run'){
+ if(me.role!=='admin')throw new Error('Administrator required');
+ if(operation==='snapshot.run'){
+ if(!check(await db.rpc('consume_rate',{k:`snapshot:${user.id}`,max_requests:3,seconds:3600})).data)throw new Error('You can update the code snapshot 3 times an hour.');
+ const r=await fetch(`${env('SUPABASE_URL')}/functions/v1/snapshot?trigger=manual`,{method:'POST',headers:{Authorization:`Bearer ${env('WORKER_SECRET')}`}});
+ const out=await r.json().catch(()=>({}));if(!r.ok)throw new Error(out.error||'Snapshot failed');
+ return new Response(JSON.stringify(out),{headers});
+ }
+ const s=check(await db.from('code_snapshots').select('*').eq('id',p.id).single()).data;if(!s.zip_path)throw new Error('This week’s .zip is no longer stored. Download a newer week.');
+ const signed=check(await db.storage.from('code-snapshots').createSignedUrl(s.zip_path,60,{download:`silenthelp-${s.zip_path}`}));
+ return new Response(JSON.stringify({url:signed.data!.signedUrl}),{headers});
+ }
  if(operation==='profile.update'){
  check(await db.from('profiles').update({full_name:p.full_name,...(p.bio!==undefined?{bio:p.bio||null}:{})}).eq('id',user.id));
  return new Response(JSON.stringify({ok:true}),{headers});
