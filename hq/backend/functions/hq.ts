@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { validateCommand, validateFile } from '../validation/index.ts';
+import { validateCommand, validateFile, validateAvatar } from '../validation/index.ts';
 import { reviewResearch } from '../services/ai.ts';
 import { extractAll } from '../services/extract.ts';
 const env=(k:string)=>Deno.env.get(k)||'';
@@ -60,6 +60,32 @@ export async function handler(req:Request):Promise<Response>{
  if(me.role!=='admin')throw new Error('Administrator required');
  const paths=check(await db.rpc('delete_task',{actor:user.id,t:p.id})).data as string[]|null;
  if(paths&&paths.length){const rm=await db.storage.from('research').remove(paths);if(rm.error)console.error('task.delete storage cleanup',rm.error.message);}
+ return new Response(JSON.stringify({ok:true}),{headers});
+ }
+ if(operation==='profile.update'){
+ check(await db.from('profiles').update({full_name:p.full_name,...(p.bio!==undefined?{bio:p.bio||null}:{})}).eq('id',user.id));
+ return new Response(JSON.stringify({ok:true}),{headers});
+ }
+ if(operation==='avatar.prepare'||operation==='avatar.finish'||operation==='avatar.remove'){
+ if(me.must_change_password)throw new Error('Change your temporary password first');
+ const old=me.avatar_path as string|null;
+ if(operation==='avatar.prepare'){
+ validateAvatar(p.name,p.size);
+ const ext=p.name.split('.').pop().toLowerCase().replace('jpeg','jpg');
+ const path=`${user.id}/${crypto.randomUUID()}.${ext}`;
+ const up=check(await db.storage.from('avatars').createSignedUploadUrl(path)).data!;
+ return new Response(JSON.stringify({path,token:up.token}),{headers});
+ }
+ if(operation==='avatar.finish'){
+ if(!new RegExp(`^${user.id}/[0-9a-f-]{36}\\.(png|jpg|webp)$`).test(p.path))throw new Error('Invalid photo path');
+ try{
+ const head=await fetch(`${env('SUPABASE_URL')}/storage/v1/object/public/avatars/${p.path}`,{headers:{Range:'bytes=0-15'}});if(!head.ok)throw new Error('Photo upload not found. Try again.');
+ const size=Number(head.headers.get('Content-Range')?.split('/')[1]||head.headers.get('Content-Length')||0);
+ validateAvatar(p.path,size,new Uint8Array(await head.arrayBuffer()).slice(0,16));
+ }catch(e){await db.storage.from('avatars').remove([p.path]);throw e}
+ check(await db.from('profiles').update({avatar_path:p.path}).eq('id',user.id));
+ }else check(await db.from('profiles').update({avatar_path:null}).eq('id',user.id));
+ if(old&&old!==p.path)await db.storage.from('avatars').remove([old]);
  return new Response(JSON.stringify({ok:true}),{headers});
  }
  if(operation==='file.prepare'||operation==='file.finish'){

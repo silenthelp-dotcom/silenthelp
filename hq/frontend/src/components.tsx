@@ -2,7 +2,7 @@ import {useState,useEffect,type ReactNode,type FormEvent} from 'react';
 import {Link} from 'react-router-dom';
 import {ArrowUpRight,LoaderCircle,Paperclip,Download,CheckCircle2,AlertCircle,Play} from 'lucide-react';
 import DOMPurify from 'dompurify';
-import {useHQ} from './api';
+import {useHQ,avatarUrl} from './api';
 import type {Row} from '../../backend/services/domain';
 export const label=(v:string)=>v?.replaceAll('_',' ').replace(/^./,c=>c.toUpperCase())||'—';
 export const date=(v:string)=>v?new Date(v.length===10?v+'T12:00:00':v).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
@@ -32,3 +32,7 @@ export const reviewScore=(r:any):number|null=>{const v=RUBRIC.map(k=>POINTS[r?.[
 /** The model's rough guess at machine-written share. Older reviews don't have it. */
 export const aiEstimate=(r:any):number|null=>typeof r?.ai_written_estimate==='number'?Math.round(r.ai_written_estimate):null;
 export function AIScores({result,compact=false}:{result:any;compact?:boolean}){const score=reviewScore(result),est=aiEstimate(result);if(score===null&&est===null)return null;return <div className={'ai-scores'+(compact?' compact':'')}>{score!==null&&<div className="ai-score"><span>AI review score</span><strong>{score}%</strong><small>Rubric: completeness, evidence, sources, reasoning, clarity</small></div>}<div className="ai-estimate"><span>AI-written estimate</span><strong>{est===null?'—':'~'+est+'%'}</strong><small>{est===null?'Run a new AI review to get an estimate.':'Estimate only — it can’t prove AI use. Never use it alone to reject work.'}</small></div></div>}
+
+export const initials=(name?:string)=>(name||'').split(' ').filter(Boolean).map(s=>s[0]).join('').slice(0,2).toUpperCase()||'TM';
+/** Profile photo if the person added one, otherwise their initials. */
+export function Avatar({p,size,className=''}:{p?:Row|null;size?:'small'|'large';className?:string}){const src=avatarUrl(p?.avatar_path);return <span className={['avatar',size,className].filter(Boolean).join(' ')} title={p?.full_name}>{src?<img src={src} alt=""/>:initials(p?.full_name)}</span>}
