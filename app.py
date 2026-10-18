@@ -922,6 +922,16 @@ def landing_replika():
     return send_from_directory(app.template_folder, "landing-replika.html")
 
 
+@app.route("/blueyard")
+def landing_blueyard():
+    # Alternate front page modeled on blueyard.com's design language (cube
+    # loader, WebGL orb scenes with scroll-scrubbed noise transitions, hover
+    # tiles, rotating team wheel). Static HTML, served like the other landings
+    # so inline JS/CSS stay untouched. Assets: static/img/blueyard/,
+    # static/vendor/blueyard/.
+    return send_from_directory(app.template_folder, "landing-blueyard.html")
+
+
 # Research sites served as part of silenthelp.org. Built files live in
 # static/explore/; the privacy site's source is web/privacy-architecture/.
 @app.route("/privacy-architecture", strict_slashes=False)
@@ -945,7 +955,8 @@ _HQ_HEADERS = {
     "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
     "Content-Security-Policy": (
         "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
-        "img-src 'self' data: blob:; font-src 'self'; "
+        "img-src 'self' data: blob: https://tqdguunpyjmpptsqrwrd.supabase.co/storage/v1/object/public/avatars/; "
+        "media-src 'self' blob:; font-src 'self'; "
         "connect-src 'self' https://tqdguunpyjmpptsqrwrd.supabase.co wss://tqdguunpyjmpptsqrwrd.supabase.co; "
         "object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
     ),
