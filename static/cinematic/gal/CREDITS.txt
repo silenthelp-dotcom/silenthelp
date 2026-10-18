@@ -1,0 +1,36 @@
+SilentHelp /cinematic — 3D gallery photos (static/cinematic/gal/s01–s28.webp)
+Theme: mental health & emotional support. Resized to 560px on the long side, light colour/brightness grade, WebP.
+Licence for every image: CC0 1.0 Universal Public Domain Dedication
+(https://creativecommons.org/publicdomain/zero/1.0/) — commercial use OK, no attribution required.
+Sources: StockSnap.io (CC0), rawpixel.com public-domain collection (CC0), Wikimedia Commons (CC0, originally Pixabay).
+Found via the Openverse catalogue (api.openverse.org) and the Wikimedia Commons API. Photographer credits given as a courtesy.
+
+file	licence	source page	direct file	photographer	description
+s01.webp	CC0 1.0	https://stocksnap.io/photo/business-meeting-SKBXLJOILI	https://cdn.stocksnap.io/img-thumbs/960w/SKBXLJOILI.jpg	Christina Morillo	Two young women talking things through at a café table
+s02.webp	CC0 1.0	https://stocksnap.io/photo/friends-fun-O6WL9D9PV0	https://cdn.stocksnap.io/img-thumbs/960w/O6WL9D9PV0.jpg	Matt Moloney	A friend resting a reassuring hand on her friend's shoulder
+s03.webp	CC0 1.0	https://stocksnap.io/photo/people-girls-TA9XFIS7T4	https://cdn.stocksnap.io/img-thumbs/960w/TA9XFIS7T4.jpg	Katie Treadway	Two friends sharing a warm, smiling hug
+s04.webp	CC0 1.0	https://www.rawpixel.com/image/5919155/image-public-domain-hand-child	https://images.rawpixel.com/editor_1024/cHJpdmF0ZS9zdGF0aWMvaW1hZ2Uvd2Vic2l0ZS8yMDIyLTA0L2xyL2JzMTE1OC1pbWFnZS1rd3Z4NWRuMy5qcGc.jpg	rawpixel (public domain)	A comforting hug, one hand on the back
+s05.webp	CC0 1.0	https://commons.wikimedia.org/wiki/File:Counselling_session.jpg	https://upload.wikimedia.org/wikipedia/commons/f/f2/Counselling_session.jpg	tiyowprasetyo (via Pixabay)	A counselling session: a therapist listens to a client
+s06.webp	CC0 1.0	https://www.rawpixel.com/image/5922302/photo-image-public-domain-person-woman	https://images.rawpixel.com/editor_1024/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA1L3B4NjQxOTE0LWltYWdlLWt3dnhtZWNwLmpwZw.jpg	rawpixel (public domain)	A support-group circle, chairs in a ring, one person sharing
+s07.webp	CC0 1.0	https://stocksnap.io/photo/people-women-S9LA9E7JI0	https://cdn.stocksnap.io/img-thumbs/960w/S9LA9E7JI0.jpg	Ben White	Two people on a sofa, one leaning in to comfort the other
+s08.webp	CC0 1.0	https://stocksnap.io/photo/writing-female-4NWLQDL9R7	https://cdn.stocksnap.io/img-thumbs/960w/4NWLQDL9R7.jpg	Kristin Hardwick	Young woman writing in her journal
+s09.webp	CC0 1.0	https://stocksnap.io/photo/girl-young-TJITMPYYW8	https://cdn.stocksnap.io/img-thumbs/960w/TJITMPYYW8.jpg	Anthony Tran	Cup of tea and a book on a cosy bed
+s10.webp	CC0 1.0	https://stocksnap.io/photo/young-woman-YRE7TNGEOW	https://cdn.stocksnap.io/img-thumbs/960w/YRE7TNGEOW.jpg	Altered Reality	Young woman meditating in a sunlit room
+s11.webp	CC0 1.0	https://stocksnap.io/photo/yoga-meditation-GG3SROJUUS	https://cdn.stocksnap.io/img-thumbs/960w/GG3SROJUUS.jpg	Healthy Living	Meditating on a rock by the sea
+s12.webp	CC0 1.0	https://stocksnap.io/photo/people-friends-EVSKT1I1QG	https://cdn.stocksnap.io/img-thumbs/960w/EVSKT1I1QG.jpg	Clarisse Meyer	Two friends on a calm walk down a garden path
+s13.webp	CC0 1.0	https://stocksnap.io/photo/woman-dog-P99NIQVJPR	https://cdn.stocksnap.io/img-thumbs/960w/P99NIQVJPR.jpg	Matt Bango	Sitting quietly on a green hillside with her dog
+s14.webp	CC0 1.0	https://stocksnap.io/photo/woman-working-N8RN8GIKZH	https://cdn.stocksnap.io/img-thumbs/960w/N8RN8GIKZH.jpg	Kristin Hardwick	Stressed young woman with her head in her hands at a laptop
+s15.webp	CC0 1.0	https://stocksnap.io/photo/braided-hair-EH7GKJMHBV	https://cdn.stocksnap.io/img-thumbs/960w/EH7GKJMHBV.jpg	Candace McDaniel	Teen girl looking down, thoughtful
+s16.webp	CC0 1.0	https://stocksnap.io/photo/texting-woman-RED8VZYMAG	https://cdn.stocksnap.io/img-thumbs/960w/RED8VZYMAG.jpg	Kristin Hardwick	Young woman texting on her phone
+s17.webp	CC0 1.0	https://stocksnap.io/photo/phone-hand-OMHRCBTI8N	https://cdn.stocksnap.io/img-thumbs/960w/OMHRCBTI8N.jpg	Matt Moloney	Late-night chat on a phone screen by a laptop
+s18.webp	CC0 1.0	https://stocksnap.io/photo/mother-daughter-6BLG9YCQ2D	https://cdn.stocksnap.io/img-thumbs/960w/6BLG9YCQ2D.jpg	Candace McDaniel	Mother and daughter in a close hug
+s19.webp	CC0 1.0	https://stocksnap.io/photo/sad-child-RK0OIXCHLZ	https://cdn.stocksnap.io/img-thumbs/960w/RK0OIXCHLZ.jpg	Direct Media	Dad comforting his upset son
+s20.webp	CC0 1.0	https://www.rawpixel.com/image/5924512/photo-image-background-aesthetic-public-domain	https://images.rawpixel.com/editor_1024/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvcHgxMTk0MzMzLWltYWdlLWt3dnkxc3k5LmpwZw.jpg	rawpixel (public domain)	Letter tiles spelling MENTAL HEALTH
+s21.webp	CC0 1.0	https://stocksnap.io/photo/card-board-SCYWODM5KO	https://cdn.stocksnap.io/img-thumbs/960w/SCYWODM5KO.jpg	Corinne Kutz	Hand-held card reading 'it is well'
+s22.webp	CC0 1.0	https://stocksnap.io/photo/word-background-DBWWLRF0EO	https://cdn.stocksnap.io/img-thumbs/960w/DBWWLRF0EO.jpg	Words as Pictures	Letter tiles spelling WE GOT THIS
+s23.webp	CC0 1.0	https://stocksnap.io/photo/friends-fun-TK55STNQN8	https://cdn.stocksnap.io/img-thumbs/960w/TK55STNQN8.jpg	Matt Moloney	Two friends leaning heads together, smiling
+s24.webp	CC0 1.0	https://stocksnap.io/photo/brother-sister-0L1R9BHIDT	https://cdn.stocksnap.io/img-thumbs/960w/0L1R9BHIDT.jpg	Kristin Hardwick	Sister with her arm around her brother on the grass
+s25.webp	CC0 1.0	https://stocksnap.io/photo/sad-woman-JVIKZKSVCW	https://cdn.stocksnap.io/img-thumbs/960w/JVIKZKSVCW.jpg	Candace McDaniel	Young woman sitting alone, quietly reflective
+s26.webp	CC0 1.0	https://stocksnap.io/photo/book-reading-MSNQMQOC7W	https://cdn.stocksnap.io/img-thumbs/960w/MSNQMQOC7W.jpg	Alexander Solodukhin	Young woman at a café window with tea, thinking
+s27.webp	CC0 1.0	https://www.rawpixel.com/image/6023464/photo-image-public-domain-hand-person	https://images.rawpixel.com/editor_1024/cHJpdmF0ZS9zdGF0aWMvaW1hZ2Uvd2Vic2l0ZS8yMDIyLTA0L2xyL2ZyaGFuZHNfY2xvc2VfZW1vdGlvbnNfZnJpZW5kc2hpcC1pbWFnZS1reWJiY3RrcC5qcGc.jpg	rawpixel (public domain)	Hands gently holding another's hand
+s28.webp	CC0 1.0	https://stocksnap.io/photo/people-adult-U3ESM8YMDM	https://cdn.stocksnap.io/img-thumbs/960w/U3ESM8YMDM.jpg	Elliott Chau	Three friends sitting together by a lake

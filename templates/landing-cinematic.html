@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SilentHelp — Support That Notices Before You Have to Ask</title>
+<meta name="description" content="A private, on-device wellbeing companion for students, families, and school counselors.">
+<meta name="theme-color" content="#080808">
+<link rel="icon" href="/static/cinematic/img/badge-32.png">
+<link rel="preload" href="/static/cinematic/fonts/inter-tight-500-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/static/cinematic/cinematic.css">
+<script type="importmap">
+{ "imports": {
+  "three": "/static/cinematic/vendor/three/three.module.min.js",
+  "three/addons/": "/static/cinematic/vendor/three/addons/"
+} }
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<canvas id="gl" aria-hidden="true"></canvas>
+<div id="veil" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <a class="brand" href="#top" aria-label="SilentHelp home">
+    <img src="/static/cinematic/img/badge-128.png" alt="" width="36" height="36">
+    <span>SilentHelp</span>
+  </a>
+  <nav class="nav-links" aria-label="Primary">
+    <a href="#how" class="w">How it works</a>
+    <a href="#privacy" class="g">Privacy</a>
+  </nav>
+  <a class="pill-dark" href="/app">Start free</a>
+</header>
+
+<main id="main">
+
+<!-- ═════════ 1 · HERO — gallery ceiling, marble room, plinth, metal logo ═════════ -->
+<section class="act act-hero" id="top" aria-label="SilentHelp">
+  <div class="stick">
+    <div class="hero-copy" id="heroCopy">
+      <p class="eyebrow">Free forever</p>
+      <h1>Support that notices <br>before you have to ask</h1>
+      <p class="hero-sub">A private, on-device wellbeing companion for students, families, and school counselors.</p>
+    </div>
+    <div class="hero-cta" id="heroCta">
+      <a class="pill" href="/app">Start free</a>
+    </div>
+    <div class="status hero-status" data-status aria-label="SilentHelp status"></div>
+    <div class="scroll-cue" id="scrollCue" aria-hidden="true"><span></span>Scroll</div>
+  </div>
+</section>
+
+<!-- ═════════ 2 · DEMO — fully black, device rising, glass chips, beam ═════════ -->
+<section class="act act-demo" id="demo" aria-labelledby="demoTitle">
+  <div class="stick">
+    <div class="demo-copy" id="demoCopy">
+      <h2 id="demoTitle">Notice what<br>goes unsaid</h2>
+      <p class="lede">On-device detection notices heavy writing and offers a gentle check-in — Talk it through, Ignore 1h, or Dismiss.</p>
+      <div class="cta-row">
+        <a class="pill" href="/stage">See it run</a>
+        <a class="pill-ghost" href="/app?voice=1">Try voice mode</a>
+      </div>
+    </div>
+
+    <div class="beam" id="beam" aria-hidden="true"><i></i></div>
+
+    <div class="device-wrap" id="deviceWrap">
+      <div class="device" id="device" role="img" aria-label="SilentHelp Mac check-in demo: someone types “i honestly can't do this anymore” in Notes, SilentHelp detects it on-device and shows a gentle check-in.">
+        <div class="cam" aria-hidden="true"></div>
+        <div class="screen" id="screen" aria-hidden="true">
+          <div class="menubar">
+            <span class="apple"></span><b>Notes</b><span>File</span><span>Edit</span>
+            <span class="sp"></span><span class="sh">SH</span><span>11:52 PM</span>
+          </div>
+          <div class="notes">
+            <div class="notes-bar"><i></i><i></i><i></i><span>untitled</span></div>
+            <div class="notes-body"><span id="typed"></span><span class="caret" id="caret"></span></div>
+          </div>
+          <div class="layers" id="layers">
+            <div class="lq">“i just want it all to stop”</div>
+            <div class="lr" data-l="1"><span>Layer 1</span><b>Keyword</b><em>hit · tier 2 · 14ms</em></div>
+            <div class="lr" data-l="2"><span>Layer 2</span><b>Semantic</b><em>intent: distress · high</em></div>
+            <div class="lr" data-l="3"><span>Layer 3</span><b>Behavioral</b><em>late night ×3 · pace ↓</em></div>
+            <div class="lr" data-l="4"><span>Layer 4</span><b>Trend gate</b><em>day 3/4 · high bypasses</em></div>
+            <div class="ld">decide_response() <em>urgent check-in · resources · you choose</em></div>
+          </div>
+          <div class="checkin" id="checkin">
+            <div class="ci-head"><img src="/static/cinematic/img/badge-32.png" alt=""><span>SILENTHELP</span><em>now</em></div>
+            <p>Hey — that sounded heavy. You don't have to carry it alone tonight. Want to talk it through?</p>
+            <div class="ci-btns"><span class="on">Talk it through</span><span>Ignore 1h</span><span>Dismiss</span></div>
+          </div>
+          <div class="ping" id="ping"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chips" id="chips" aria-hidden="true">
+      <span class="chip" data-d="0.45" style="--x:-35vw;--y:-9vh">Layer 1 · Keyword hit · 14 ms</span>
+      <span class="chip" data-d="0.85" style="--x:34vw;--y:-15vh">Distress detected · high</span>
+      <span class="chip" data-d="0.55" style="--x:-39vw;--y:9vh">Jokes stay quiet</span>
+      <span class="chip" data-d="1.0"  style="--x:38vw;--y:5vh">Gentle check-in offered</span>
+      <span class="chip" data-d="0.35" style="--x:-36vw;--y:-26vh">0 bytes of raw text stored</span>
+      <span class="chip" data-d="0.7"  style="--x:37vw;--y:24vh">988 resources ready</span>
+      <span class="chip" data-d="0.6"  style="--x:-33vw;--y:26vh">Drafts to a trusted adult · you press send</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════ 3 · GALLERY — floating photos, spinning silver logo ═════════ -->
+<section class="act act-gallery" id="beginning" aria-labelledby="galTitle">
+  <div class="stick">
+    <div class="gal-copy" id="galCopy">
+      <h2 id="galTitle" class="h2s">The app is only<br>the beginning</h2>
+    </div>
+    <div class="gal-cta" id="galCta">
+      <p class="lede">A quiet companion that notices when you're running low — on your Mac, never sent anywhere, long before you'd think to ask for help.</p>
+      <a class="pill" href="/next-features">Next-generation features</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════ The rest of silenthelp.org, quiet black/silver ═════════ -->
+<div class="content">
+
+<section class="sec" id="signals" aria-labelledby="sigT">
+  <p class="eyebrow fade">Overview</p>
+  <h2 id="sigT" class="fade">Notice the quiet signals<br>before they grow louder.</h2>
+  <ol class="signals fade">
+    <li><span>01</span>Sleep slipping while the day still looks fine</li>
+    <li><span>02</span>Mood dips written off as “just stress”</li>
+    <li><span>03</span>Focus fading under the same smile</li>
+    <li><span>04</span>Help asked for only after it hurts</li>
+  </ol>
+</section>
+
+<section class="dm-sec" id="features" aria-labelledby="featT">
+  <div class="dm-head">
+    <p class="dm-eyebrow fade">Demo</p>
+    <h2 id="featT" class="fade">Hover a card. Watch the<br class="dm-br"> real product.</h2>
+    <p class="dm-sub fade">Six SilentHelp features, each one a live demo. Hover or tap a card to play it.</p>
+  </div>
+  <div class="dm-wrap fade" id="cards" role="list">
+    <article class="dcard" role="listitem" tabindex="0" data-demo="coping" aria-label="Coping chat demo">
+      <div class="dm-stage" aria-hidden="true">
+        <div class="dm-ui">
+          <div class="dm-chat">
+            <div class="dm-bar"><i></i><i></i><i></i><b>Coping Chat</b></div>
+            <div class="dm-bub me a d1">i feel so alone and hopeless</div>
+            <div class="dm-typing a d2 gone"><i></i><i></i><i></i></div>
+            <div class="dm-bub sh a d3"><b>SILENTHELP</b>That sounds really heavy. I'm here — what has tonight been like?</div>
+            <div class="dm-bub me a d4">this test is killing me 😂</div>
+            <div class="dm-quiet a d5">· stays quiet — it read the joke ·</div>
+            <div class="dm-chip live-only a d6"><i></i>support reply + detection run in parallel · never a therapist</div>
+          </div>
+        </div>
+      </div>
+      <div class="dm-rest" aria-hidden="true"><span>01</span><b>Coping chat</b></div>
+      <div class="dm-body"><span class="dm-cat">01 · Web · App</span><h3>Coping chat</h3><p>Warm companion that catches jokes vs. real distress — and never pretends to be a therapist.</p><a class="dm-go" href="/app">Open app <span aria-hidden="true">→</span></a></div>
+    </article>
+    <article class="dcard" role="listitem" tabindex="0" data-demo="friend" aria-label="Help a friend demo">
+      <div class="dm-stage" aria-hidden="true">
+        <div class="dm-ui">
+          <div class="dm-friend">
+            <div class="dm-paste a d1"><b>Paste what they sent</b><div class="dm-bub">i can't do this anymore. don't tell anyone</div><span class="dm-note"><i></i>reading intent, not keywords</span></div>
+            <div class="dm-step a d2"><em>01</em>Ask directly, without panic</div>
+            <div class="dm-step a d3"><em>02</em>Stay with them. Don't fix — listen</div>
+            <div class="dm-step a d4"><em>03</em>Don't keep this secret</div>
+            <div class="dm-step now a d5"><em>!</em>Bring in an adult tonight</div>
+          </div>
+        </div>
+      </div>
+      <div class="dm-rest" aria-hidden="true"><span>02</span><b>Help a friend</b></div>
+      <div class="dm-body"><span class="dm-cat">02 · For friends</span><h3>Help a friend</h3><p>Paste what they sent. Get calm next steps — and when it’s time to bring in an adult.</p><a class="dm-go" href="/app">Try it <span aria-hidden="true">→</span></a></div>
+    </article>
+    <article class="dcard" role="listitem" tabindex="0" data-demo="mac" aria-label="Mac check-in demo">
+      <div class="dm-stage" aria-hidden="true">
+        <div class="dm-ui">
+          <div class="dm-mac">
+            <div class="dm-mbar"><b>Notes</b><span class="sp"></span><span class="sh"><i></i>SH</span><span>11:52 PM</span></div>
+            <div class="dm-win a d1"><div class="dm-wbar"><i></i><i></i><i></i></div><div class="dm-wbody"><b>untitled</b><span class="dm-type"><span>i honestly can't do this anymore</span></span></div></div>
+            <div class="dm-pop slide d4"><b><i></i>SILENTHELP</b><p>Hey — that sounded heavy. Want to talk it through?</p><div class="dm-btns"><span class="on">Talk it through</span><span>Ignore 1h</span><span>Dismiss</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="dm-rest" aria-hidden="true"><span>03</span><b>Mac check-in</b></div>
+      <div class="dm-body"><span class="dm-cat">03 · Mac agent</span><h3>Quiet check-in</h3><p>On-device detection notices heavy writing and offers a gentle check-in — Talk it through, Ignore 1h, or Dismiss.</p><a class="dm-go" href="/download/agent">Get Mac app <span aria-hidden="true">→</span></a></div>
+    </article>
+    <article class="dcard" role="listitem" tabindex="0" data-demo="layers" aria-label="Four quiet layers demo">
+      <div class="dm-stage" aria-hidden="true">
+        <div class="dm-ui">
+          <div class="dm-pipe">
+            <div class="dm-in a d1">"i just want it all to stop"</div>
+            <div class="dm-lay a d2"><i></i><div><small>Layer 1</small>Keyword</div><em class="live-only">hit · tier 2 · 14ms</em></div>
+            <div class="dm-lay a d3"><i></i><div><small>Layer 2</small>Semantic</div><em class="live-only">intent: distress · high</em></div>
+            <div class="dm-lay a d4"><i></i><div><small>Layer 3</small>Behavioral</div><em class="live-only">late night ×3 · pace ↓</em></div>
+            <div class="dm-lay a d5"><i></i><div><small>Layer 4</small>Trend gate</div><em class="live-only">day 3/4 · high bypasses</em></div>
+            <div class="dm-fn a d6">decide_response()</div>
+            <div class="dm-out a d7"><i></i>urgent check-in · resources · you choose</div>
+          </div>
+        </div>
+      </div>
+      <div class="dm-rest" aria-hidden="true"><span>04</span><b>Four quiet layers</b></div>
+      <div class="dm-body"><span class="dm-cat">04 · Detection</span><h3>Four quiet layers</h3><p>Keyword → meaning → behavior → trend. Jokes stay quiet. Patterns get a soft nudge.</p><a class="dm-go" href="#how">How it works <span aria-hidden="true">→</span></a></div>
+    </article>
+    <article class="dcard" role="listitem" tabindex="0" data-demo="crisis" aria-label="Crisis support demo">
+      <div class="dm-stage" aria-hidden="true">
+        <div class="dm-ui">
+          <div class="dm-crisis">
+            <h4 class="a d1">You matter.</h4>
+            <p class="a d2">You don't have to face this alone. Real people are awake and ready to talk.</p>
+            <span class="dm-cbtn pri a d3">Call or text 988</span>
+            <span class="dm-cbtn a d4">Text HOME to 741741</span>
+            <span class="dm-cbtn a d5">I'm safe right now</span>
+          </div>
+        </div>
+      </div>
+      <div class="dm-rest" aria-hidden="true"><span>05</span><b>Crisis support</b></div>
+      <div class="dm-body"><span class="dm-cat">05 · Crisis</span><h3>Real help, right away</h3><p>When it’s serious, SilentHelp surfaces 988 and crisis resources — never suppressed by joke context.</p><a class="dm-go" href="https://988lifeline.org" rel="noopener">988 Lifeline <span aria-hidden="true">→</span></a></div>
+    </article>
+    <article class="dcard" role="listitem" tabindex="0" data-demo="privacy" aria-label="Privacy controls demo">
+      <div class="dm-stage" aria-hidden="true">
+        <div class="dm-ui">
+          <div class="dm-priv">
+            <div class="dm-box">
+              <h5>Detection layers</h5>
+              <div class="dm-row a d1"><span><em>01</em>Keyword</span><span class="dm-tg t1"></span></div>
+              <div class="dm-row a d1"><span><em>02</em>Semantic</span><span class="dm-tg t2"></span></div>
+              <div class="dm-row a d1"><span><em>03</em>Behavioral</span><span class="dm-tg t3"></span></div>
+              <div class="dm-row a d1"><span><em>04</em>Trend gate</span><span class="dm-tg t4"></span></div>
+              <div class="dm-zero a d5">0 bytes of raw text stored<br>events = category + level</div>
+            </div>
+            <div class="dm-act a d6"><span>Export everything</span><em>.json</em></div>
+            <div class="dm-act a d7"><span>Erase everything</span><em>one click</em></div>
+          </div>
+        </div>
+      </div>
+      <div class="dm-rest" aria-hidden="true"><span>06</span><b>Privacy controls</b></div>
+      <div class="dm-body"><span class="dm-cat">06 · Privacy</span><h3>You stay in control</h3><p>0 bytes of raw text stored. Drafts to a trusted adult only if you press send. Erase everything in one click.</p><a class="dm-go" href="/privacy">Privacy <span aria-hidden="true">→</span></a></div>
+    </article>
+  </div>
+  <p class="dm-hint fade">Hover a card to play that feature’s demo</p>
+</section>
+
+<section class="sec" id="how" aria-labelledby="howT">
+  <p class="eyebrow fade">How it works</p>
+  <h2 id="howT" class="fade">Four quiet layers,<br>one gentle signal</h2>
+  <p class="lede fade">Keywords miss meaning and models miss patterns — so each layer covers the one before it.</p>
+  <div class="layers-grid">
+    <div class="layer fade"><span class="lk">L1</span><h3>Keyword</h3><p class="mono">~15 ms · local regex · no AI</p><p>Tens of thousands of phrases matched locally. No AI, no network.</p><p class="quote">“i feel so alone”</p></div>
+    <div class="layer fade"><span class="lk">L2</span><h3>Semantic</h3><p class="mono">reads intent, decides severity</p><p>Reads meaning — a joke stays a joke. “this test is killing me” and a real goodbye are never confused.</p><p class="quote"><span class="tag">joke</span> <span class="tag">serious</span></p></div>
+    <div class="layer fade"><span class="lk">L3</span><h3>Behavioral</h3><p class="mono">rhythm vs. your baseline · no text</p><p>Late nights, tab switching, typing pace, session length. Measured against your own baseline. Reads no text.</p></div>
+    <div class="layer fade"><span class="lk">L4</span><h3>Trend gate</h3><p class="mono">one bad day ≠ a pattern</p><p>1 day ≠ crisis. Only a sustained pattern surfaces. Crisis always bypasses.</p></div>
+  </div>
+  <p class="you fade">You — in control</p>
+  <div class="cta-row fade"><a class="pill" href="/app">Start free</a></div>
+</section>
+
+<section class="sec" id="numbers" aria-labelledby="numT">
+  <p class="eyebrow fade">By the numbers</p>
+  <h2 id="numT" class="fade">Numbers that just<br>make sense</h2>
+  <p class="lede fade">Privacy-first by design. Measured on the device, never in the cloud.</p>
+  <div class="nums">
+    <div class="n fade"><b>&lt;1ms</b><h3>on-device scan</h3><p>every message checked locally, before anything leaves your Mac.</p></div>
+    <div class="n fade"><b>0 bytes</b><h3>raw text stored</h3><p>only a category and a level are recorded — never what you wrote.</p></div>
+    <div class="n fade"><b>4</b><h3>detection layers</h3><p>keyword, semantic, behavioral, and a trend gate that ignores one bad day.</p></div>
+  </div>
+</section>
+
+<section class="sec" id="who" aria-labelledby="whoT">
+  <p class="eyebrow fade">Who it's for</p>
+  <h2 id="whoT" class="fade">Built for the ones<br>who go quiet</h2>
+  <p class="lede fade">Real Moments. Real Signals. Support That Arrives Before the Ask.</p>
+  <div class="who">
+    <article class="fade"><span class="num">01</span><h3>The student at 1 a.m.</h3><p class="mono">Studying, scrolling, not sleeping</p><p>SilentHelp reads the rhythm — late nights, restless tabs, typing pace — against your own baseline. It just checks in.</p></article>
+    <article class="fade"><span class="num">02</span><h3>The one who jokes</h3><p class="mono">"this test is killing me 😂"</p><p>Nothing happens. It reads meaning, not keywords — so it never cries wolf, and students keep trusting it.</p></article>
+    <article class="fade"><span class="num">03</span><h3>The friend who got a text</h3><p class="mono">Help a Friend</p><p>Paste what they sent. SilentHelp coaches you on what to say, and when it's time to bring in a trusted adult.</p></article>
+    <article class="fade" id="parents"><span class="num">04</span><h3>The parent who wonders</h3><p class="mono">Families</p><p>Nothing is reported behind your teen's back. What you get is support that's actually theirs.</p></article>
+    <article class="fade" id="schools"><span class="num">05</span><h3>The school counselor</h3><p class="mono">Schools</p><p>When a student chooses to reach out, the message arrives already drafted — category and level, never a transcript.</p></article>
+    <article class="fade"><span class="num">06</span><h3>The one in crisis</h3><p class="mono">988 · Suicide &amp; Crisis Lifeline</p><p>When it's truly serious, a calm check-in surfaces real human help. Crisis always bypasses the trend gate.</p></article>
+  </div>
+</section>
+
+<section class="sec" id="privacy" aria-labelledby="privT">
+  <p class="eyebrow fade">Privacy</p>
+  <h2 id="privT" class="fade">You stay<br>in control</h2>
+  <p class="lede fade">0 bytes of raw text stored. Drafts to a trusted adult only if you press send. Erase everything in one click.</p>
+  <div class="priv">
+    <div class="pv fade"><span class="mono">Privacy</span><b>0 bytes</b><p>Raw text stored or transmitted. Only a category and a level.</p></div>
+    <div class="pv fade"><span class="mono">Layer 4 · Trend gate</span><b>1 day ≠ crisis</b><p>Only a sustained pattern surfaces. Crisis always bypasses.</p></div>
+    <div class="pv fade"><span class="mono">Escalation</span><b>You press send</b><p>The message to a counselor is drafted — you decide if it goes.</p></div>
+  </div>
+  <ul class="controls fade" aria-label="Privacy controls">
+    <li><span>Trusted contact</span><em>Ms. Rivera</em></li>
+    <li><span>Export everything</span><em>.json</em></li>
+    <li><span>Erase everything</span><em>one click</em></li>
+    <li><span>Delete account</span><em>frees email</em></li>
+  </ul>
+  <p class="mono fade">events = category + level + time · 0 bytes of raw text</p>
+  <div class="cta-row fade"><a class="pill-ghost" href="/privacy-architecture">Privacy architecture</a><a class="pill-ghost" href="/privacy">Privacy Policy</a></div>
+</section>
+
+<section class="sec crisis" id="crisis" aria-labelledby="crT">
+  <p class="eyebrow fade">Crisis support · Real help, right away</p>
+  <h2 id="crT" class="fade">You matter.</h2>
+  <p class="lede fade">It sounds like you're in a lot of pain right now. You don't have to face this alone — real people are awake and ready to talk.</p>
+  <div class="cta-row fade">
+    <a class="pill" href="tel:988">Call or text 988</a>
+    <a class="pill-ghost" href="sms:741741?&amp;body=HOME">Text HOME to 741741</a>
+    <a class="pill-ghost" href="https://988lifeline.org" rel="noopener">988lifeline.org</a>
+  </div>
+  <p class="mono fade">explicit crisis phrases can never be suppressed by joke context</p>
+</section>
+
+<section class="sec" id="team" aria-labelledby="teamT">
+  <p class="eyebrow fade">The team</p>
+  <h2 id="teamT" class="fade">Built by students,<br>for students.</h2>
+  <p class="lede fade">Three high schoolers who think support should arrive before you have to ask for it. Est. 2026, built in the open, free for everyone.</p>
+  <ul class="principles fade"><li>The model flags · the code decides</li><li>Fails safe, never silent</li><li>Nothing leaves without your say-so</li></ul>
+  <div class="team">
+    <a class="tm fade" href="/about#sree"><img src="/static/img/team/sree.jpg" alt="" loading="lazy"><b>Sree Saran Lakkaraju</b><span>Founder · CEO · Chief Product &amp; UX Officer</span></a>
+    <a class="tm fade" href="/about#abhinav"><img src="/static/img/team/abhinav.jpg" alt="" loading="lazy"><b>Abhinav Allani</b><span>Co-Founder · Lead AI/ML &amp; Detection Systems</span></a>
+    <a class="tm fade" href="/about#nehanth"><img src="/static/img/team/nehanth.jpg" alt="" loading="lazy"><b>Nehanth Arvapalli</b><span>Co-Founder · Detection Data &amp; Intelligence</span></a>
+    <a class="tm fade" href="/about#dhiraj"><img src="/static/img/team/dhiraj.jpg" alt="" loading="lazy"><b>Naga Sai Dhiraj Kasam</b><span>Research Advisor</span></a>
+  </div>
+  <div class="cta-row fade"><a class="pill-ghost" href="/about">Meet the team</a></div>
+</section>
+
+<section class="sec" id="faq" aria-labelledby="faqT">
+  <p class="eyebrow fade">Questions</p>
+  <h2 id="faqT" class="h2s fade">Questions, answered quietly</h2>
+  <div class="faq">
+    <details class="fade"><summary>Is SilentHelp a therapist?</summary><p>No. It’s a warm companion that catches jokes vs. real distress — and never pretends to be a therapist. SilentHelp is a wellbeing companion, not a medical device, and it does not diagnose or provide treatment.</p></details>
+    <details class="fade"><summary>What does it store about what I write?</summary><p>0 bytes of raw text stored or transmitted. Only a category and a level are recorded — never what you wrote. Every message is checked locally, before anything leaves your Mac.</p></details>
+    <details class="fade"><summary>What if I’m just joking?</summary><p>“this test is killing me 😂” — nothing happens. It reads meaning, not keywords — so it never cries wolf, and students keep trusting it.</p></details>
+    <details class="fade"><summary>Will my parents or school see my messages?</summary><p>Nothing is reported behind your teen's back. When a student chooses to reach out, the message arrives already drafted — category and level, never a transcript. The message to a counselor is drafted — you decide if it goes.</p></details>
+    <details class="fade"><summary>What happens when it’s serious?</summary><p>When it's truly serious, a calm check-in surfaces real human help — call or text 988, or text HOME to 741741. Crisis always bypasses the trend gate, and explicit crisis phrases can never be suppressed by joke context.</p></details>
+    <details class="fade"><summary>What does it cost?</summary><p>SilentHelp is free for students, families, and schools — download it or open it in your browser today.</p></details>
+  </div>
+</section>
+
+<section class="sec final" id="start" aria-labelledby="finT">
+  <h2 id="finT" class="fade">Support that arrives<br>before the ask</h2>
+  <p class="lede fade">Ready to see beneath the surface? SilentHelp is free for students, families, and schools — download it or open it in your browser today.</p>
+  <div class="cta-row fade"><a class="pill" href="/app">Start free</a><a class="pill-ghost" href="/download/agent">Download for Mac</a></div>
+</section>
+
+<footer class="foot">
+  <div class="foot-top">
+    <div class="foot-brand">
+      <a class="brand" href="#top"><img src="/static/cinematic/img/badge-128.png" alt="" width="36" height="36"><span>SilentHelp</span></a>
+      <p>A quiet companion that notices when you're running low — on your Mac, never sent anywhere, long before you'd think to ask for help.</p>
+      <p><a href="mailto:silenthelp@silenthelp.org">silenthelp@silenthelp.org</a> · <a href="https://github.com/silenthelp-dotcom/silenthelp" rel="noopener">GitHub</a></p>
+    </div>
+    <nav aria-label="Company"><h4>Company</h4><a href="/">Home</a><a href="#demo">Demo</a><a href="/about">About</a><a href="#how">How it works</a><a href="/privacy-architecture">Privacy architecture</a><a href="/next-features">Next-generation features</a><a href="/download/agent">Download for Mac</a><a href="/app">Start free</a></nav>
+    <nav aria-label="Legal"><h4>Legal</h4><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a><a href="/careers">Careers</a></nav>
+  </div>
+  <div class="status" data-status aria-label="SilentHelp status"></div>
+  <div class="foot-bot">
+    <span>© 2026 SilentHelp All Rights Reserved</span>
+    <p>SilentHelp is a wellbeing companion, not a medical device, and it does not diagnose or provide treatment. If you are in immediate danger, call or text 988 (US Suicide &amp; Crisis Lifeline) or your local emergency number.</p>
+  </div>
+</footer>
+</div>
+</main>
+
+<script src="/static/cinematic/ui.js" defer></script>
+<script type="module" src="/static/cinematic/scene.js"></script>
+</body>
+</html>

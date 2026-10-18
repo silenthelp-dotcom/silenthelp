@@ -895,8 +895,15 @@ def _pipeline(message: str, record: bool = False, toggles: dict | None = None):
 
 @app.route("/")
 def landing():
-    # Front page — dialedweb landing (ParticleText hero, pill dock nav).
-    # Served as a static HTML file (not Jinja) so inline JS/CSS stay untouched.
+    # Front page — cinematic landing (marble room, metal SilentHelp coin,
+    # rising product demo, 3D mental-health gallery). Static HTML, not Jinja.
+    # Assets: static/cinematic/ (Three.js vendored in static/cinematic/vendor/three).
+    return send_from_directory(app.template_folder, "landing-cinematic.html")
+
+
+@app.route("/classic")
+def landing_classic():
+    # Previous front page — dialedweb landing (ParticleText hero, pill dock nav).
     return send_from_directory(app.template_folder, "landing.html")
 
 
@@ -930,6 +937,15 @@ def landing_blueyard():
     # so inline JS/CSS stay untouched. Assets: static/img/blueyard/,
     # static/vendor/blueyard/.
     return send_from_directory(app.template_folder, "landing-blueyard.html")
+
+
+@app.route("/cinematic")
+def landing_cinematic():
+    # Alternate front page in a black-tie "gallery" style (marble room +
+    # brushed-metal logo on a plinth, rising product demo, 3D photo gallery).
+    # Static HTML, served like the other landings. Assets: static/cinematic/
+    # (Three.js vendored in static/cinematic/vendor/three).
+    return send_from_directory(app.template_folder, "landing-cinematic.html")
 
 
 # Research sites served as part of silenthelp.org. Built files live in
