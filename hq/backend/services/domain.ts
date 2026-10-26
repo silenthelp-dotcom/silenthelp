@@ -1,5 +1,5 @@
 export type Row={id:string;[key:string]:any};
-export const tables=['profiles','departments','projects','project_members','tasks','task_assignees','task_dependencies','task_comments','task_attachments','submissions','submission_versions','submission_files','submission_reviews','ai_review_results','notifications','company_milestones','activity_logs','invitations','email_delivery_logs','code_snapshots'] as const;
+export const tables=['profiles','departments','projects','project_members','tasks','task_assignees','task_dependencies','task_comments','task_attachments','submissions','submission_versions','submission_files','submission_reviews','ai_review_results','notifications','company_milestones','activity_logs','invitations','email_delivery_logs','code_snapshots','meetings','polls','poll_responses'] as const;
 export type Table=typeof tables[number];export type Data=Record<Table,Row[]>;
 export const emptyData=():Data=>Object.fromEntries(tables.map(t=>[t,[]])) as unknown as Data;
 export const done=(s:string)=>['approved','completed'].includes(s);

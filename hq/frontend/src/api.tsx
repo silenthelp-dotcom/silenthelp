@@ -15,6 +15,8 @@ export function Provider({children}:{children:ReactNode}){
  const next=emptyData();await Promise.all(tables.map(async t=>{let offset=0;while(true){const r=await supabase!.from(t).select('*').range(offset,offset+999);if(r.error)throw r.error;next[t].push(...r.data);if(r.data.length<1000)break;offset+=1000;}}));setData(next);
  }catch(e){setError(e instanceof Error?e.message:'Unable to load workspace');}finally{setLoading(false)}},[]);
  useEffect(()=>{void reload();if(!supabase)return;const {data:{subscription}}=supabase.auth.onAuthStateChange(()=>{setTimeout(()=>void reload(),0)});return()=>subscription.unsubscribe()},[reload]);
+ // Live: new meetings and polls appear (and polls pop up) without a refresh.
+ useEffect(()=>{if(!supabase||!user||user.must_change_password)return;let t:any;const ch=supabase.channel('hq-live-'+user.id);for(const table of ['meetings','polls','poll_responses','notifications'])ch.on('postgres_changes' as any,{event:'*',schema:'public',table},()=>{clearTimeout(t);t=setTimeout(()=>void reload(),400)});ch.subscribe();return()=>{clearTimeout(t);void supabase!.removeChannel(ch)}},[user?.id,reload]);
  const login=async(email:string,password:string)=>{if(!supabase)throw new Error('Configure Supabase before signing in');const r=await supabase.auth.signInWithPassword({email,password});if(r.error)throw r.error;await reload();};
  const loginDemo=async(role:string)=>{sessionStorage.setItem('hq-demo-user',role==='admin'?demoAdmin:demoEmployee);await reload()};
  const logout=useCallback(async()=>{if(demo)sessionStorage.removeItem('hq-demo-user');else if(supabase){const r=await supabase.auth.signOut();if(r.error)throw r.error;}setUser(null);setData(emptyData())},[]);

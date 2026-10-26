@@ -62,6 +62,8 @@ export async function handler(req:Request):Promise<Response>{
  if(paths&&paths.length){const rm=await db.storage.from('research').remove(paths);if(rm.error)console.error('task.delete storage cleanup',rm.error.message);}
  return new Response(JSON.stringify({ok:true}),{headers});
  }
+ const rpcOps:Record<string,string>={'meeting.create':'hq_meeting_create','meeting.cancel':'hq_meeting_cancel','poll.create':'hq_poll_create','poll.respond':'hq_poll_respond','poll.close':'hq_poll_close'};
+ if(rpcOps[operation]){const r=check(await db.rpc(rpcOps[operation],{actor:user.id,payload:p}));return new Response(JSON.stringify(r.data),{headers});}
  if(operation==='snapshot.download'||operation==='snapshot.run'){
  if(me.role!=='admin')throw new Error('Administrator required');
  if(operation==='snapshot.run'){

@@ -2,6 +2,9 @@ import { z } from 'zod';
 const id=z.string().uuid(); const optionalId=z.union([id,z.literal('')]).optional();
 const date=z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(v=>!isNaN(Date.parse(v)) && new Date(v).toISOString().slice(0,10)===v,'Invalid date');
 const text=z.string().max(20000); const title=z.string().trim().min(1).max(200);
+export const meetingLink=/^https:\/\/([a-z0-9-]+\.)*(zoom\.us|meet\.google\.com)\//i;
+const when=z.string().refine(v=>!isNaN(Date.parse(v)),'Pick a valid date and time');
+const pollFields={question:z.string().trim().min(1,'Write the poll question').max(300),options:z.array(z.string().trim().min(1).max(80)).min(1).max(8).default(['Yes','No']),allow_suggestion:z.boolean().default(true),closes_at:z.union([when,z.literal('')]).optional()};
 export const researchSchema=z.object({title,summary:text,findings:z.string().max(150000),methodology:text,sources:z.array(z.string().url().refine(u=>/^https?:\/\//.test(u))).max(100),limitations:text,recommendations:text,notes:text});
 const taskFields={title,description:text,project_id:optionalId,department_id:optionalId,priority:z.enum(['low','medium','high','urgent']),start_date:z.union([date,z.literal('')]).optional(),due_date:date,assignees:z.array(id).min(1).max(50).refine(a=>new Set(a).size===a.length),details:z.object({deliverables:text,questions:text,required_sources:text,criteria:text,instructions:text}),dependencies:z.array(id).max(50).default([])};
 export const schemas={
@@ -15,7 +18,12 @@ export const schemas={
  'submission.review':z.object({id,version_id:id,decision:z.enum(['under_review','revision_requested','approved','rejected']),feedback:z.string().trim().min(3).max(20000)}),
  'employee.update':z.object({id,full_name:title,role:z.enum(['admin','employee']),active:z.boolean(),department_id:optionalId}),
  'profile.update':z.object({full_name:title,bio:z.string().trim().max(600).optional()}),
- 'avatar.prepare':z.object({name:z.string().min(1).max(240),size:z.number().int().positive()}), 'avatar.finish':z.object({path:z.string().min(1).max(300)}), 'avatar.remove':z.object({}), 'snapshot.download':z.object({id}), 'snapshot.run':z.object({}), 'notification.read':z.object({id}),
+ 'avatar.prepare':z.object({name:z.string().min(1).max(240),size:z.number().int().positive()}), 'avatar.finish':z.object({path:z.string().min(1).max(300)}), 'avatar.remove':z.object({}), 'snapshot.download':z.object({id}),
+ 'meeting.create':z.object({title,link:z.union([z.string().trim().regex(meetingLink,'Use a Google Meet or Zoom link (https://meet.google.com/… or https://…zoom.us/…)'),z.literal('')]).optional(),starts_at:when,duration_min:z.number().int().min(5).max(600).default(30),notes:z.string().max(2000).optional(),poll:z.object(pollFields).optional()}),
+ 'meeting.cancel':z.object({id}),
+ 'poll.create':z.object({...pollFields,meeting_id:optionalId}),
+ 'poll.respond':z.object({poll_id:id,choice:z.string().max(80).optional(),suggestion:z.string().max(500).optional()}).refine(r=>(r.choice||'').trim()||(r.suggestion||'').trim(),'Pick an option or write a suggestion'),
+ 'poll.close':z.object({id}), 'snapshot.run':z.object({}), 'notification.read':z.object({id}),
  'project.save':z.object({id:optionalId,name:title,description:text,owner_id:optionalId,start_date:z.union([date,z.literal('')]).optional(),target_date:date,status:z.enum(['active','paused','completed']),members:z.array(id).max(100)}),
  'milestone.save':z.object({id:optionalId,project_id:optionalId,title,target_date:date,completed:z.boolean(),risk:text}),
  'department.create':z.object({name:title}),
