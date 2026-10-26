@@ -193,3 +193,9 @@ input,select,textarea{border-radius:10px;background:#0a0a0a;border-color:rgba(25
 }
 
 .sidebar-bottom:has(.q1-mini){padding-top:20px}
+
+/* Sidebar: no wide grey scrollbar when the nav is taller than the window. */
+.sidebar{scrollbar-width:none}
+.sidebar::-webkit-scrollbar{display:none}
+.sidebar:hover{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.18) transparent}
+@media (max-height:980px){.sidebar nav a{padding-top:7px;padding-bottom:7px}.sidebar-bottom:has(.q1-mini){padding-top:12px}.q1-mini .q1-bars{gap:6px;margin:8px 0}}
