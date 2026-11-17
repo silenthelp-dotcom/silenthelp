@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {createNetwork,proximity} from '../network.js';
+test('neurons fit the supplied logo and form a stable connected network',()=>{const contains=(x,y)=>Math.hypot(x-300,y-240)<180;const a=createNetwork(contains);assert.equal(a.nodes.length,180);assert.ok(a.nodes.every(n=>contains(n.x,n.y)));assert.ok(a.edges.length>100);assert.ok(a.edges.every(e=>e.a<e.b&&e.b<a.nodes.length));assert.deepEqual(a,createNetwork(contains));});
+test('empty logo cannot hang generation',()=>assert.deepEqual(createNetwork(()=>false),{nodes:[],edges:[]}));
+test('hover activation decays to zero outside its radius',()=>{assert.equal(proximity({x:0,y:0},{x:0,y:0},150),1);assert.equal(proximity({x:0,y:0},{x:75,y:0},150),.5);assert.equal(proximity({x:0,y:0},{x:180,y:0},150),0)});

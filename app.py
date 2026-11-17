@@ -895,9 +895,9 @@ def _pipeline(message: str, record: bool = False, toggles: dict | None = None):
 
 @app.route("/")
 def landing():
-    # Front page — cinematic landing (marble room, metal SilentHelp coin,
-    # rising product demo, 3D mental-health gallery). Static HTML, not Jinja.
-    # Assets: static/cinematic/ (Three.js vendored in static/cinematic/vendor/three).
+    # Front page — SH brain hero, rising product demo, and wellbeing content.
+    # Static HTML, not Jinja.
+    # Assets: static/cinematic/; hero source: web/landing-hero/.
     return send_from_directory(app.template_folder, "landing-cinematic.html")
 
 

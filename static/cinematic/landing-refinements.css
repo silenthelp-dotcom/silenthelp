@@ -1,0 +1,21 @@
+/* True black surfaces. Only the hero's neurons introduce color. */
+:root{--bg:#000;--deep:#050505;--silver:#e5e5e5;--light:#e3e3e3;--g300:#c4c4c4;--g400:#939393;--g500:#777;--s1:#080808;--s2:#161616;--chip:rgba(12,12,12,.7)}
+html{scroll-behavior:smooth;background:#000}body,.content,.act-demo{background:#000}
+.content,.act-demo,footer{filter:grayscale(1)}
+.nav.solid{background:rgba(0,0,0,.88)}.nav .brand img{border-radius:0;filter:none;object-fit:contain}
+.pill-dark{border:1px solid #ffffff30;background:#000}.pill-ghost{background:#000}
+.content::before{background:linear-gradient(0deg,#000,transparent)}
+.fade{opacity:1;transform:none;transition:opacity .85s var(--ease),transform .85s var(--ease);transition-delay:var(--reveal-delay,0ms)}
+.reveal-ready .fade:not(.in){opacity:0;transform:translateY(32px)}
+.reveal-ready .fade:focus-within{opacity:1;transform:none;transition:none}
+section[id]{scroll-margin-top:85px}
+.signals li{transition:padding-left .35s,color .35s}.signals li:hover{padding-left:12px;color:#fff}
+.layer,.who article,.pv{transition:background .35s,border-color .35s}.layer:hover,.who article:hover,.pv:hover{background:#0b0b0b}
+.nav-toggle{display:none}
+@media(max-width:800px){
+ .nav{grid-template-columns:1fr auto auto;gap:16px;padding:16px 20px}.nav .brand{font-size:17px;gap:8px}.nav .brand img{width:32px;height:32px}.nav .pill-dark{height:40px;padding:0 16px;font-size:12px}
+ .nav-toggle{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:center;gap:6px;width:36px;height:40px;border:0;background:none;color:#fff}.nav-toggle span{height:1px;width:22px;background:currentColor;transition:transform .2s}.nav-toggle[aria-expanded=true] span:first-child{transform:translateY(3.5px) rotate(45deg)}.nav-toggle[aria-expanded=true] span:last-child{transform:translateY(-3.5px) rotate(-45deg)}
+ .nav-links{display:none}.nav-links.is-open{position:fixed;inset:0;background:#000;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:40px;gap:35px;font-size:32px}.menu-open{overflow:hidden}
+ .nav:has(.is-open) .brand,.nav:has(.is-open)>.pill-dark{visibility:hidden}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.fade,.reveal-ready .fade:not(.in){opacity:1;transform:none;transition:none}.signals li,.layer,.who article,.pv{transition:none}}

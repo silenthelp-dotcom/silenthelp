@@ -1,0 +1,1 @@
+{"name":"silenthelp-landing-hero","private":true,"version":"1.0.0","type":"module","scripts":{"build":"vite build","check":"node --test tests/*.test.mjs"},"dependencies":{"react":"^19.0.0","react-dom":"^19.0.0","lucide-react":"^0.468.0","hls.js":"^1.5.18"},"devDependencies":{"vite":"^6.0.0","tailwindcss":"^4.0.0","@tailwindcss/vite":"^4.0.0"}}

@@ -1,0 +1,28 @@
+@layer theme, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@source "./src.jsx";
+/* Scoped styles: the existing SilentHelp content keeps its own typography. */
+.sh-hero{position:relative;isolation:isolate;min-height:940px;height:100svh;overflow:hidden;background:#000;color:#eee;font-family:Inter,"Inter Tight",sans-serif}
+#sh-hero-root{min-height:inherit;height:100%;position:relative}
+.sh-video,.sh-shade,.sh-grid{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.sh-video{object-fit:cover;opacity:.6;filter:grayscale(1) brightness(.22)}
+.sh-shade{background:linear-gradient(90deg,#000 8%,#000e 35%,#0005 80%),linear-gradient(0deg,#000,transparent 45%)}
+.sh-grid{display:flex;justify-content:space-evenly}.sh-grid i{width:1px;background:#ffffff0c}
+.sh-brain{position:absolute;z-index:1;right:1%;top:16%;width:53%;height:66%;margin:0;outline-offset:-15px}
+.sh-brain canvas{width:100%;height:100%;display:block;pointer-events:none}
+.sh-brain-fallback{position:absolute;inset:5%;width:90%;height:90%;object-fit:contain;opacity:.42}.sh-brain-ready .sh-brain-fallback{display:none}
+.sh-brain figcaption{position:absolute;left:0;right:0;bottom:-12px;display:flex;align-items:center;justify-content:center;gap:16px;color:#666;font:10px Inter,sans-serif;letter-spacing:2px}.sh-brain figcaption span{width:30px;height:1px;background:#333}
+.sh-hero-copy{position:relative;z-index:2;padding:190px 0 100px 8%;max-width:780px;pointer-events:none}.sh-hero-copy a{pointer-events:auto}
+.sh-glass{position:relative;width:200px;height:200px;padding:18px 19px;margin-bottom:-12px;border-radius:16px;background:rgba(255,255,255,.01);background-blend-mode:luminosity;backdrop-filter:blur(4px);box-shadow:inset 0 1px 1px rgba(255,255,255,.1)}
+.sh-glass::before{content:'';position:absolute;inset:0;padding:1.4px;border-radius:inherit;background:linear-gradient(180deg,#ffffff70,#ffffff0a);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.sh-card-top{display:flex;justify-content:space-between;font-size:14px;color:#999;margin-bottom:15px}.sh-dot{width:5px;height:5px;border-radius:50%;background:#ccc;margin-top:6px}.sh-glass>svg{color:#aaa;margin-bottom:11px}.sh-glass h2{font:500 18px/1.18 Inter,sans-serif;letter-spacing:-.3px;text-transform:none;color:#ddd;margin:0}.sh-glass em{font-family:'Instrument Serif',serif}.sh-glass p{font-size:11px;line-height:1.5;color:#888;margin-top:9px}
+.sh-eyebrow{font:700 11px/1.5 'Plus Jakarta Sans',sans-serif;letter-spacing:1.7px;text-transform:uppercase;color:#aaa;margin:0}
+.sh-hero h1{font:800 clamp(40px,5.1vw,72px)/1.04 Inter,sans-serif;letter-spacing:-.055em;margin:22px 0 24px;color:#f5f5f5}.sh-description{font:400 14px/1.85 Inter,sans-serif;color:#ffffffb3;max-width:430px;margin:0 0 30px}
+.sh-cta{display:inline-flex;align-items:center;gap:38px;border:1px solid #ffffff70;border-radius:999px;background:#000;color:#fff;padding:18px 25px;font:700 12px Inter,sans-serif;transition:background .2s,transform .2s}.sh-cta:hover{background:#171717;transform:translateY(-2px)}
+.sh-note{display:flex;align-items:center;gap:12px;color:#777;font-size:10px;margin-top:24px}.sh-note>span{width:24px;height:1px;background:#555}
+.sh-hero-bottom{position:absolute;z-index:2;bottom:30px;left:5%;right:5%;display:flex;justify-content:space-between;align-items:center;color:#666;font:9px Inter,sans-serif;letter-spacing:1.5px}.sh-hero-bottom a{display:flex;gap:22px;align-items:center;color:#aaa}
+@media(min-width:1600px){.sh-hero-copy{padding-top:23vh}}
+@media(max-width:900px){.sh-hero-copy{padding-left:6%;max-width:620px}.sh-brain{right:-9%;width:65%;opacity:.7}.sh-hero h1{font-size:58px}}
+@media(max-width:600px){.sh-hero{min-height:1100px;height:auto}.sh-hero-copy{padding:155px 24px 385px}.sh-hero h1{font-size:40px}.sh-grid{display:none}.sh-brain{top:auto;bottom:85px;left:8%;right:8%;width:84%;height:340px;opacity:1}.sh-brain figcaption{bottom:0;font-size:8px}.sh-right-note{display:none}.sh-hero-bottom{font-size:8px;left:24px;right:24px;gap:20px}.sh-hero-bottom a{gap:10px}.sh-description{max-width:350px}.sh-video{display:none}}
+@media(prefers-reduced-motion:reduce){.sh-video{display:none}.sh-cta{transition:none}}
