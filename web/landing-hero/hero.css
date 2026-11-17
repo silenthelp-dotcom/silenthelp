@@ -11,7 +11,7 @@
 .sh-grid{display:flex;justify-content:space-evenly}.sh-grid i{width:1px;background:#ffffff0c}
 .sh-brain{position:absolute;z-index:1;right:1%;top:16%;width:53%;height:66%;margin:0;outline-offset:-15px}
 .sh-brain canvas{width:100%;height:100%;display:block;pointer-events:none}
-.sh-brain-fallback{position:absolute;inset:5%;width:90%;height:90%;object-fit:contain;opacity:.42}.sh-brain-ready .sh-brain-fallback{display:none}
+.sh-brain-fallback{position:absolute;inset:5%;width:90%;height:90%;object-fit:contain;opacity:.78}.sh-brain-ready .sh-brain-fallback{display:none}
 .sh-brain figcaption{position:absolute;left:0;right:0;bottom:-12px;display:flex;align-items:center;justify-content:center;gap:16px;color:#666;font:10px Inter,sans-serif;letter-spacing:2px}.sh-brain figcaption span{width:30px;height:1px;background:#333}
 .sh-hero-copy{position:relative;z-index:2;padding:190px 0 100px 8%;max-width:780px;pointer-events:none}.sh-hero-copy a{pointer-events:auto}
 .sh-glass{position:relative;width:200px;height:200px;padding:18px 19px;margin-bottom:-12px;border-radius:16px;background:rgba(255,255,255,.01);background-blend-mode:luminosity;backdrop-filter:blur(4px);box-shadow:inset 0 1px 1px rgba(255,255,255,.1)}
