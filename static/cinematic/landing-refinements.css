@@ -52,3 +52,61 @@ section[id]{scroll-margin-top:85px}
   border-color: #666;
 }
 .content .signals li:hover { padding-left: var(--card-padding); }
+
+@media (min-width: 1100px) {
+  :root {
+    --pad: clamp(32px, 4vw, 80px);
+    --sec: clamp(48px, 4vw, 72px);
+  }
+  .act-demo { height: auto; }
+  .act-demo .stick {
+    position: relative;
+    height: auto;
+    max-width: 1840px;
+    margin-inline: auto;
+    padding: var(--sec) var(--pad);
+    display: grid;
+    grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+    grid-template-areas: "copy device" "chips device";
+    gap: 24px clamp(20px, 3vw, 64px);
+    border-top: 1px solid #ffffff14;
+  }
+  .demo-copy {
+    grid-area: copy;
+    position: static;
+    padding: 0;
+    text-align: left;
+    align-items: flex-start;
+    align-self: end;
+    will-change: auto;
+  }
+  .demo-copy .lede { margin-inline: 0; max-width: 42ch; }
+  .demo-copy .cta-row { justify-content: flex-start; margin-top: 24px; }
+  .device-wrap {
+    grid-area: device;
+    position: static;
+    width: 100%;
+    align-self: center;
+    transform: none;
+    will-change: auto;
+  }
+  .device { min-height: 420px; transform: none; }
+  .chips {
+    grid-area: chips;
+    position: static;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: start;
+    gap: 6px;
+  }
+  .chip { position: static; height: auto; padding: 6px 10px; white-space: normal; transform: none; opacity: 1; will-change: auto; }
+  .beam, .content::before { display: none; }
+  .sec, .dm-sec, .foot { max-width: 1840px; }
+  .dm-sec, .final { padding-block: var(--sec); }
+  .dm-wrap { max-width: none; min-height: 0; }
+  .dm-head { margin-bottom: 30px; }
+  .signals, .layers-grid, .nums, .who, .priv, .team, .faq { margin-top: 32px; }
+  .faq { max-width: none; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .foot { padding-top: var(--sec); }
+  .foot-top { margin-bottom: 32px; }
+}

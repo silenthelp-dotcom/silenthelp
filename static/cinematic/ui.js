@@ -182,6 +182,17 @@
       device = $("#device"), beam = $("#beam i");
   var pinged = false, last = performance.now();
 
+  var wideDemo = window.matchMedia("(min-width: 1100px)");
+  wideDemo.addEventListener("change", function () {
+    [demoCopy, deviceWrap, device].concat(chips.map(function (chip) { return chip.el; })).forEach(function (el) {
+      el.style.removeProperty("transform");
+      el.style.removeProperty("opacity");
+    });
+    demoOn = false;
+    demoClock = 0;
+    measure();
+  });
+
   function frame(now) {
     var dt = Math.min(0.1, (now - last) / 1000); last = now; S.t += dt;
     S.target = window.scrollY;
@@ -193,7 +204,13 @@
     /* demo */
     var d = S.raw("demo", y);
     var dvis = d > -0.6 && d < 1.2;
-    if (dvis) {
+    if (wideDemo.matches) {
+      var section = secs.demo;
+      if (S.target + vh > section.top && S.target < section.top + section.h) {
+        demoClock = (demoClock + dt) % LOOP;
+        demoFrame(demoClock);
+      }
+    } else if (dvis) {
       var cOp = smooth(-0.22, -0.02, d) * (1 - smooth(0.9, 1.04, d));
       demoCopy.style.opacity = cOp.toFixed(3);
       demoCopy.style.transform = reduced ? "" : "translate3d(0," + (-(clamp(d, -0.3, 1)) * 5).toFixed(2) + "vh,0)";

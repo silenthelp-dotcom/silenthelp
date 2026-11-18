@@ -35,6 +35,18 @@
 .sh-description{font:400 14px/1.85 Inter,sans-serif;color:#aaa;max-width:410px;margin:0 0 32px}
 .sh-cta{display:inline-flex;align-items:center;gap:38px;border:1px solid #ffffff55;border-radius:999px;background:#000;color:#eee;padding:18px 25px;font:700 12px Inter,sans-serif;text-transform:uppercase;transition:background .2s,transform .2s}.sh-cta:hover{background:#171717;transform:translateY(-2px)}
 .sh-hero-bottom{position:absolute;z-index:2;bottom:35px;left:7%;color:#777;font:10px Inter,sans-serif;letter-spacing:1.5px;text-transform:uppercase}.sh-hero-bottom a{display:flex;gap:22px;align-items:center}
+@media (min-width: 1100px) {
+  #sh-hero-root {
+    max-width: 1840px;
+    margin-inline: auto;
+    min-height: 0;
+    padding: clamp(94px, 9svh, 128px) var(--pad) 54px;
+  }
+  .sh-brain { height: clamp(400px, 57svh, 680px); }
+  .sh-hero h1 { font-size: clamp(52px, 4.4vw, 84px); max-width: 15ch; }
+  .sh-description { font-size: 16px; max-width: 44ch; }
+  .sh-hero-bottom { left: var(--pad); bottom: 18px; }
+}
 @media (max-width: 760px) {
   #sh-hero-root {
     grid-template-columns: minmax(0, 1fr);
