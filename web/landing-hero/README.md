@@ -9,6 +9,8 @@ npm run check
 npm run build
 ```
 
-Commit the source and `static/cinematic/hero/` together. Flask serves the committed assets without requiring Node on the production host. HLS is lazy-loaded, with `enableWorker: false`; the black hero remains usable if streaming or JavaScript is unavailable. Motion respects reduced-motion preferences. Canvas work pauses offscreen and in hidden tabs; its backing resolution is capped at 2×. Move over or tap the brain to reveal 220 seeded synapses; keyboard focus activates the center.
+Commit the source and `static/cinematic/hero/` together. Flask serves the committed assets without requiring Node on the production host. The hero has a plain black background with no video, grid, or glass card. Original SilentHelp headline and descriptive copy are preserved. Motion respects reduced-motion preferences. Canvas work pauses offscreen and in hidden tabs; its backing resolution is capped at 2×. The larger illustration is drawn at 34% opacity. Muted, slow ambient neuron activity is composited into its surface without pointer interaction.
 
 The non-hero content and demo interactions remain in the original template, `cinematic.css`, and `ui.js`. `landing-refinements.css` adds true black surfaces, monochrome styling, accessible mobile navigation, and staggered scroll reveals. The former global Three.js scene is no longer loaded on the landing page.
+
+Brand assets: run `npm run build:brand` to render the supplied clean SH logo into website badges, full wordmarks, favicons, and native app icon sources. Rebuild and sign the macOS app on a Mac to include the new icon in its downloadable package.

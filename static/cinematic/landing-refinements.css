@@ -1,7 +1,8 @@
 /* True black surfaces. Only the hero's neurons introduce color. */
 :root{--bg:#000;--deep:#050505;--silver:#e5e5e5;--light:#e3e3e3;--g300:#c4c4c4;--g400:#939393;--g500:#777;--s1:#080808;--s2:#161616;--chip:rgba(12,12,12,.7)}
 html{scroll-behavior:smooth;background:#000}body,.content,.act-demo{background:#000}
-.content,.act-demo,footer{filter:grayscale(1)}
+.act-demo,footer,.content>section:not(#team){filter:grayscale(1)}
+#team img{filter:none}
 .nav.solid{background:rgba(0,0,0,.88)}.nav .brand img{border-radius:0;filter:none;object-fit:contain}
 .pill-dark{border:1px solid #ffffff30;background:#000}.pill-ghost{background:#000}
 .content::before{background:linear-gradient(0deg,#000,transparent)}

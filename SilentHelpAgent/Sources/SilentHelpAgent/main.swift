@@ -1008,8 +1008,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var screenStarted = false
 
     /// The SilentHelp emblem sized for the menu bar. Loaded from the app
-    /// bundle's Resources (menubar.png / @2x / @3x). isTemplate=false so it
-    /// keeps the logo's colors instead of being tinted to monochrome.
+    /// bundle's Resources (menubar.png / @2x / @3x). isTemplate=true so the SH mark
+    /// stays legible in both light and dark menu bars.
     static func menubarEmblem() -> NSImage? {
         let name = "menubar"
         var img: NSImage?
@@ -1018,7 +1018,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         if img == nil { img = NSImage(named: name) }
         img?.size = NSSize(width: 20, height: 20)   // fits the ~22pt menu bar
-        img?.isTemplate = false
+        img?.isTemplate = true
         return img
     }
 

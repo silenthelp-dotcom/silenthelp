@@ -10,4 +10,3 @@ export function createNetwork(contains,count=180){
  const edges=[];nodes.forEach((node,i)=>nodes.map((other,j)=>({j,d:Math.hypot(node.x-other.x,node.y-other.y)})).filter(v=>v.j>i&&v.d<85).sort((a,b)=>a.d-b.d).slice(0,3).forEach(({j})=>edges.push({a:i,b:j,phase:random()})));
  return {nodes,edges};
 }
-export const proximity=(node,pointer,radius)=>Math.max(0,1-Math.hypot(node.x-pointer.x,node.y-pointer.y)/radius);
