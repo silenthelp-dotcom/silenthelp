@@ -2,17 +2,50 @@
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
 @source "./src.jsx";
-.sh-hero{position:relative;isolation:isolate;min-height:840px;height:100svh;overflow:hidden;background:#000;color:#eee;font-family:Inter,"Inter Tight",sans-serif}
-#sh-hero-root{min-height:inherit;height:100%;position:relative;display:flex;align-items:center}
-.sh-brain{position:absolute;z-index:1;right:-2%;top:9%;width:61%;height:80%;margin:0}
-.sh-brain canvas{width:100%;height:100%;display:block;touch-action:pan-y}
-.sh-brain-fallback{position:absolute;inset:2%;width:96%;height:96%;object-fit:contain;opacity:.34}.sh-brain-ready .sh-brain-fallback{display:none}
-.sh-hero-copy{position:relative;z-index:2;padding:110px 0 110px 7%;max-width:60%}
+/* Two grid tracks reserve the full canvas hit area for the brain. */
+.sh-hero {
+  position: relative;
+  background: #000;
+  color: #eee;
+  font-family: Inter, "Inter Tight", sans-serif;
+}
+#sh-hero-root {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+  grid-template-areas: "copy brain";
+  align-items: center;
+  gap: clamp(20px, 3vw, 64px);
+  min-height: max(690px, 100svh);
+  padding: 104px 3% 80px 6%;
+}
+.sh-hero-copy { grid-area: copy; min-width: 0; }
+.sh-brain {
+  grid-area: brain;
+  position: relative;
+  width: 100%;
+  height: clamp(380px, 48vw, 78svh);
+  min-width: 0;
+  margin: 0;
+}
+.sh-brain canvas { display: block; width: 100%; height: 100%; touch-action: pan-y; }
+.sh-brain-fallback { width: 100%; height: 100%; object-fit: contain; opacity: .5; }
 .sh-eyebrow{font:700 11px/1.5 'Plus Jakarta Sans',sans-serif;letter-spacing:1.7px;text-transform:uppercase;color:#999;margin:0}
 .sh-hero h1{font:700 clamp(40px,4.5vw,68px)/1.08 Inter,sans-serif;letter-spacing:-.055em;margin:24px 0 28px;color:#e5e5e5;max-width:680px;text-transform:uppercase}
 .sh-description{font:400 14px/1.85 Inter,sans-serif;color:#aaa;max-width:410px;margin:0 0 32px}
 .sh-cta{display:inline-flex;align-items:center;gap:38px;border:1px solid #ffffff55;border-radius:999px;background:#000;color:#eee;padding:18px 25px;font:700 12px Inter,sans-serif;text-transform:uppercase;transition:background .2s,transform .2s}.sh-cta:hover{background:#171717;transform:translateY(-2px)}
 .sh-hero-bottom{position:absolute;z-index:2;bottom:35px;left:7%;color:#777;font:10px Inter,sans-serif;letter-spacing:1.5px;text-transform:uppercase}.sh-hero-bottom a{display:flex;gap:22px;align-items:center}
-@media(max-width:900px){.sh-hero-copy{padding-left:6%;max-width:62%}.sh-brain{right:-8%;width:66%;opacity:.85}.sh-hero h1{font-size:44px}}
-@media(max-width:600px){.sh-hero{min-height:930px;height:auto}#sh-hero-root{display:block}.sh-hero-copy{padding:150px 24px 400px;max-width:none}.sh-hero h1{font-size:40px;max-width:440px}.sh-brain{top:auto;bottom:65px;left:0;right:0;width:100%;height:350px;opacity:1}.sh-hero-bottom{left:24px;bottom:25px}.sh-description{max-width:350px}}
+@media (max-width: 760px) {
+  #sh-hero-root {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "copy" "brain";
+    align-content: center;
+    gap: 20px;
+    min-height: 100svh;
+    padding: 116px 24px 76px;
+  }
+  .sh-hero h1 { font-size: clamp(36px, 7vw, 48px); }
+  .sh-brain { height: clamp(290px, 68vw, 430px); }
+  .sh-hero-bottom { left: 24px; bottom: 24px; }
+}
 @media(prefers-reduced-motion:reduce){.sh-cta{transition:none}}

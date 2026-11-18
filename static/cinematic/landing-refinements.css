@@ -20,3 +20,35 @@ section[id]{scroll-margin-top:85px}
  .nav:has(.is-open) .brand,.nav:has(.is-open)>.pill-dark{visibility:hidden}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.fade,.reveal-ready .fade:not(.in){opacity:1;transform:none;transition:none}.signals li,.layer,.who article,.pv{transition:none}}
+
+/* Shared frames make the content groups legible against the black page. */
+.content {
+  --card-border: #343434;
+  --card-fill: #0c0c0c;
+  --card-radius: 14px;
+  --card-padding: clamp(18px, 2.1vw, 30px);
+}
+.content :is(.signals li, .layer, .n, .who article, .pv, .tm, .faq details, .dcard) {
+  min-width: 0;
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  background-color: var(--card-fill);
+}
+.content :is(.signals li, .layer, .n, .who article, .pv) {
+  padding: var(--card-padding);
+}
+.content :is(.signals, .layers-grid, .nums, .who, .priv, .team) {
+  gap: clamp(12px, 1.5vw, 22px);
+}
+.content .who { background: transparent; overflow: visible; }
+.content .who article { min-height: 0; }
+.content .n b { font-size: clamp(42px, 5.5vw, 78px); }
+.content .tm { overflow: hidden; padding-bottom: 20px; }
+.content .tm img { border-radius: 0; }
+.content .tm :is(b, span) { padding-inline: 18px; }
+.content .faq { display: grid; gap: 12px; }
+.content .faq details { padding-inline: var(--card-padding); }
+.content :is(.tm:hover, .tm:focus-visible, .faq details[open], .dcard.is-active) {
+  border-color: #666;
+}
+.content .signals li:hover { padding-left: var(--card-padding); }
