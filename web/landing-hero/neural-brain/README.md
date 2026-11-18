@@ -1,0 +1,3 @@
+NeuralBrain is bundled from [the requested Framer revision](https://framer.com/m/NeuralBrain-M6iuCB.js@dZBfieHBLCQvZdQ9YpK1). The canvas renderer and its pinned mesh are served locally. The editor controls were removed and the Framer static-render hook was replaced with the visitor's reduced-motion preference.
+
+Brain mesh: **Brain.glb, Poly by Google**, licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). The component's [mesh module](https://framerusercontent.com/modules/fmnchDyEyyJfGoPHx52T/12jiFm4YE8RFryFXgUNK/brainData.js) provides normalized vertices, faces, and wire samples.

@@ -1,5 +1,5 @@
 /* SilentHelp cinematic landing — DOM layer: smoothed scroll, status row,
-   demo-device choreography, chips, beam, fade-ins. Pairs with scene.js. */
+   demo-device choreography, chips, beam, fade-ins. The hero renders independently in React. */
 (function () {
   "use strict";
   var RM = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -16,7 +16,7 @@
   /* section progress: 0 when pinned, 1 when unpinned; can go <0 / >1 */
   var secs = {};
   function measure() {
-    ["top", "demo", "beginning"].forEach(function (id) {
+    ["top", "demo"].forEach(function (id) {
       var el = document.getElementById(id);
       if (!el) return;
       secs[id] = { top: el.offsetTop, h: el.offsetHeight };
@@ -99,19 +99,61 @@
     document.addEventListener("click", function (e) { if (!wrap.contains(e.target)) setActive(null); });
   })();
 
-  /* ── fade-ins ── */
+  /* Staggered, progressive reveals; content stays readable without JS. */
   var fades = document.querySelectorAll(".fade");
+  var io;
   if ("IntersectionObserver" in window && !reduced) {
-    var io = new IntersectionObserver(function (es) {
-      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
-    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.12 });
-    fades.forEach(function (f) { io.observe(f); });
-  } else fades.forEach(function (f) { f.classList.add("in"); });
+    document.documentElement.classList.add("reveal-ready");
+    io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("in");
+        io.unobserve(entry.target);
+      });
+    }, { rootMargin: "0px 0px -4% 0px", threshold: 0.08 });
+    fades.forEach(function (el) {
+      var siblings = Array.prototype.filter.call(el.parentElement.children, function (child) { return child.classList.contains("fade"); });
+      el.style.setProperty("--reveal-delay", Math.min(siblings.indexOf(el), 3) * 80 + "ms");
+      io.observe(el);
+    });
+  } else fades.forEach(function (el) { el.classList.add("in"); });
+  RM.addEventListener("change", function (e) {
+    if (!e.matches) return;
+    if (io) io.disconnect();
+    fades.forEach(function (el) { el.classList.add("in"); });
+  });
+  document.body.classList.add("ready");
 
-  /* hero copy reveal — scene.js calls SHScroll.ready(); fallback timer */
-  var readied = false;
-  S.ready = function () { if (readied) return; readied = true; document.body.classList.add("ready"); };
-  setTimeout(S.ready, reduced ? 50 : 4200);
+  /* Mobile navigation: Escape, anchor dismissal, and focus return. */
+  var toggle = $(".nav-toggle"), links = $("#primary-nav");
+  function closeMenu(returnFocus) {
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-label", "Open navigation");
+    links.classList.remove("is-open");
+    document.body.classList.remove("menu-open");
+    if (returnFocus) toggle.focus();
+  }
+  if (toggle && links) {
+    toggle.addEventListener("click", function () {
+      var open = toggle.getAttribute("aria-expanded") !== "true";
+      toggle.setAttribute("aria-expanded", String(open));
+      toggle.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
+      links.classList.toggle("is-open", open);
+      document.body.classList.toggle("menu-open", open);
+      if (open) links.querySelector("a").focus();
+    });
+    links.addEventListener("click", function (e) { if (e.target.closest("a")) closeMenu(false); });
+    document.addEventListener("keydown", function (e) {
+      if (toggle.getAttribute("aria-expanded") !== "true") return;
+      if (e.key === "Escape") closeMenu(true);
+      if (e.key === "Tab") {
+        var items = Array.prototype.slice.call(links.querySelectorAll("a")).concat(toggle);
+        var idx = items.indexOf(document.activeElement);
+        e.preventDefault();items[(idx + (e.shiftKey ? items.length - 1 : 1)) % items.length].focus();
+      }
+    });
+    matchMedia("(min-width: 801px)").addEventListener("change", function (e) { if(e.matches) closeMenu(false); });
+  }
 
   /* ── demo device timeline (time-based loop while in view) ── */
   var typedEl = $("#typed"), caret = $("#caret"), checkin = $("#checkin"), ping = $("#ping");
@@ -136,9 +178,20 @@
     return { el: el, d: parseFloat(el.getAttribute("data-d")) || 0.6, i: i };
   });
 
-  var nav = $("#nav"), heroStick = $("#top .stick"), demoCopy = $("#demoCopy"), deviceWrap = $("#deviceWrap"),
-      device = $("#device"), beam = $("#beam i"), galCopy = $("#galCopy"), galCta = $("#galCta");
+  var nav = $("#nav"), demoCopy = $("#demoCopy"), deviceWrap = $("#deviceWrap"),
+      device = $("#device"), beam = $("#beam i");
   var pinged = false, last = performance.now();
+
+  var wideDemo = window.matchMedia("(min-width: 1100px)");
+  wideDemo.addEventListener("change", function () {
+    [demoCopy, deviceWrap, device].concat(chips.map(function (chip) { return chip.el; })).forEach(function (el) {
+      el.style.removeProperty("transform");
+      el.style.removeProperty("opacity");
+    });
+    demoOn = false;
+    demoClock = 0;
+    measure();
+  });
 
   function frame(now) {
     var dt = Math.min(0.1, (now - last) / 1000); last = now; S.t += dt;
@@ -148,17 +201,16 @@
     if (Math.abs(S.target - S.y) < 0.05) S.y = S.target;
     var y = S.y, vh = S.vh;
 
-    /* hero overlay fades as the plinth rises away */
-    var h = S.raw("top", y);
-    var hf = 1 - smooth(0.42, 0.72, h);
-    heroStick.style.opacity = hf.toFixed(3);
-    heroStick.style.transform = reduced ? "" : "translate3d(0," + (-smooth(0.42, 0.9, h) * 6).toFixed(2) + "vh,0)";
-    heroStick.style.visibility = hf < 0.002 ? "hidden" : "visible";
-
     /* demo */
     var d = S.raw("demo", y);
     var dvis = d > -0.6 && d < 1.2;
-    if (dvis) {
+    if (wideDemo.matches) {
+      var section = secs.demo;
+      if (S.target + vh > section.top && S.target < section.top + section.h) {
+        demoClock = (demoClock + dt) % LOOP;
+        demoFrame(demoClock);
+      }
+    } else if (dvis) {
       var cOp = smooth(-0.22, -0.02, d) * (1 - smooth(0.9, 1.04, d));
       demoCopy.style.opacity = cOp.toFixed(3);
       demoCopy.style.transform = reduced ? "" : "translate3d(0," + (-(clamp(d, -0.3, 1)) * 5).toFixed(2) + "vh,0)";
@@ -205,15 +257,8 @@
       if (bp < 0.6) pinged = false;
     }
 
-    /* gallery copy */
-    var g = S.raw("beginning", y);
-    var gOp = smooth(0.1, 0.28, g) * (1 - smooth(0.86, 0.99, g));
-    galCopy.style.opacity = gOp.toFixed(3);
-    galCopy.style.transform = "translate3d(0," + (reduced ? 0 : (1 - smooth(0.1, 0.3, g)) * 22).toFixed(1) + "px,0)";
-    galCta.style.opacity = (smooth(0.18, 0.34, g) * (1 - smooth(0.86, 0.99, g))).toFixed(3);
-
-    nav.classList.toggle("solid", y > S.contentTop - 90);
-    S.h = h; S.d = d; S.g = g;
+    nav.classList.toggle("solid", y > 45);
+    S.d = d;
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);

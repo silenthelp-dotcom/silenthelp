@@ -1,0 +1,112 @@
+/* True black surfaces. Only the hero's neurons introduce color. */
+:root{--bg:#000;--deep:#050505;--silver:#e5e5e5;--light:#e3e3e3;--g300:#c4c4c4;--g400:#939393;--g500:#777;--s1:#080808;--s2:#161616;--chip:rgba(12,12,12,.7)}
+html{scroll-behavior:smooth;background:#000}body,.content,.act-demo{background:#000}
+.act-demo,footer,.content>section:not(#team){filter:grayscale(1)}
+#team img{filter:none}
+.nav.solid{background:rgba(0,0,0,.88)}.nav .brand img{border-radius:0;filter:none;object-fit:contain}
+.pill-dark{border:1px solid #ffffff30;background:#000}.pill-ghost{background:#000}
+.content::before{background:linear-gradient(0deg,#000,transparent)}
+.fade{opacity:1;transform:none;transition:opacity .85s var(--ease),transform .85s var(--ease);transition-delay:var(--reveal-delay,0ms)}
+.reveal-ready .fade:not(.in){opacity:0;transform:translateY(32px)}
+.reveal-ready .fade:focus-within{opacity:1;transform:none;transition:none}
+section[id]{scroll-margin-top:85px}
+.signals li{transition:padding-left .35s,color .35s}.signals li:hover{padding-left:12px;color:#fff}
+.layer,.who article,.pv{transition:background .35s,border-color .35s}.layer:hover,.who article:hover,.pv:hover{background:#0b0b0b}
+.nav-toggle{display:none}
+@media(max-width:800px){
+ .nav{grid-template-columns:1fr auto auto;gap:16px;padding:16px 20px}.nav .brand{font-size:17px;gap:8px}.nav .brand img{width:32px;height:32px}.nav .pill-dark{height:40px;padding:0 16px;font-size:12px}
+ .nav-toggle{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:center;gap:6px;width:36px;height:40px;border:0;background:none;color:#fff}.nav-toggle span{height:1px;width:22px;background:currentColor;transition:transform .2s}.nav-toggle[aria-expanded=true] span:first-child{transform:translateY(3.5px) rotate(45deg)}.nav-toggle[aria-expanded=true] span:last-child{transform:translateY(-3.5px) rotate(-45deg)}
+ .nav-links{display:none}.nav-links.is-open{position:fixed;inset:0;background:#000;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:40px;gap:35px;font-size:32px}.menu-open{overflow:hidden}
+ .nav:has(.is-open) .brand,.nav:has(.is-open)>.pill-dark{visibility:hidden}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.fade,.reveal-ready .fade:not(.in){opacity:1;transform:none;transition:none}.signals li,.layer,.who article,.pv{transition:none}}
+
+/* Shared frames make the content groups legible against the black page. */
+.content {
+  --card-border: #343434;
+  --card-fill: #0c0c0c;
+  --card-radius: 14px;
+  --card-padding: clamp(18px, 2.1vw, 30px);
+}
+.content :is(.signals li, .layer, .n, .who article, .pv, .tm, .faq details, .dcard) {
+  min-width: 0;
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  background-color: var(--card-fill);
+}
+.content :is(.signals li, .layer, .n, .who article, .pv) {
+  padding: var(--card-padding);
+}
+.content :is(.signals, .layers-grid, .nums, .who, .priv, .team) {
+  gap: clamp(12px, 1.5vw, 22px);
+}
+.content .who { background: transparent; overflow: visible; }
+.content .who article { min-height: 0; }
+.content .n b { font-size: clamp(42px, 5.5vw, 78px); }
+.content .tm { overflow: hidden; padding-bottom: 20px; }
+.content .tm img { border-radius: 0; }
+.content .tm :is(b, span) { padding-inline: 18px; }
+.content .faq { display: grid; gap: 12px; }
+.content .faq details { padding-inline: var(--card-padding); }
+.content :is(.tm:hover, .tm:focus-visible, .faq details[open], .dcard.is-active) {
+  border-color: #666;
+}
+.content .signals li:hover { padding-left: var(--card-padding); }
+
+@media (min-width: 1100px) {
+  :root {
+    --pad: clamp(32px, 4vw, 80px);
+    --sec: clamp(48px, 4vw, 72px);
+  }
+  .act-demo { height: auto; }
+  .act-demo .stick {
+    position: relative;
+    height: auto;
+    max-width: 1840px;
+    margin-inline: auto;
+    padding: var(--sec) var(--pad);
+    display: grid;
+    grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+    grid-template-areas: "copy device" "chips device";
+    gap: 24px clamp(20px, 3vw, 64px);
+    border-top: 1px solid #ffffff14;
+  }
+  .demo-copy {
+    grid-area: copy;
+    position: static;
+    padding: 0;
+    text-align: left;
+    align-items: flex-start;
+    align-self: end;
+    will-change: auto;
+  }
+  .demo-copy .lede { margin-inline: 0; max-width: 42ch; }
+  .demo-copy .cta-row { justify-content: flex-start; margin-top: 24px; }
+  .device-wrap {
+    grid-area: device;
+    position: static;
+    width: 100%;
+    align-self: center;
+    transform: none;
+    will-change: auto;
+  }
+  .device { min-height: 420px; transform: none; }
+  .chips {
+    grid-area: chips;
+    position: static;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: start;
+    gap: 6px;
+  }
+  .chip { position: static; height: auto; padding: 6px 10px; white-space: normal; transform: none; opacity: 1; will-change: auto; }
+  .beam, .content::before { display: none; }
+  .sec, .dm-sec, .foot { max-width: 1840px; }
+  .dm-sec, .final { padding-block: var(--sec); }
+  .dm-wrap { max-width: none; min-height: 0; }
+  .dm-head { margin-bottom: 30px; }
+  .signals, .layers-grid, .nums, .who, .priv, .team, .faq { margin-top: 32px; }
+  .faq { max-width: none; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .foot { padding-top: var(--sec); }
+  .foot-top { margin-bottom: 32px; }
+}

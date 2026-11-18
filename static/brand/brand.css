@@ -1,0 +1,4 @@
+/* Shared SilentHelp identity; keep the supplied SH mark consistent across apps. */
+.brand-mark,.brand .mark{display:inline-block!important;flex:none;width:29px;height:29px;padding:0!important;border:0!important;border-radius:6px!important;box-shadow:none!important;background:transparent url('/static/brand/mark.svg') center/contain no-repeat!important}
+.brand-mark i{display:none!important}
+.nav>.brand:not(:has(img)):not(:has(.mark)):not(:has(.brand-mark))::before{content:'';display:inline-block;flex:none;width:29px;height:29px;margin-right:10px;vertical-align:middle;background:url('/static/brand/mark.svg') center/contain no-repeat}
