@@ -39,8 +39,8 @@
   var statusEls = Array.prototype.slice.call(document.querySelectorAll("[data-status]"));
   statusEls.forEach(function (el) {
     el.innerHTML =
-      '<span class="live" data-k="device"><i></i>On-device · 0 bytes of raw text sent</span>' +
-      '<span data-k="scan"><b>Scan</b>&lt;1 ms</span>' +
+      '<span class="live" data-k="device"><i></i>SilentHelp · Check-ins</span>' +
+      '<span data-k="scan"><b>Mac</b>Snooze for 1h</span>' +
       '<span data-k="layers"><b>4 layers</b>watching quietly</span>' +
       '<span data-k="988"><b>988</b>call or text</span>' +
       '<span data-k="time"><b>Your time</b><time></time></span>';

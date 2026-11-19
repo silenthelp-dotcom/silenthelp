@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SilentHelp — Support That Notices Before You Have to Ask</title>
-<meta name="description" content="A private, on-device wellbeing companion for students, families, and school counselors.">
+<meta name="description" content="A wellbeing companion for students, families, and school counselors. Try it in your browser or on your Mac.">
 <meta name="theme-color" content="#000000">
 <link rel="icon" href="/static/cinematic/img/badge-32.png">
 <link rel="preload" href="/static/cinematic/fonts/inter-tight-500-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -44,7 +44,7 @@
     <div class="sh-hero-copy">
       <p class="sh-eyebrow">Free forever</p>
       <h1>Support that notices<br>before you have to ask</h1>
-      <p class="sh-description">A private, on-device wellbeing companion for students, families, and school counselors.</p>
+      <p class="sh-description">A wellbeing companion for students, families, and school counselors. Try it in your browser or on your Mac.</p>
       <a class="sh-cta" href="/app">START FREE →</a>
     </div>
     <figure class="sh-brain"><img class="sh-brain-fallback" src="/static/cinematic/img/sh-brain-engraving.png" alt="Anatomical brain engraving with SH woven into its folds"></figure>
@@ -66,7 +66,7 @@
     <div class="beam" id="beam" aria-hidden="true"><i></i></div>
 
     <div class="device-wrap" id="deviceWrap">
-      <div class="device" id="device" role="img" aria-label="SilentHelp Mac check-in demo: someone types “i honestly can't do this anymore” in Notes, SilentHelp detects it on-device and shows a gentle check-in.">
+      <div class="device" id="device" role="img" aria-label="SilentHelp Mac check-in demo: someone types “i honestly can't do this anymore” in Notes, SilentHelp flags the wording and shows a gentle check-in.">
         <div class="cam" aria-hidden="true"></div>
         <div class="screen" id="screen" aria-hidden="true">
           <div class="menubar">
@@ -100,9 +100,9 @@
       <span class="chip" data-d="0.85" style="--x:34vw;--y:-15vh">Distress detected · high</span>
       <span class="chip" data-d="0.55" style="--x:-39vw;--y:9vh">Jokes stay quiet</span>
       <span class="chip" data-d="1.0"  style="--x:38vw;--y:5vh">Gentle check-in offered</span>
-      <span class="chip" data-d="0.35" style="--x:-36vw;--y:-26vh">0 bytes of raw text stored</span>
+      <span class="chip" data-d="0.35" style="--x:-36vw;--y:-26vh">Detection history records event details</span>
       <span class="chip" data-d="0.7"  style="--x:37vw;--y:24vh">988 resources ready</span>
-      <span class="chip" data-d="0.6"  style="--x:-33vw;--y:26vh">Drafts to a trusted adult · you press send</span>
+      <span class="chip" data-d="0.6"  style="--x:-33vw;--y:26vh">Set a trusted contact</span>
     </div>
   </div>
 </section>
@@ -215,7 +215,7 @@
               <div class="dm-row a d1"><span><em>02</em>Semantic</span><span class="dm-tg t2"></span></div>
               <div class="dm-row a d1"><span><em>03</em>Behavioral</span><span class="dm-tg t3"></span></div>
               <div class="dm-row a d1"><span><em>04</em>Trend gate</span><span class="dm-tg t4"></span></div>
-              <div class="dm-zero a d5">0 bytes of raw text stored<br>events = category + level</div>
+              <div class="dm-zero a d5">Detection events<br>Category, level and time</div>
             </div>
             <div class="dm-act a d6"><span>Export everything</span><em>.json</em></div>
             <div class="dm-act a d7"><span>Erase everything</span><em>one click</em></div>
@@ -223,7 +223,7 @@
         </div>
       </div>
       <div class="dm-rest" aria-hidden="true"><span>06</span><b>Privacy controls</b></div>
-      <div class="dm-body"><span class="dm-cat">06 · Privacy</span><h3>You stay in control</h3><p>0 bytes of raw text stored. Drafts to a trusted adult only if you press send. Erase everything in one click.</p><a class="dm-go" href="/privacy">Privacy <span aria-hidden="true">→</span></a></div>
+      <div class="dm-body"><span class="dm-cat">06 · Privacy</span><h3>You stay in control</h3><p>Review your saved contact, detection settings and how alerts work.</p><a class="dm-go" href="/privacy">Privacy <span aria-hidden="true">→</span></a></div>
     </article>
   </div>
 
@@ -234,10 +234,10 @@
   <h2 id="howT" class="fade">Four quiet layers,<br>one gentle signal</h2>
   <p class="lede fade">Four checks look at language, context, behavior, and changes over time.</p>
   <div class="layers-grid">
-    <div class="layer fade"><span class="lk">L1</span><h3>Keyword</h3><p class="mono">~15 ms · local regex · no AI</p><p>Tens of thousands of phrases matched locally. No AI, no network.</p><p class="quote">“i feel so alone”</p></div>
+    <div class="layer fade"><span class="lk">L1</span><h3>Keyword</h3><p class="mono">Phrase matching</p><p>The keyword layer checks writing against a phrase database.</p><p class="quote">“i feel so alone”</p></div>
     <div class="layer fade"><span class="lk">L2</span><h3>Semantic</h3><p class="mono">reads intent, decides severity</p><p>Looks for context, including jokes and signs of distress.</p><p class="quote"><span class="tag">joke</span> <span class="tag">serious</span></p></div>
     <div class="layer fade"><span class="lk">L3</span><h3>Behavioral</h3><p class="mono">rhythm vs. your baseline · no text</p><p>Compares late nights, typing pace, and session length with your usual rhythm.</p></div>
-    <div class="layer fade"><span class="lk">L4</span><h3>Trend gate</h3><p class="mono">one bad day ≠ a pattern</p><p>1 day ≠ crisis. Only a sustained pattern surfaces. Crisis always bypasses.</p></div>
+    <div class="layer fade"><span class="lk">L4</span><h3>Trend gate</h3><p class="mono">one bad day ≠ a pattern</p><p>Patterns over time. The trend check looks for recurring signals. Crisis phrases can trigger an immediate response.</p></div>
   </div>
   <p class="you fade">You — in control</p>
   <div class="cta-row fade"><a class="pill" href="/app">Start free</a></div>
@@ -246,10 +246,10 @@
 <section class="sec" id="numbers" aria-labelledby="numT">
   <p class="eyebrow fade">By the numbers</p>
   <h2 id="numT" class="fade">Detection in numbers</h2>
-  <p class="lede fade">Privacy-first by design. Measured on the device, never in the cloud.</p>
+  <p class="lede fade">What happens after SilentHelp picks up a signal?</p>
   <div class="nums">
-    <div class="n fade"><b>&lt;1ms</b><h3>on-device scan</h3><p>every message checked locally, before anything leaves your Mac.</p></div>
-    <div class="n fade"><b>0 bytes</b><h3>raw text stored</h3><p>only a category and a level are recorded — never what you wrote.</p></div>
+    <div class="n fade"><b>3</b><h3>check-in options</h3><p>Talk it through, snooze for an hour, or dismiss the prompt.</p></div>
+    <div class="n fade"><b>24h</b><h3>crisis alert window</h3><p>Three recorded crisis signals in a day can trigger an email to a saved contact.</p></div>
     <div class="n fade"><b>4</b><h3>detection layers</h3><p>keyword, semantic, behavioral, and a trend gate that ignores one bad day.</p></div>
   </div>
 </section>
@@ -261,7 +261,7 @@
     <article class="fade"><span class="num">01</span><h3>The student at 1 a.m.</h3><p class="mono">Studying, scrolling, not sleeping</p><p>A change in your usual sleep or typing patterns can prompt a check-in.</p></article>
     <article class="fade"><span class="num">02</span><h3>The one who jokes</h3><p class="mono">"this test is killing me 😂"</p><p>SilentHelp checks whether the words are part of a joke.</p></article>
     <article class="fade"><span class="num">03</span><h3>The friend who got a text</h3><p class="mono">Help a Friend</p><p>Get help choosing what to say and when to involve an adult.</p></article>
-    <article class="fade" id="parents"><span class="num">04</span><h3>The parent who wonders</h3><p class="mono">Families</p><p>Your teen chooses what to share with you.</p></article>
+    <article class="fade" id="parents"><span class="num">04</span><h3>The parent who wonders</h3><p class="mono">Families</p><p>Talk together about check-ins and who should receive a crisis alert.</p></article>
     <article class="fade" id="schools"><span class="num">05</span><h3>The school counselor</h3><p class="mono">Schools</p><p>Students can send a draft with the category and level of concern.</p></article>
     <article class="fade"><span class="num">06</span><h3>The one in crisis</h3><p class="mono">988 · Suicide &amp; Crisis Lifeline</p><p>When it's truly serious, a calm check-in surfaces real human help. Crisis always bypasses the trend gate.</p></article>
   </div>
@@ -269,12 +269,12 @@
 
 <section class="sec" id="privacy" aria-labelledby="privT">
   <p class="eyebrow fade">Privacy</p>
-  <h2 id="privT" class="fade">You stay<br>in control</h2>
-  <p class="lede fade">0 bytes of raw text stored. Drafts to a trusted adult only if you press send. Erase everything in one click.</p>
+  <h2 id="privT" class="fade">Your settings<br>and alerts</h2>
+  <p class="lede fade">Review your saved contact, detection settings and how alerts work.</p>
   <div class="priv">
-    <div class="pv fade"><span class="mono">Privacy</span><b>0 bytes</b><p>Raw text stored or transmitted. Only a category and a level.</p></div>
-    <div class="pv fade"><span class="mono">Layer 4 · Trend gate</span><b>1 day ≠ crisis</b><p>Only a sustained pattern surfaces. Crisis always bypasses.</p></div>
-    <div class="pv fade"><span class="mono">Escalation</span><b>You press send</b><p>The message to a counselor is drafted — you decide if it goes.</p></div>
+    <div class="pv fade"><span class="mono">Privacy</span><b>Processing</b><p>The browser app and paired Macs use hosted processing. An unpaired Mac can use a local server.</p></div>
+    <div class="pv fade"><span class="mono">Layer 4 · Trend gate</span><b>Patterns over time</b><p>The trend check looks for recurring signals. Crisis phrases can trigger an immediate response.</p></div>
+    <div class="pv fade"><span class="mono">Escalation</span><b>Contact alerts</b><p>After three recorded crisis signals in 24 hours, SilentHelp can automatically email your saved contact with up to 140 characters from the latest message.</p></div>
   </div>
   <ul class="controls fade" aria-label="Privacy controls">
     <li><span>Trusted contact</span><em>Ms. Rivera</em></li>
@@ -282,7 +282,7 @@
     <li><span>Erase everything</span><em>one click</em></li>
     <li><span>Delete account</span><em>frees email</em></li>
   </ul>
-  <p class="mono fade">events = category + level + time · 0 bytes of raw text</p>
+  <p class="mono fade">Detection history records category, level and time.</p>
   <div class="cta-row fade"><a class="pill-ghost" href="/privacy-architecture">Privacy architecture</a><a class="pill-ghost" href="/privacy">Privacy Policy</a></div>
 </section>
 
@@ -302,7 +302,7 @@
   <p class="eyebrow fade">The team</p>
   <h2 id="teamT" class="fade">Built by students,<br>for students.</h2>
   <p class="lede fade">Three high schoolers founded SilentHelp in 2026.</p>
-  <ul class="principles fade"><li>The model flags · the code decides</li><li>Fails safe, never silent</li><li>Nothing leaves without your say-so</li></ul>
+  <ul class="principles fade"><li>The model flags · the code decides</li><li>Crisis resources are built in</li><li>Review your trusted contact</li></ul>
   <div class="team">
     <a class="tm fade" href="/about#sree"><img src="/static/img/team/sree.jpg" alt="" loading="lazy"><b>Sree Saran Lakkaraju</b><span>Founder · CEO · Chief Product &amp; UX Officer</span></a>
     <a class="tm fade" href="/about#abhinav"><img src="/static/img/team/abhinav.jpg" alt="" loading="lazy"><b>Abhinav Allani</b><span>Co-Founder · Lead AI/ML &amp; Detection Systems</span></a>
@@ -317,9 +317,9 @@
   <h2 id="faqT" class="h2s fade">Common questions</h2>
   <div class="faq">
     <details class="fade"><summary>Is SilentHelp a therapist?</summary><p>No. SilentHelp is a wellbeing companion. It does not diagnose conditions or provide treatment.</p></details>
-    <details class="fade"><summary>What does it store about what I write?</summary><p>0 bytes of raw text stored or transmitted. Only a category and a level are recorded — never what you wrote. Every message is checked locally, before anything leaves your Mac.</p></details>
-    <details class="fade"><summary>What if I’m just joking?</summary><p>“this test is killing me 😂” — nothing happens. It reads meaning, not keywords — so it never cries wolf, and students keep trusting it.</p></details>
-    <details class="fade"><summary>Will my parents or school see my messages?</summary><p>You decide whether to send a draft to a trusted adult. The draft includes the category and level of concern. Your messages stay out of it.</p></details>
+    <details class="fade"><summary>What does it store about what I write?</summary><p>Detection history logs the category, level and time. The browser app and paired Macs use hosted processing. An unpaired Mac can use a local server.</p></details>
+    <details class="fade"><summary>What if I’m just joking?</summary><p>The meaning check looks for context, including jokes. It can still misread a message.</p></details>
+    <details class="fade"><summary>Will my parents or school see my messages?</summary><p>You can review and send a draft yourself. After three recorded crisis signals in 24 hours, SilentHelp can automatically email your saved contact with up to 140 characters from the latest message.</p></details>
     <details class="fade"><summary>What happens when it’s serious?</summary><p>When it's truly serious, a calm check-in surfaces real human help — call or text 988, or text HOME to 741741. Crisis always bypasses the trend gate, and explicit crisis phrases can never be suppressed by joke context.</p></details>
     <details class="fade"><summary>What does it cost?</summary><p>SilentHelp is free for students, families, and schools — download it or open it in your browser today.</p></details>
   </div>
@@ -335,7 +335,7 @@
   <div class="foot-top">
     <div class="foot-brand">
       <a class="brand" href="#top"><img src="/static/cinematic/img/sh-brain.svg" alt="" width="36" height="36"><span>SilentHelp</span></a>
-      <p>A quiet companion that notices when you're running low — on your Mac, never sent anywhere, long before you'd think to ask for help.</p>
+      <p>A wellbeing companion that can offer a check-in when finding the words is hard.</p>
       <p><a href="mailto:silenthelp@silenthelp.org">silenthelp@silenthelp.org</a> · <a href="https://github.com/silenthelp-dotcom/silenthelp" rel="noopener">GitHub</a></p>
     </div>
     <nav aria-label="Company"><h4>Company</h4><a href="/">Home</a><a href="#demo">Demo</a><a href="/about">About</a><a href="#how">How it works</a><a href="/privacy-architecture">Privacy architecture</a><a href="/next-features">Next-generation features</a><a href="/download/agent">Download for Mac</a><a href="/app">Start free</a></nav>
@@ -344,7 +344,7 @@
   <div class="status" data-status aria-label="SilentHelp status"></div>
   <div class="foot-bot">
     <span>© 2026 SilentHelp All Rights Reserved</span>
-    <p>SilentHelp is a wellbeing companion, not a medical device, and it does not diagnose or provide treatment. If you are in immediate danger, call or text 988 (US Suicide &amp; Crisis Lifeline) or your local emergency number.</p>
+    <p>SilentHelp is a wellbeing companion, not a medical device, and it does not diagnose or provide treatment. In the US, call or text 988 for crisis support. For immediate danger, call 911 or your local emergency number.</p>
   </div>
 </footer>
 </div>
